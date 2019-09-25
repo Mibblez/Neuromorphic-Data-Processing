@@ -34,9 +34,9 @@ for folderName in folders:
     folderName = folderName.replace('no pol', "NoPolarizer")
     print(folderName)
     print(np.array(y_off).mean())
-    yOffSmoothed = savgol_filter(y_off, 51, 4)
-    yOnSmoothed  =  savgol_filter(y_on, 51, 4)
-    yBothSmoothed = savgol_filter(y_all, 51, 4)
+    yOffSmoothed = savgol_filter(y_off, 71, 3)
+    yOnSmoothed  =  savgol_filter(y_on, 71, 3)
+    yBothSmoothed = savgol_filter(y_all, 71,3)
 
     yf = scipy.fftpack.fft(yOffSmoothed)
     offFrequencies.append(yf)
