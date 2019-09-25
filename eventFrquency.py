@@ -21,7 +21,9 @@ import scipy.fftpack
 #folderName = "18hz_30deg Event Chunks"
 #folderName = "18hz_nopol Event Chunks"
 #folderName = "26hz_30deg Event Chunks"
-frequencies = []
+offFrequencies = []
+onFrequencies = []
+bothFrequencies = []
 folders = os.listdir("data/")
 for folderName in folders:
     
@@ -37,7 +39,9 @@ for folderName in folders:
     yBothSmoothed = savgol_filter(y_all, 51, 4)
 
     yf = scipy.fftpack.fft(yOffSmoothed)
-    frequencies.append(yf)
+    offFrequencies.append(yf)
+    onFrequencies.append(scipy.fftpack.fft(yOnSmoothed))
+    bothFrequencies.append(scipy.fftpack.fft(yBothSmoothed))
 
     f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
     f.set_size_inches(18.5, 10.5)
@@ -51,7 +55,7 @@ for folderName in folders:
     axes[1][1].set_ylim(yOnSmoothed.min(),yOnSmoothed.max()+10)
     axes[1][1].scatter(x,yOnSmoothed,c='green',picker=True, s=1)
     axes[0][1].scatter(x,y_on,c='green',picker=True,s=1)
-    plt.title(folderName +" On Events")
+    axes[1][1].title.set_text(folderName +" On Events")
 
     axes[1][2].scatter(x,yBothSmoothed,c='blue',picker=True, s=1)
     axes[0][2].scatter(x,y_all,c='blue',picker=True,s=1)
@@ -61,47 +65,53 @@ for folderName in folders:
 
 
 plt.show()
-fftX = np.linspace(0.0, 1.0/(2.0*(1.0 / 800.0)), fileCount/2)
-index = 0
 
-polLabels =[]
-polFreq = []
-noPolLabels = []
-noPolFreq = []
+def showFFT(data):
+    fftX = np.linspace(0.0, 1.0/(2.0*(1.0 / 800.0)), fileCount/2)
+    index = 0
 
-for y in frequencies:
-    if("no pol" in folders[index] ):
-        noPolLabels.append(folders[index])
-        noPolFreq.append(y)
-    else:
-        polLabels.append(folders[index])
-        polFreq.append(y)
+    polLabels =[]
+    polFreq = []
+    noPolLabels = []
+    noPolFreq = []
 
-    index+=1
+    for y in data:
+        if("no pol" in folders[index] ):
+            noPolLabels.append(folders[index])
+            noPolFreq.append(y)
+        else:
+            polLabels.append(folders[index])
+            polFreq.append(y)
 
-f, axes = plt.subplots(nrows = 1, ncols = 2, sharex=True, sharey = True )
+        index+=1
 
-index = 0
-for y in polFreq:
-    axes[0].plot(fftX, 2.0/fileCount * np.abs(y[:fileCount//2]), label= polLabels[index].replace('Event Chunks', ''))
-    index+=1
+    f, axes = plt.subplots(nrows = 1, ncols = 2, sharex=True, sharey = True )
 
-
-axes[0].set_xlim(2,60)
-axes[0].set_ylim(0,50)
-axes[0].legend()
+    index = 0
+    for y in polFreq:
+        axes[0].plot(fftX, 2.0/fileCount * np.abs(y[:fileCount//2]), label= polLabels[index].replace('Event Chunks', ''))
+        index+=1
 
 
+    axes[0].set_xlim(2,60)
+    axes[0].set_ylim(0,50)
+    axes[0].legend()
 
-index = 0
-for y in noPolFreq:
-    axes[1].plot(fftX, 2.0/fileCount * np.abs(y[:fileCount//2]), label= noPolLabels[index].replace('Event Chunks', ''))
-    index+=1
 
-axes[1].set_xlim(2,60)
-axes[1].set_ylim(0,50)
-axes[1].legend()
-plt.show()
+
+    index = 0
+    for y in noPolFreq:
+        axes[1].plot(fftX, 2.0/fileCount * np.abs(y[:fileCount//2]), label= noPolLabels[index].replace('Event Chunks', ''))
+        index+=1
+
+    axes[1].set_xlim(2,60)
+    axes[1].set_ylim(0,50)
+    axes[1].legend()
+    plt.show()
+
+showFFT(offFrequencies)
+showFFT(onFrequencies)
+showFFT(bothFrequencies)
 
 input()
         
