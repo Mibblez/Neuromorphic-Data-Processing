@@ -25,6 +25,10 @@ offFrequencies = []
 onFrequencies = []
 bothFrequencies = []
 folders = os.listdir("data/")
+
+#graphType = "savgol"
+graphType = "hist"
+
 for folderName in folders:
     
     #folderName = "26hz_nopol Event Chunks"
@@ -46,18 +50,25 @@ for folderName in folders:
     f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
     f.set_size_inches(18.5, 10.5)
 
-    axes[1][0].set_ylim(yOffSmoothed.min(),yOffSmoothed.max()+10)
-    axes[1][0].scatter(x,yOffSmoothed,c='red',picker=True, s=1)
+    if graphType == 'hist':
+        axes[1][0].hist(y_off, bins=15, color='red',edgecolor='black', linewidth=1.2)
+        axes[1][1].hist(y_on,bins=15, color='green',edgecolor='black', linewidth=1.2)
+        axes[1][2].hist(y_all,bins=15, color='blue',edgecolor='black', linewidth=1.2)
+    else:
+        axes[1][0].set_ylim(yOffSmoothed.min(),yOffSmoothed.max()+10)
+        axes[1][1].set_ylim(yOnSmoothed.min(),yOnSmoothed.max()+10)
+        axes[1][2].scatter(x,yBothSmoothed,c='blue',picker=True, s=1)
+        axes[1][0].scatter(x,yOffSmoothed,c='red',picker=True, s=1)
+        axes[1][1].scatter(x,yOnSmoothed,c='green',picker=True, s=1)
 
+
+    
     axes[0][0].scatter(x,y_off,c='red',picker=True,s=1)
-    axes[1][0].title.set_text(folderName +" Off Events")
 
-    axes[1][1].set_ylim(yOnSmoothed.min(),yOnSmoothed.max()+10)
-    axes[1][1].scatter(x,yOnSmoothed,c='green',picker=True, s=1)
+    axes[1][0].title.set_text(folderName +" Off Events")
     axes[0][1].scatter(x,y_on,c='green',picker=True,s=1)
     axes[1][1].title.set_text(folderName +" On Events")
 
-    axes[1][2].scatter(x,yBothSmoothed,c='blue',picker=True, s=1)
     axes[0][2].scatter(x,y_all,c='blue',picker=True,s=1)
     plt.title(folderName +" All Events")
 
