@@ -12,6 +12,8 @@ from scipy import stats
 import plotSpectrum
 import getData
 import scipy.fftpack
+import pywt
+import pywt.data
 #folderName ="foam 12hz 30deg Event Chunks"
 #folderName ="foam 26hz 30deg Event Chunks"
 #folderName = "foam 18hz 30deg Event Chunks"
@@ -24,10 +26,15 @@ import scipy.fftpack
 offFrequencies = []
 onFrequencies = []
 bothFrequencies = []
+
 folders = os.listdir("data/")
 
+titles = ['Approximation', ' Horizontal detail',
+          'Vertical detail', 'Diagonal detail']
+
 #graphType = "savgol"
-graphType = "hist"
+#graphType = "hist"
+graphType = "wavelets"
 
 for folderName in folders:
     
@@ -54,12 +61,27 @@ for folderName in folders:
         axes[1][0].hist(y_off, bins=15, color='red',edgecolor='black', linewidth=1.2)
         axes[1][1].hist(y_on,bins=15, color='green',edgecolor='black', linewidth=1.2)
         axes[1][2].hist(y_all,bins=15, color='blue',edgecolor='black', linewidth=1.2)
+    elif graphType == "wavelets":
+        data = []
+        for i in range(fileCount):
+            data.append([x[i], y_off[i]])
+        print("")
+        coeffs = pywt.dwt2(data, 'bior1.3')
+        LL, (LH, HL, HH) = coeffs
+        fig = plt.figure(figsize=(12, 3))
+        for i, a in enumerate([LL, LH, HL, HH]):
+            ax = fig.add_subplot(1, 4, i + 1)
+            ax.imshow(a, interpolation="nearest", cmap=plt.cm.gray)
+            ax.set_title(titles[i], fontsize=10)
+            ax.set_xticks([])
+            ax.set_yticks([])
     else:
         axes[1][0].set_ylim(yOffSmoothed.min(),yOffSmoothed.max()+10)
         axes[1][1].set_ylim(yOnSmoothed.min(),yOnSmoothed.max()+10)
         axes[1][2].scatter(x,yBothSmoothed,c='blue',picker=True, s=1)
         axes[1][0].scatter(x,yOffSmoothed,c='red',picker=True, s=1)
         axes[1][1].scatter(x,yOnSmoothed,c='green',picker=True, s=1)
+    
 
 
     
@@ -71,7 +93,8 @@ for folderName in folders:
 
     axes[0][2].scatter(x,y_all,c='blue',picker=True,s=1)
     plt.title(folderName +" All Events")
-
+    
+    #print(coeff)
     #plt.show()
 
 
