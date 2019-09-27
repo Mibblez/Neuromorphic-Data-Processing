@@ -27,6 +27,10 @@ def getData(folderName):
                 allCount+=1
             allCount-=1
             offCount-=1
+            if allCount ==-1:
+                allCount = 0
+            if offCount == -1:
+                offCount = 0
             x.append(fileCount)
             y_all.append(allCount)
             y_off.append(offCount)

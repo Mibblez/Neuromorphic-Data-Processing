@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
+from scipy.stats import norm
 import csv
 import os
 from os import walk
@@ -14,6 +16,7 @@ import getData
 import scipy.fftpack
 import pywt
 import pywt.data
+import math
 #folderName ="foam 12hz 30deg Event Chunks"
 #folderName ="foam 26hz 30deg Event Chunks"
 #folderName = "foam 18hz 30deg Event Chunks"
@@ -27,19 +30,48 @@ offFrequencies = []
 onFrequencies = []
 bothFrequencies = []
 
+offGuas=[]
+onGuas=[]
+bothGuas=[]
+
 folders = os.listdir("data/")
 
 titles = ['Approximation', ' Horizontal detail',
           'Vertical detail', 'Diagonal detail']
 
 #graphType = "savgol"
-#graphType = "hist"
-graphType = "wavelets"
+graphType = "hist"
+#graphType = "wavelets"
+
+logValues = True
+guassianFitHistogrms = True
 
 for folderName in folders:
     
     #folderName = "26hz_nopol Event Chunks"
     y_on,y_off,y_all, fileCount,x= getData.getData(folderName)
+
+    onAvg = np.array(y_on).mean()
+    offAvg = np.array(y_off).mean()
+    allAvg = np.array(y_all).mean()
+
+    if logValues:
+        for i in range(len(y_on)):
+            if y_on[i] == 0:
+                y_on[i] = math.log10(onAvg)
+            else:
+                y_on[i] = math.log10(y_on[i])
+        for i in range(len(y_off)):
+            if y_off[i] == 0:
+                y_off[i] = math.log10(offAvg)
+            else:
+                y_off[i] = math.log10(y_off[i])
+        for i in range(len(y_all)):
+            if y_all[i] == 0:
+                y_all[i] = math.log10(allAvg)
+            else:
+                y_all[i] = math.log10(y_all[i])
+
 
     folderName = folderName.replace('Event Chunks', '')
     folderName = folderName.replace('no pol', "NoPolarizer")
@@ -55,12 +87,28 @@ for folderName in folders:
     bothFrequencies.append(scipy.fftpack.fft(yBothSmoothed))
 
     f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
-    f.set_size_inches(18.5, 10.5)
+    f.set_size_inches(15, 10.5)
+    f.tight_layout()
 
     if graphType == 'hist':
-        axes[1][0].hist(y_off, bins=15, color='red',edgecolor='black', linewidth=1.2)
-        axes[1][1].hist(y_on,bins=15, color='green',edgecolor='black', linewidth=1.2)
-        axes[1][2].hist(y_all,bins=15, color='blue',edgecolor='black', linewidth=1.2)
+        n, bins, patches = axes[1][0].hist(y_off, bins=25, color='red',edgecolor='black', linewidth=1.2, normed=1)
+        if guassianFitHistogrms:
+            (mu, sigma) = norm.fit(y_off)
+            y = mlab.normpdf( bins, mu, sigma)
+            l = axes[1][0].plot(bins, y, linewidth=2)
+            offGuas.append(l[0])
+        n, bins, patches =axes[1][1].hist(y_on,bins=25, color='green',edgecolor='black', linewidth=1.2, normed=1)
+        if guassianFitHistogrms:
+            (mu, sigma) = norm.fit(y_on)
+            y = mlab.normpdf( bins, mu, sigma)
+            l = axes[1][1].plot(bins, y, linewidth=2)
+            onGuas.append(l[0])
+        n, bins, patches =axes[1][2].hist(y_all,bins=25, color='blue',edgecolor='black', linewidth=1.2, normed=1)
+        if guassianFitHistogrms:
+            (mu, sigma) = norm.fit(y_all)
+            y = mlab.normpdf( bins, mu, sigma)
+            l = axes[1][2].plot(bins, y, linewidth=2)
+            bothGuas.append(l[0])
     elif graphType == "wavelets":
         data = []
         for i in range(fileCount):
@@ -98,6 +146,14 @@ for folderName in folders:
     #plt.show()
 
 
+plt.show()
+
+f, axes = plt.subplots(nrows = 1, ncols = 3, sharex=False, sharey = False )
+f.set_size_inches(15, 10.5)
+f.tight_layout()
+
+for line in offGuas:
+    axes[0].add_line(line)
 plt.show()
 
 def showFFT(data):
@@ -148,4 +204,4 @@ showFFT(onFrequencies)
 showFFT(bothFrequencies)
 
 input()
-        
+
