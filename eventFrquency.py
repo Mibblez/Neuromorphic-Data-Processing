@@ -10,6 +10,7 @@ from os.path import isfile, join
 from scipy.optimize import leastsq
 from scipy.signal import savgol_filter
 from scipy.signal import argrelextrema
+from sklearn.metrics import pairwise_distances_argmin
 from scipy import stats
 import plotSpectrum
 import getData
@@ -17,22 +18,51 @@ import scipy.fftpack
 import pywt
 import pywt.data
 import math
-#folderName ="foam 12hz 30deg Event Chunks"
-#folderName ="foam 26hz 30deg Event Chunks"
-#folderName = "foam 18hz 30deg Event Chunks"
-#folderName = "8hz_30deg Event Chunks"
-#folderName ="8hz_nopol Event Chunks"
-#folderName = "12hz_30deg Event Chunks"
-#folderName = "18hz_30deg Event Chunks"
-#folderName = "18hz_nopol Event Chunks"
-#folderName = "26hz_30deg Event Chunks"
+
+def find_clusters(X, n_clusters, rseed=2):
+    # 1. Randomly choose clusters
+    rng = np.random.RandomState(rseed)
+    i = rng.permutation(X.shape[0])[:n_clusters]
+    centers = X[i]
+    
+    while True:
+        # 2a. Assign labels based on closest center
+        labels = pairwise_distances_argmin(X, centers)
+        
+        # 2b. Find new centers from means of points
+        new_centers = np.array([X[labels == i].mean(0)
+                                for i in range(n_clusters)])
+        
+        # 2c. Check for convergence
+        if np.all(centers == new_centers):
+            break
+        centers = new_centers
+    
+    return centers, labels
+
+def plotKmeans(data, axes, columnIndex):
+    pts = []
+    i =0
+    for point in data:
+        pts.append([i,point])
+        i+=1
+    pts = np.asarray(pts)
+    centers, labels = find_clusters(pts,10)
+    axes[1][columnIndex].scatter(pts[:, 0], pts[:, 1], c=labels, s=50, cmap='viridis')
+    axes[1][columnIndex].scatter(centers[:, 0], centers[:, 1], c='red')
+
 offFrequencies = []
 onFrequencies = []
 bothFrequencies = []
 
 offGuas=[]
+offLabel = []
+
 onGuas=[]
+onLabel = []
+
 bothGuas=[]
+bothLabel = []
 
 folders = os.listdir("data/")
 
@@ -40,9 +70,9 @@ titles = ['Approximation', ' Horizontal detail',
           'Vertical detail', 'Diagonal detail']
 
 #graphType = "savgol"
-graphType = "hist"
+#graphType = "hist"
 #graphType = "wavelets"
-
+graphType = "kmeans"
 logValues = True
 guassianFitHistogrms = True
 
@@ -97,18 +127,28 @@ for folderName in folders:
             y = mlab.normpdf( bins, mu, sigma)
             l = axes[1][0].plot(bins, y, linewidth=2)
             offGuas.append(l[0])
+            offLabel.append(folderName + " Off Events")
+
         n, bins, patches =axes[1][1].hist(y_on,bins=25, color='green',edgecolor='black', linewidth=1.2, normed=1)
         if guassianFitHistogrms:
             (mu, sigma) = norm.fit(y_on)
             y = mlab.normpdf( bins, mu, sigma)
             l = axes[1][1].plot(bins, y, linewidth=2)
             onGuas.append(l[0])
+            onLabel.append(folderName + " On Events")
         n, bins, patches =axes[1][2].hist(y_all,bins=25, color='blue',edgecolor='black', linewidth=1.2, normed=1)
         if guassianFitHistogrms:
             (mu, sigma) = norm.fit(y_all)
             y = mlab.normpdf( bins, mu, sigma)
             l = axes[1][2].plot(bins, y, linewidth=2)
             bothGuas.append(l[0])
+            bothLabel.append(folderName + " Both Events")
+    elif graphType == 'kmeans':
+        
+        plotKmeans(y_off, axes,0)
+        plotKmeans(y_on, axes,1)
+        plotKmeans(y_all, axes,2)
+
     elif graphType == "wavelets":
         data = []
         for i in range(fileCount):
@@ -130,8 +170,6 @@ for folderName in folders:
         axes[1][0].scatter(x,yOffSmoothed,c='red',picker=True, s=1)
         axes[1][1].scatter(x,yOnSmoothed,c='green',picker=True, s=1)
     
-
-
     
     axes[0][0].scatter(x,y_off,c='red',picker=True,s=1)
 
@@ -148,13 +186,26 @@ for folderName in folders:
 
 plt.show()
 
-f, axes = plt.subplots(nrows = 1, ncols = 3, sharex=False, sharey = False )
-f.set_size_inches(15, 10.5)
-f.tight_layout()
 
-for line in offGuas:
-    axes[0].add_line(line)
-plt.show()
+
+
+if graphType == "hist" and guassianFitHistogrms:
+    f, axes = plt.subplots(nrows = 1, ncols = 3, sharex=False, sharey = False )
+    f.set_size_inches(15, 10.5)
+    f.tight_layout()
+    def showAllGuas(lines, labels, axesIndex):
+        i =0
+        for line in lines:
+            axes[axesIndex].plot(line._x,line._y, label=labels[i])
+            i+=1
+        axes[axesIndex].legend()
+
+    showAllGuas(offGuas, offLabel,0)
+    showAllGuas(onGuas, onLabel,1)
+    showAllGuas(bothGuas, bothLabel,2)
+    plt.show()
+
+
 
 def showFFT(data):
     fftX = np.linspace(0.0, 1.0/(2.0*(1.0 / 800.0)), fileCount/2)
