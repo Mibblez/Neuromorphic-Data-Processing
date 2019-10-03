@@ -19,6 +19,13 @@ import pywt
 import pywt.data
 import math
 
+'''
+add comments pls
+
+for i, thing in enumerate(things):
+     https://treyhunner.com/2016/04/how-to-loop-with-indexes-in-python/
+
+'''
 def find_clusters(X, n_clusters, rseed=2):
     # 1. Randomly choose clusters
     rng = np.random.RandomState(rseed)
@@ -70,9 +77,9 @@ titles = ['Approximation', ' Horizontal detail',
           'Vertical detail', 'Diagonal detail']
 
 #graphType = "savgol"
-#graphType = "hist"
+graphType = "hist"
 #graphType = "wavelets"
-graphType = "kmeans"
+#graphType = "kmeans"
 logValues = True
 guassianFitHistogrms = True
 
@@ -121,25 +128,58 @@ for folderName in folders:
     f.tight_layout()
 
     if graphType == 'hist':
+
+        def paddBins(bins2):
+            # pad left & right
+            difference = bins2[1] - bins2[0]
+            bins2= np.insert(bins2,0,bins2[0] -difference)
+            bins2= np.insert(bins2,0,bins2[0] -(difference*2))
+            bins2= np.insert(bins2,0,bins2[0] -(difference*3))
+            bins2= np.insert(bins2,0,bins2[0] -(difference*4))
+
+            bins2= np.append(bins2,bins2[len(bins2)-1]+difference )
+            bins2= np.append(bins2,bins2[len(bins2)-1]+difference*2 )
+            bins2= np.append(bins2,bins2[len(bins2)-1]+difference*3 )
+            bins2= np.append(bins2,bins2[len(bins2)-1]+difference*4 )
+            bins2= np.append(bins2,bins2[len(bins2)-1]+difference*5 )
+            bins2= np.append(bins2,bins2[len(bins2)-1]+difference*6 )
+            bins2= np.append(bins2,bins2[len(bins2)-1]+difference*7 )
+            return bins2
+
         n, bins, patches = axes[1][0].hist(y_off, bins=25, color='red',edgecolor='black', linewidth=1.2, normed=1)
+
         if guassianFitHistogrms:
+            bins= paddBins(bins)
+            
             (mu, sigma) = norm.fit(y_off)
             y = mlab.normpdf( bins, mu, sigma)
+            while(y[0] < 0.002):
+                y =np.delete(y,0)
+                bins = np.delete(bins,0)
             l = axes[1][0].plot(bins, y, linewidth=2)
             offGuas.append(l[0])
             offLabel.append(folderName + " Off Events")
 
+
         n, bins, patches =axes[1][1].hist(y_on,bins=25, color='green',edgecolor='black', linewidth=1.2, normed=1)
         if guassianFitHistogrms:
+            bins= paddBins(bins)
             (mu, sigma) = norm.fit(y_on)
             y = mlab.normpdf( bins, mu, sigma)
+            while(y[0] < 0.002):
+                y =np.delete(y,0)
+                bins = np.delete(bins,0)
             l = axes[1][1].plot(bins, y, linewidth=2)
             onGuas.append(l[0])
             onLabel.append(folderName + " On Events")
         n, bins, patches =axes[1][2].hist(y_all,bins=25, color='blue',edgecolor='black', linewidth=1.2, normed=1)
         if guassianFitHistogrms:
+            bins =paddBins(bins)
             (mu, sigma) = norm.fit(y_all)
             y = mlab.normpdf( bins, mu, sigma)
+            while(y[0] < 0.002):
+                y =np.delete(y,0)
+                bins = np.delete(bins,0)
             l = axes[1][2].plot(bins, y, linewidth=2)
             bothGuas.append(l[0])
             bothLabel.append(folderName + " Both Events")
@@ -190,16 +230,30 @@ plt.show()
 
 
 if graphType == "hist" and guassianFitHistogrms:
-    f, axes = plt.subplots(nrows = 1, ncols = 3, sharex=False, sharey = False )
+    f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
     f.set_size_inches(15, 10.5)
     f.tight_layout()
     def showAllGuas(lines, labels, axesIndex):
+        
         i =0
         for line in lines:
-            axes[axesIndex].plot(line._x,line._y, label=labels[i])
+            j =0
+            shiftX = line._x[0]
+            for x in line._x:
+                line._x[j] = x - shiftX
+                j+=1
+            j=0
+            shiftY = line._y[0]
+            for y in line._y:
+                line._y[j] = y - shiftY
+                j+=1
+            row = 0
+            if "NoPolarizer" in labels[i]:
+                row = 1
+            axes[row][axesIndex].plot(line._x,line._y, label=labels[i])
             i+=1
-        axes[axesIndex].legend()
-
+        axes[0][axesIndex].legend(loc=1, prop={'size': 7})
+        axes[1][axesIndex].legend(loc=1, prop={'size': 7})
     showAllGuas(offGuas, offLabel,0)
     showAllGuas(onGuas, onLabel,1)
     showAllGuas(bothGuas, bothLabel,2)
