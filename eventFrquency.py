@@ -93,7 +93,7 @@ allOnFWHMNoPol = []
 allBothFWHMNoPol = []
 
 
-logValues = True
+logValues = False
 
 
 for folderName in folders:
@@ -166,10 +166,13 @@ for folderName in folders:
             
             (mu, sigma) = norm.fit(data)
             y = mlab.normpdf( bins, mu, sigma)
-            while(y[0] < 0.002):
+            accuracy = 0.002
+            if logValues == False:
+                accuracy = 0.00002
+            while(y[0] < accuracy):
                 y = np.delete(y,0)
                 bins = np.delete(bins,0)
-            while(y[len(y)-1] < 0.002):
+            while(y[len(y)-1] < accuracy):
                 y = np.delete(y,len(y)-1)
                 bins = np.delete(bins,len(bins)-1)
             l = axes[plot_major][plot_minor].plot(bins, y, linewidth=2)
