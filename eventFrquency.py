@@ -94,7 +94,7 @@ allOnFWHMNoPol = []
 allBothFWHMNoPol = []
 
 
-logValues = False
+logValues = True
 
 
 for folderName in folders:
@@ -284,6 +284,8 @@ if graphType == "hist":
     showAllGuas(bothGuas, bothLabel,2)
 
     f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
+    f.set_size_inches(15, 10.5)
+    f.tight_layout()
     def centerAllGuas(lines,axesIndex, labels):
         for i,line in enumerate(lines):
             max_y = np.max(line._y) 
@@ -295,9 +297,8 @@ if graphType == "hist":
             if "NoPolarizer" in labels[i]:
                 row = 1
             axes[row][axesIndex].plot(line._x,line._y,label=labels[i])
-        axes[0][axesIndex].legend(loc=1, prop={'size': 5})
-        axes[1][axesIndex].legend(loc=1, prop={'size': 5})
-    f.tight_layout()
+        axes[0][axesIndex].legend(loc=1, prop={'size': 6})
+        axes[1][axesIndex].legend(loc=1, prop={'size': 6})
     centerAllGuas(offGuas,0,offLabel)
     centerAllGuas(onGuas,1, onLabel)
     centerAllGuas(bothGuas,2, bothLabel)
