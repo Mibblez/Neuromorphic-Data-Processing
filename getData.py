@@ -15,26 +15,15 @@ def getData(folderName):
     for file in onlyfiles:
         with open('./data/'+folderName+"/" +file, 'r') as csvfile:
             fileCount +=1
-            allCount =0
-            onCount = 0
-            offCount = 0
             reader = csv.reader(csvfile, delimiter=',')
+            i =0
             for row in reader:
-                if(row[0] == "True"):
-                    onCount +=1
-                else:
-                    offCount +=1
-                allCount+=1
-            allCount-=1
-            offCount-=1
-            if allCount ==-1:
-                allCount = 0
-            if offCount == -1:
-                offCount = 0
-            x.append(fileCount)
-            y_all.append(allCount)
-            y_off.append(offCount)
-            y_on.append(onCount)
-
+                if i != 0:
+                    x.append(i-1)
+                    y_all.append(int(row[2]))
+                    y_off.append(int(row[1]))
+                    y_on.append(int(row[0]))
+                i+=1
+                
     N= fileCount
     return y_on,y_off,y_all,N,x
