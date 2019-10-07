@@ -40,15 +40,11 @@ def find_clusters(X, n_clusters, rseed=2):
     
     return centers, labels
 
-def plotKmeans(data, axes, columnIndex):
-    pts = []
-    
-    for i, point in enumerate(data):
-        pts.append([i,point])
-    pts = np.asarray(pts)
-    centers, labels = find_clusters(pts,10)
-    axes[1][columnIndex].scatter(pts[:, 0], pts[:, 1], c=labels, s=50, cmap='viridis')
-    axes[1][columnIndex].scatter(centers[:, 0], centers[:, 1], c='red')
+def plotKmeans(data,axes, row, columnIndex,numberOfCenters):
+    pts = np.asarray(data)
+    centers, labels = find_clusters(pts,numberOfCenters)
+    axes[row][columnIndex].scatter(pts[:, 0], pts[:, 1], c=labels, s=10, cmap='viridis')
+    axes[row][columnIndex].scatter(centers[:, 0], centers[:, 1], c='red')
 
 offFrequencies = []
 onFrequencies = []
@@ -69,9 +65,9 @@ titles = ['Approximation', ' Horizontal detail',
           'Vertical detail', 'Diagonal detail']
 
 #graphType = "savgol"
-graphType = "hist"
+#graphType = "hist"
 #graphType = "wavelets"
-#graphType = "kmeans"
+graphType = "kmeans"
 #graphType = "smooth"
 
 allOffVarPol =[]
@@ -94,7 +90,17 @@ allOnFWHMNoPol = []
 allBothFWHMNoPol = []
 
 
-logValues = True
+allKMeansPolOn = []
+allKMeansPolOff = []
+allKMeansPolBoth = []
+
+
+allKMeansNoPolOn = []
+allKMeansNoPolOff = []
+allKMeansNoPolBoth = []
+#allKMeansNoPolLabels = []
+
+logValues = False
 
 
 for folderName in folders:
@@ -129,10 +135,10 @@ for folderName in folders:
     folderName = folderName.replace('no pol', "NoPolarizer")
     print(folderName)
 
-    
-    f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
-    f.set_size_inches(15, 10.5)
-    f.tight_layout()
+    if graphType != 'kmeans':
+        f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
+        f.set_size_inches(15, 10.5)
+        f.tight_layout()
 
     if graphType == 'hist':
 
@@ -143,7 +149,7 @@ for folderName in folders:
                 bins2= np.insert(bins2,0,bins2[0] -(difference*(i+1)))
             
             for i in range(paddTimes):
-                 bins2= np.append(bins2,bins2[len(bins2)-1]+difference*(i+1) )
+                bins2= np.append(bins2,bins2[len(bins2)-1]+difference*(i+1) )
 
            
             return bins2
@@ -180,10 +186,22 @@ for folderName in folders:
         bothGuas.append(l[0])
 
     elif graphType == 'kmeans':
-        
-        plotKmeans(y_off, axes, 0)
-        plotKmeans(y_on, axes, 1)
-        plotKmeans(y_all, axes, 2)
+   
+        if "NoPolarizer" in folderName:
+            for i, point in enumerate(y_on):
+                allKMeansNoPolOn.append([i,point])
+            for i, point in enumerate(y_off):
+                allKMeansNoPolOff.append([i,point])
+            for i, point in enumerate(y_all):
+                allKMeansNoPolBoth.append([i,point])
+        else:
+            for i, point in enumerate(y_on):
+                allKMeansPolOn.append([i,point])
+            for i, point in enumerate(y_off):
+                allKMeansPolOff.append([i,point])
+            for i, point in enumerate(y_all):
+                allKMeansPolBoth.append([i,point])
+            
     elif graphType == "wavelets":
         data = []
         for i in range(fileCount):
@@ -215,18 +233,19 @@ for folderName in folders:
         onFrequencies.append(scipy.fftpack.fft(yOnSmoothed))
         bothFrequencies.append(scipy.fftpack.fft(yBothSmoothed))
     
-    offLabel.append(folderName + " Off Events")
-    onLabel.append(folderName + " On Events")
-    bothLabel.append(folderName + " All Events")
+    if graphType != 'kmeans':
+        offLabel.append(folderName + " Off Events")
+        onLabel.append(folderName + " On Events")
+        bothLabel.append(folderName + " All Events")
 
-    axes[0][0].scatter(x,y_off,c='red',picker=True,s=1)
+        axes[0][0].scatter(x,y_off,c='red',picker=True,s=1)
 
-    axes[1][0].title.set_text(folderName +" Off Events")
-    axes[0][1].scatter(x,y_on,c='green',picker=True,s=1)
-    axes[1][1].title.set_text(folderName +" On Events")
+        axes[1][0].title.set_text(folderName +" Off Events")
+        axes[0][1].scatter(x,y_on,c='green',picker=True,s=1)
+        axes[1][1].title.set_text(folderName +" On Events")
 
-    axes[0][2].scatter(x,y_all,c='blue',picker=True,s=1)
-    plt.title(folderName +" All Events")
+        axes[0][2].scatter(x,y_all,c='blue',picker=True,s=1)
+        plt.title(folderName +" All Events")
     
     #print(coeff)
     #plt.show()
@@ -257,8 +276,18 @@ for folderName in folders:
             allBothFWHMPol.append(2.355*np.std(y_all))
 
 
-plt.show()
+if graphType == 'kmeans':
+    f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
+    f.set_size_inches(15, 10.5)
+    f.tight_layout()
+    plotKmeans(allKMeansNoPolOff, axes,0,0, int(len(folders)/2))
+    plotKmeans(allKMeansPolOff, axes,1,0, int(len(folders)/2))
+    plotKmeans(allKMeansNoPolOn, axes,0,1, int(len(folders)/2))
+    plotKmeans(allKMeansPolOn, axes,1,1, int(len(folders)/2))
+    plotKmeans(allKMeansNoPolBoth, axes,0,2, int(len(folders)/2))
+    plotKmeans(allKMeansPolBoth, axes,1,2, int(len(folders)/2))
 
+plt.show()
 
 if graphType == "hist":
     f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
