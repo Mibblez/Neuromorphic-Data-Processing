@@ -174,15 +174,18 @@ for folderName in folders:
 
         # Off events
         l = plot_hist(y_off, axes, 1, 0, 'red')
+        l[0].remove()
         offGuas.append(l[0])
         
 
         # On Events
         l = plot_hist(y_on, axes, 1, 1, 'green')
+        l[0].remove()
         onGuas.append(l[0])
 
         # On & Off Events
         l = plot_hist(y_all, axes, 1, 2, 'blue')
+        l[0].remove()
         bothGuas.append(l[0])
 
     elif graphType == 'kmeans':
