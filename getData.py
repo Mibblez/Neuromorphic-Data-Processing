@@ -33,8 +33,8 @@ def getEventChunkData(folderName):
     points = []
     onlyfiles = [f for f in listdir("./eventChunkData/" +folderName) if isfile(join("./eventChunkData/" + folderName, f))]
     for file in onlyfiles:
-        with open('./data/'+folderName+"/" +file, 'r') as csvfile:
-            fileCount +=1
+        with open('./eventChunkData/'+folderName+"/" +file, 'r') as csvfile:
+            
             reader = csv.reader(csvfile, delimiter=',')
             i =0
             for row in reader:
