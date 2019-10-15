@@ -39,7 +39,7 @@ def getEventChunkData(folderName):
             i =0
             for row in reader:
                 if i != 0:
-                    points.append([int(row[1]), int(row[2])])
+                    points.append([int(row[1]), 128-int(row[2])])
                 i+=1
         return points  
 

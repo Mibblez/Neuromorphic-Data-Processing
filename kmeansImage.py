@@ -34,4 +34,4 @@ for folder in folders:
     pts = np.asarray(data)
     centers, labels = find_clusters(pts,numberOfCenters)
     plt.scatter(pts[:, 0], pts[:, 1], c=labels, s=10, cmap='viridis')
-
+plt.show()
