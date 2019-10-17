@@ -18,7 +18,18 @@ import scipy.fftpack
 import pywt
 import pywt.data
 import math
+import re
 
+def atoi(text):
+    return int(text) if text.isdigit() else text
+
+def natural_keys(text):
+    '''
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    (See Toothy's implementation in the comments)
+    '''
+    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 def find_clusters(X, n_clusters, rseed=2):
     # 1. Randomly choose clusters
     rng = np.random.RandomState(rseed)
@@ -59,15 +70,15 @@ onLabel = []
 bothGuas=[]
 bothLabel = []
 
-folders = os.listdir("data/")
+
 
 titles = ['Approximation', ' Horizontal detail',
           'Vertical detail', 'Diagonal detail']
 
 #graphType = "savgol"
-#graphType = "hist"
+graphType = "hist"
 #graphType = "wavelets"
-graphType = "kmeans"
+#graphType = "kmeans"
 #graphType = "smooth"
 
 allOffVarPol =[]
@@ -102,7 +113,8 @@ allKMeansNoPolBoth = []
 
 logValues = False
 
-
+folders = os.listdir("data/")
+folders.sort(key=natural_keys)
 for folderName in folders:
     
     #folderName = "26hz_nopol Event Chunks"
@@ -133,6 +145,9 @@ for folderName in folders:
 
     folderName = folderName.replace('Event Chunks', '')
     folderName = folderName.replace('no pol', "NoPolarizer")
+    folderName = folderName.replace('30deg','')
+    folderName = folderName.replace('30 deg','')
+    folderName = folderName.replace('foam ','')
     print(folderName)
 
     if graphType != 'kmeans':
@@ -296,7 +311,7 @@ if graphType == "hist":
     f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
     f.set_size_inches(15, 10.5)
     f.tight_layout()
-    def showAllGuas(lines, labels, axesIndex):
+    def showAllGuas(lines, labels, axesIndex, title):
         
         for i, line in enumerate(lines):
             shiftX = line._x[0]
@@ -307,13 +322,21 @@ if graphType == "hist":
                 line._y[j] = y - shiftY
             row = 0
             if "NoPolarizer" in labels[i]:
+                labels[i] = labels[i].replace(" NoPolarizer","")
                 row = 1
+            labels[i] =labels[i].replace("  "," ")
+            labels[i] =labels[i].replace(" Off Events","")
+            labels[i] =labels[i].replace(" On Events","")
+            labels[i] =labels[i].replace(" All Events","")
+
             axes[row][axesIndex].plot(line._x,line._y, label=labels[i])
-        axes[0][axesIndex].legend(loc=1, prop={'size': 7})
-        axes[1][axesIndex].legend(loc=1, prop={'size': 7})
-    showAllGuas(offGuas, offLabel,0)
-    showAllGuas(onGuas, onLabel,1)
-    showAllGuas(bothGuas, bothLabel,2)
+        axes[1][axesIndex].title.set_text("Non-Polarized "+title)
+        axes[0][axesIndex].title.set_text("Polarized " +title)
+        axes[0][axesIndex].legend(loc=1, prop={'size':11})
+        axes[1][axesIndex].legend(loc=1, prop={'size': 11})
+    showAllGuas(offGuas, np.copy(offLabel),0, "Off Events")
+    showAllGuas(onGuas, np.copy(onLabel),1, "On Events")
+    showAllGuas(bothGuas, np.copy(bothLabel),2, "Both Events")
 
     f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
     f.set_size_inches(15, 10.5)
@@ -369,29 +392,30 @@ if plotVarience:
 
 if plotFWHM:
     figureVar, axesVar = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
+    
     axesVar[0][0].set_title("Off Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
     axesVar[0][0].bar(polLabels, allOffFWHMPol)
-    axesVar[0][0].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[0][1].set_title("On Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
     axesVar[0][1].bar(polLabels, allOnFWHMPol)
-    axesVar[0][1].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[0][2].set_title("Both Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
     axesVar[0][2].bar(polLabels, allBothFWHMPol)
-    axesVar[0][2].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[0][2].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[1][0].set_title("Off Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
     axesVar[1][0].bar(noPolLabels, allOffFWHMNoPol)
-    axesVar[1][0].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[1][1].set_title("On Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
     axesVar[1][1].bar(noPolLabels, allOnFWHMNoPol)
-    axesVar[1][1].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[1][2].set_title("Both Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
     axesVar[1][2].bar(noPolLabels, allBothFWHMNoPol)
-    axesVar[1][2].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[1][2].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
     #figureVar.xticks(range(len(allOffVarPol)), polLabels)
