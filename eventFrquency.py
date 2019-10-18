@@ -170,7 +170,7 @@ for folderName in folders:
             return bins2
 
         def plot_hist(data, axes, plot_major, plot_minor, plot_color):
-            y, x, _ = axes[plot_major][plot_minor].hist(data, bins=115, color=plot_color,edgecolor='black', linewidth=1.2, normed=1)
+            y, x, _ = axes[plot_major][plot_minor].hist(data, bins=80, color=plot_color,edgecolor='black', linewidth=1.2, normed=1)
             x = paddBins(x,100)
             
             (mu, sigma) = norm.fit(data)
@@ -398,15 +398,15 @@ if plotVarience:
     axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[0][1].set_title("Off Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][1].bar(noPolLabels, allOffVarNoPol)
+    axesVar[0][1].bar(noPolLabels, allOffVarNoPol, color='red')
     axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[1][1].set_title("On Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][1].bar(noPolLabels, allOnVarNoPol)
+    axesVar[1][1].bar(noPolLabels, allOnVarNoPol, color='red')
     axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[2][1].set_title("Both Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[2][1].bar(noPolLabels, allBothVarNoPol)
+    axesVar[2][1].bar(noPolLabels, allBothVarNoPol, color='red')
     axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
@@ -429,15 +429,15 @@ if plotFWHM:
     axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[0][1].set_title("Off Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][1].bar(noPolLabels, allOffFWHMNoPol)
+    axesVar[0][1].bar(noPolLabels, allOffFWHMNoPol, color='red')
     axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[1][1].set_title("On Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][1].bar(noPolLabels, allOnFWHMNoPol)
+    axesVar[1][1].bar(noPolLabels, allOnFWHMNoPol, color='red')
     axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[2][1].set_title("Both Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[2][1].bar(noPolLabels, allBothFWHMNoPol)
+    axesVar[2][1].bar(noPolLabels, allBothFWHMNoPol, color='red')
     axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
