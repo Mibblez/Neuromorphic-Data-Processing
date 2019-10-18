@@ -308,11 +308,16 @@ if graphType == 'kmeans':
 plt.show()
 
 if graphType == "hist":
-    f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
-    f.set_size_inches(15, 10.5)
-    f.tight_layout()
+    f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+    f.set_size_inches(10, 15)
+  
     def showAllGuas(lines, labels, axesIndex, title):
-        
+        maxHeight = 0
+
+        for line in lines:
+            if np.max(line._y) > maxHeight:
+                maxHeight = np.max(line._y)
+
         for i, line in enumerate(lines):
             shiftX = line._x[0]
             for j, x in enumerate(line._x):
@@ -324,24 +329,34 @@ if graphType == "hist":
             if "NoPolarizer" in labels[i]:
                 labels[i] = labels[i].replace(" NoPolarizer","")
                 row = 1
-            labels[i] =labels[i].replace("  "," ")
+            
             labels[i] =labels[i].replace(" Off Events","")
             labels[i] =labels[i].replace(" On Events","")
             labels[i] =labels[i].replace(" All Events","")
+            labels[i] =labels[i].replace("  "," ")
 
-            axes[row][axesIndex].plot(line._x,line._y, label=labels[i])
-        axes[1][axesIndex].title.set_text("Non-Polarized "+title)
-        axes[0][axesIndex].title.set_text("Polarized " +title)
-        axes[0][axesIndex].legend(loc=1, prop={'size':11})
-        axes[1][axesIndex].legend(loc=1, prop={'size': 11})
+            
+
+            axes[axesIndex][row].plot(line._x,line._y/maxHeight, label=labels[i])
+        axes[axesIndex][1].title.set_text("Non-Polarized "+title)
+        axes[axesIndex][0].title.set_text("Polarized " +title)
+        axes[axesIndex][0].legend(loc=1, prop={'size':11})
+        axes[axesIndex][1].legend(loc=1, prop={'size': 11})
     showAllGuas(offGuas, np.copy(offLabel),0, "Off Events")
     showAllGuas(onGuas, np.copy(onLabel),1, "On Events")
     showAllGuas(bothGuas, np.copy(bothLabel),2, "Both Events")
+    plt.show()
+    f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+    f.set_size_inches(10, 15)
 
-    f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
-    f.set_size_inches(15, 10.5)
-    f.tight_layout()
-    def centerAllGuas(lines,axesIndex, labels):
+    def centerAllGuas(lines,axesIndex, labels, title):
+
+        maxHeight = 0
+
+        for line in lines:
+            if np.max(line._y) > maxHeight:
+                maxHeight = np.max(line._y)
+
         for i,line in enumerate(lines):
             max_y = np.max(line._y) 
             index = np.where(line._y == max_y)
@@ -351,71 +366,79 @@ if graphType == "hist":
             row = 0
             if "NoPolarizer" in labels[i]:
                 row = 1
-            axes[row][axesIndex].plot(line._x,line._y,label=labels[i])
-        axes[0][axesIndex].legend(loc=1, prop={'size': 6})
-        axes[1][axesIndex].legend(loc=1, prop={'size': 6})
-    centerAllGuas(offGuas,0,offLabel)
-    centerAllGuas(onGuas,1, onLabel)
-    centerAllGuas(bothGuas,2, bothLabel)
+                labels[i] = labels[i].replace(" NoPolarizer","")
+            labels[i] =labels[i].replace(" Off Events","")
+            labels[i] =labels[i].replace(" On Events","")
+            labels[i] =labels[i].replace(" All Events","")
+            labels[i] =labels[i].replace("  "," ")
+            axes[axesIndex][row].plot(line._x,line._y/maxHeight, label=labels[i])
+        axes[axesIndex][1].title.set_text("Non-Polarized "+title)
+        axes[axesIndex][0].title.set_text("Polarized " +title)
+        axes[axesIndex][0].legend(loc=1, prop={'size':11})
+        axes[axesIndex][1].legend(loc=1, prop={'size': 11})
+    centerAllGuas(offGuas,0,offLabel, "Off Events")
+    centerAllGuas(onGuas,1, onLabel, "On Events")
+    centerAllGuas(bothGuas,2, bothLabel, "Both Events")
     plt.show()
     
             
 if plotVarience:
-    figureVar, axesVar = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
+    figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+    figureVar.set_size_inches(10, 15)
     axesVar[0][0].set_title("Off Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
     axesVar[0][0].bar(polLabels, allOffVarPol)
-    axesVar[0][0].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[0][1].set_title("On Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][1].bar(polLabels, allOnVarPol)
-    axesVar[0][1].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[1][0].set_title("On Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+    axesVar[1][0].bar(polLabels, allOnVarPol)
+    axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[0][2].set_title("Both Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][2].bar(polLabels, allBothVarPol)
-    axesVar[0][2].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[2][0].set_title("Both Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+    axesVar[2][0].bar(polLabels, allBothVarPol)
+    axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[1][0].set_title("Off Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][0].bar(noPolLabels, allOffVarNoPol)
-    axesVar[1][0].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[0][1].set_title("Off Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+    axesVar[0][1].bar(noPolLabels, allOffVarNoPol)
+    axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[1][1].set_title("On Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
     axesVar[1][1].bar(noPolLabels, allOnVarNoPol)
-    axesVar[1][1].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[1][2].set_title("Both Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][2].bar(noPolLabels, allBothVarNoPol)
-    axesVar[1][2].tick_params(axis='x', which='major', labelsize=8, labelrotation=35)
+    axesVar[2][1].set_title("Both Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+    axesVar[2][1].bar(noPolLabels, allBothVarNoPol)
+    axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
     #figureVar.xticks(range(len(allOffVarPol)), polLabels)
     plt.show()
 
 if plotFWHM:
-    figureVar, axesVar = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
-    
+    figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+    figureVar.set_size_inches(10, 15)
     axesVar[0][0].set_title("Off Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
     axesVar[0][0].bar(polLabels, allOffFWHMPol)
     axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[0][1].set_title("On Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][1].bar(polLabels, allOnFWHMPol)
-    axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
-
-    axesVar[0][2].set_title("Both Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][2].bar(polLabels, allBothFWHMPol)
-    axesVar[0][2].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
-
-    axesVar[1][0].set_title("Off Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][0].bar(noPolLabels, allOffFWHMNoPol)
+    axesVar[1][0].set_title("On Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+    axesVar[1][0].bar(polLabels, allOnFWHMPol)
     axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+    axesVar[2][0].set_title("Both Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+    axesVar[2][0].bar(polLabels, allBothFWHMPol)
+    axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+    axesVar[0][1].set_title("Off Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+    axesVar[0][1].bar(noPolLabels, allOffFWHMNoPol)
+    axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     axesVar[1][1].set_title("On Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
     axesVar[1][1].bar(noPolLabels, allOnFWHMNoPol)
     axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[1][2].set_title("Both Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][2].bar(noPolLabels, allBothFWHMNoPol)
-    axesVar[1][2].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+    axesVar[2][1].set_title("Both Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+    axesVar[2][1].bar(noPolLabels, allBothFWHMNoPol)
+    axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
     plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
     #figureVar.xticks(range(len(allOffVarPol)), polLabels)
