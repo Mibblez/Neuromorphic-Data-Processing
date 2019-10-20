@@ -18,18 +18,9 @@ import scipy.fftpack
 import pywt
 import pywt.data
 import math
-import re
 
-def atoi(text):
-    return int(text) if text.isdigit() else text
 
-def natural_keys(text):
-    '''
-    alist.sort(key=natural_keys) sorts in human order
-    http://nedbatchelder.com/blog/200712/human_sorting.html
-    (See Toothy's implementation in the comments)
-    '''
-    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
+
 def find_clusters(X, n_clusters, rseed=2):
     # 1. Randomly choose clusters
     rng = np.random.RandomState(rseed)
@@ -114,7 +105,7 @@ allKMeansNoPolBoth = []
 logValues = False
 
 folders = os.listdir("data/")
-folders.sort(key=natural_keys)
+folders.sort(key=getData.natural_keys)
 for folderName in folders:
     
     #folderName = "26hz_nopol Event Chunks"
