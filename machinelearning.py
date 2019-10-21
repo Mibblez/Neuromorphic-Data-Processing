@@ -12,14 +12,16 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import getData
-inputData,outputData = getData.getMachineLearningData(25)
+frameSize = 25
+inputData,outputData = getData.getMachineLearningData(frameSize)
 print(inputData.shape)
 
 trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,outputData,test_size=0.1, random_state = 42)
 
 
 model = keras.Sequential([
-    keras.layers.Flatten(input_shape=(25, 3)),
+    keras.layers.Flatten(input_shape=(frameSize, 3)),
+    keras.layers.Dense(900, activation=tf.nn.sigmoid),#number of nodes always use relu
     keras.layers.Dense(900, activation=tf.nn.sigmoid),#number of nodes always use relu
     keras.layers.Dense(27, activation=tf.nn.sigmoid)#number of classes(for pictures), softmax is a % of possible outputs,
                                                     # output putting one dense layer will give a number from +- infinite
