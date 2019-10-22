@@ -34,7 +34,7 @@ def getData(folderName):
             i =0
             for row in reader:
                 if i != 0:
-                    x.append(i-1)
+                    x.append((i-1) *1500*0.000001)
                     y_all.append(int(row[2]))
                     y_off.append(int(row[1]))
                     y_on.append(int(row[0]))

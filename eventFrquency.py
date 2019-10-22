@@ -109,9 +109,7 @@ folders.sort(key=getData.natural_keys)
 for folderName in folders:
     
     #folderName = "26hz_nopol Event Chunks"
-    y_on,y_off,y_all, fileCount,x= getData.getData(folderName)
-
-    
+    y_on,y_off,y_all, fileCount,x= getData.getData(folderName)  
 
     if logValues:
         onAvg = np.array(y_on).mean()
@@ -161,6 +159,9 @@ for folderName in folders:
             return bins2
 
         def plot_hist(data, axes, plot_major, plot_minor, plot_color):
+            """
+            Plots only the hist.
+            """
             y, x, _ = axes[plot_major][plot_minor].hist(data, bins=80, color=plot_color,edgecolor='black', linewidth=1.2, normed=1)
             x = paddBins(x,100)
             
