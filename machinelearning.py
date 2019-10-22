@@ -12,7 +12,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import getData
-inputData,outputData = getData.getMachineLearningData(25)
+frameSize = 25
+inputData,outputData = getData.getMachineLearningData(frameSize)
 print(inputData.shape)
 
 trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,outputData,test_size=0.1, random_state = 42)
