@@ -20,7 +20,10 @@ trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,o
 
 model = keras.Sequential([
     keras.layers.Flatten(input_shape=(25, 3)),
-    keras.layers.Dense(900, activation=tf.nn.sigmoid),#number of nodes always use relu
+    keras.layers.Dense(30, activation=tf.nn.sigmoid),#number of nodes always use relu
+    keras.layers.Dense(40, activation=tf.nn.sigmoid),#number of nodes always use relu
+
+    keras.layers.Dense(50, activation=tf.nn.sigmoid),#number of nodes always use relu
     keras.layers.Dense(27, activation=tf.nn.sigmoid)#number of classes(for pictures), softmax is a % of possible outputs,
                                                     # output putting one dense layer will give a number from +- infinite
                                                     # outputting 1 sigmoid will give one percentage 
