@@ -3,24 +3,22 @@ from tensorflow.keras.datasets import cifar10
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout, Activation, Flatten
-from tensorflow.keras.layers import Conv2D, MaxPooling2D
+from tensorflow.keras.layers import Conv2D, MaxPooling2D,Conv1D
 import getData
 frameSize = 25
 X,y = getData.getMachineLearningData(frameSize)
 
 
-
+test = X.shape[-1]
 #X = X/255.0
 
 model = Sequential()
 
-model.add(Conv2D(256, (3, 3), input_shape=X.shape))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv1D(256, ( 3), input_shape=(frameSize, 3)))
+model.add(Activation('sigmoid'))
 
-model.add(Conv2D(256, (3, 3)))
-model.add(Activation('relu'))
-model.add(MaxPooling2D(pool_size=(2, 2)))
+model.add(Conv1D(256, ( 3)))
+model.add(Activation('sigmoid'))
 
 model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors
 
