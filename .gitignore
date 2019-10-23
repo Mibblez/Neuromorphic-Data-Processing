@@ -2,3 +2,4 @@ data/
 imageData/
 __pycache__
 eventChunkData/
+logs

@@ -2,16 +2,16 @@
 import tensorflow as tf
 from tensorflow import keras
 import sklearn.model_selection as sk
-
-
-
-# Helper libraries
-
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
-
 import getData
+import time
+from tensorflow.keras.callbacks import TensorBoard
+
+MODEL_NAME = "Frequency-{}".format(int(time.time()))
+tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
+
 frameSize = 200
 inputData,outputData = getData.getMachineLearningData(frameSize)
 print(inputData.shape)
@@ -36,7 +36,7 @@ model = keras.Sequential([
 model.compile(optimizer=tf.optimizers.Adamax(), 
               loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output
               metrics=['accuracy'])
-history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=40) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
+history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=40,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
 # if acc is a lot better than test accuracy then the data is overfit
 
 #i added validation_data to get val_acc and val_loss in the history for the graphs
