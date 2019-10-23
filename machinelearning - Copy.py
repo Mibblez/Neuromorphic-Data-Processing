@@ -14,10 +14,10 @@ test = X.shape[-1]
 
 model = Sequential()
 
-model.add(Conv1D(256, ( 3), input_shape=(frameSize, 3)))
+model.add(Conv1D(1000, ( 3), input_shape=(frameSize, 3)))
 model.add(Activation('sigmoid'))
 
-model.add(Conv1D(256, ( 3)))
+model.add(Conv1D(1000, ( 3)))
 model.add(Activation('sigmoid'))
 
 model.add(Flatten())  # this converts our 3D feature maps to 1D feature vectors

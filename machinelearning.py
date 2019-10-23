@@ -12,7 +12,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import getData
-frameSize = 25
+frameSize = 200
 inputData,outputData = getData.getMachineLearningData(frameSize)
 print(inputData.shape)
 
@@ -20,22 +20,23 @@ trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,o
 
 
 model = keras.Sequential([
-    keras.layers.Flatten(input_shape=(25, 3)),
-    keras.layers.Dense(30, activation=tf.nn.sigmoid),#number of nodes always use relu
-    keras.layers.Dense(40, activation=tf.nn.sigmoid),#number of nodes always use relu
-
-    keras.layers.Dense(50, activation=tf.nn.sigmoid),#number of nodes always use relu
-    keras.layers.Dense(27, activation=tf.nn.sigmoid)#number of classes(for pictures), softmax is a % of possible outputs,
-                                                    # output putting one dense layer will give a number from +- infinite
-                                                    # outputting 1 sigmoid will give one percentage 
+    keras.layers.AveragePooling1D(pool_size=5,input_shape=(200, 3), strides=None, padding='valid', data_format='channels_last'),
+    keras.layers.GRU(75, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False),
+    keras.layers.Flatten(),
+    keras.layers.Dense(300, activation=tf.nn.sigmoid),
+    keras.layers.GaussianDropout(0.01),
+    keras.layers.Dense(150, activation=tf.nn.sigmoid),
+    keras.layers.GaussianDropout(0.01),
+    keras.layers.Dense(75, activation=tf.nn.sigmoid),
+    keras.layers.Dense(27, activation=tf.nn.sigmoid)
 ])
 
 
 
-model.compile(optimizer=tf.optimizers.Adam(), 
+model.compile(optimizer=tf.optimizers.Adamax(), 
               loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output
               metrics=['accuracy'])
-history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=200) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
+history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=40) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
 # if acc is a lot better than test accuracy then the data is overfit
 
 #i added validation_data to get val_acc and val_loss in the history for the graphs
