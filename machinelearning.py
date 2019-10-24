@@ -64,7 +64,12 @@ plt.title('Training and validation loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig("pythonPlot2.png")
 plt.show()
 
+plt.plot(epochs, acc,'bo', label='Training Accuracy')
+plt.plot(epochs, val_acc,'b', label='Validation Accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('ACcuracy')
+plt.legend()
+plt.show()
 
