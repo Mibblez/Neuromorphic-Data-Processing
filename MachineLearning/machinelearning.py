@@ -8,11 +8,13 @@ import matplotlib.pyplot as plt
 import getData
 import time
 from tensorflow.keras.callbacks import TensorBoard
+import os
 
 MODEL_NAME = "Frequency-{}".format(int(time.time()))
 tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
 
 frameSize = 200
+timeFrame = "750"
 inputData,outputData = getData.getMachineLearningData(frameSize)
 print(inputData.shape)
 
@@ -56,6 +58,12 @@ val_loss = history.history['val_loss']
 
 epochs = range(1, len(acc) + 1)
 
+np.save(os.path.join('MachineLearning','resultData', 'epochs.npy'),epochs)
+np.save(os.path.join('MachineLearning','resultData',timeFrame +'loss.npy'),loss)
+np.save(os.path.join('MachineLearning','resultData',timeFrame +'val_loss.npy'),val_loss)
+np.save(os.path.join('MachineLearning','resultData',timeFrame +'acc.npy'),acc)
+np.save(os.path.join('MachineLearning','resultData',timeFrame +'val_acc.npy'),val_acc)
+
 # "bo" is for "blue dot"
 plt.plot(epochs, loss, 'bo', label='Training loss')
 # b is for "solid blue line"
@@ -69,7 +77,7 @@ plt.show()
 plt.plot(epochs, acc,'bo', label='Training Accuracy')
 plt.plot(epochs, val_acc,'b', label='Validation Accuracy')
 plt.xlabel('Epochs')
-plt.ylabel('ACcuracy')
+plt.ylabel('Accuracy')
 plt.legend()
 plt.show()
 
