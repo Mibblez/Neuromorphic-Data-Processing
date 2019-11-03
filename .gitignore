@@ -3,3 +3,4 @@ imageData/
 __pycache__
 eventChunkData/
 logs
+*.png

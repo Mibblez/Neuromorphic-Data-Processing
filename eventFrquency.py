@@ -72,6 +72,13 @@ graphType = "hist"
 #graphType = "kmeans"
 #graphType = "smooth"
 
+plotVariance = True
+plotFWHM = True
+logValues = False
+differentFrequencies = False
+saveFigures =True
+
+#variance Arrays
 allOffVarPol =[]
 allOnVarPol = []
 allBothVarPol = []
@@ -81,9 +88,8 @@ allBothVarNoPol = []
 polLabels = []
 noPolLabels = []
 
-plotVarience = True
 
-plotFWHM = True
+#FWHM Arrays
 allOffFWHMPol =[]
 allOnFWHMPol = []
 allBothFWHMPol = []
@@ -91,18 +97,14 @@ allOffFWHMNoPol =[]
 allOnFWHMNoPol = []
 allBothFWHMNoPol = []
 
-
+#Kmeans Arrays
 allKMeansPolOn = []
 allKMeansPolOff = []
 allKMeansPolBoth = []
-
-
 allKMeansNoPolOn = []
 allKMeansNoPolOff = []
 allKMeansNoPolBoth = []
 #allKMeansNoPolLabels = []
-
-logValues = False
 
 folders = os.listdir("data/")
 folders.sort(key=getData.natural_keys)
@@ -136,12 +138,18 @@ for folderName in folders:
     folderName = folderName.replace('no pol', "NoPolarizer")
     folderName = folderName.replace('30deg','')
     folderName = folderName.replace('30 deg','')
-    folderName = folderName.replace('foam ','')
+    if differentFrequencies:
+        folderName = folderName.replace('foam ','')
+    else:
+        folderName = folderName.replace('10hz ','')
+        folderName = folderName.replace('10 hz ','')
+        folderName = folderName.replace('18hz ','')
+        folderName = folderName.replace('18 hz ','')
     print(folderName)
 
     if graphType != 'kmeans':
         f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
-        f.set_size_inches(15, 10.5)
+        f.set_size_inches(15, 9.5)
         f.tight_layout()
 
     if graphType == 'hist':
@@ -265,7 +273,7 @@ for folderName in folders:
         polLabels.append(folderName) 
 
 
-    if plotVarience:
+    if plotVariance:
         if 'NoPolarizer' in folderName:
             allOffVarNoPol.append(np.var(y_off))
             allOnVarNoPol.append(np.var(y_on))
@@ -284,6 +292,9 @@ for folderName in folders:
             allOffFWHMPol.append(2.355*np.std(y_off))
             allOnFWHMPol.append(2.355*np.std(y_on))
             allBothFWHMPol.append(2.355*np.std(y_all))
+    
+    if saveFigures:
+        plt.savefig(folderName+'Dots.png')
 
 
 if graphType == 'kmeans':
@@ -297,7 +308,8 @@ if graphType == 'kmeans':
     plotKmeans(allKMeansNoPolBoth, axes,0,2, int(len(folders)/2))
     plotKmeans(allKMeansPolBoth, axes,1,2, int(len(folders)/2))
 
-plt.show()
+if saveFigures == False:
+    plt.show()
 
 if graphType == "hist":
     f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
@@ -337,7 +349,10 @@ if graphType == "hist":
     showAllGuas(offGuas, np.copy(offLabel),0, "Off Events")
     showAllGuas(onGuas, np.copy(onLabel),1, "On Events")
     showAllGuas(bothGuas, np.copy(bothLabel),2, "Both Events")
-    plt.show()
+    if saveFigures:
+        plt.savefig("Guas.png")
+    else:
+        plt.show()
     f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
     f.set_size_inches(10, 15)
 
@@ -371,10 +386,13 @@ if graphType == "hist":
     centerAllGuas(offGuas,0,offLabel, "Off Events")
     centerAllGuas(onGuas,1, onLabel, "On Events")
     centerAllGuas(bothGuas,2, bothLabel, "Both Events")
-    plt.show()
+    if saveFigures:
+        plt.savefig("centerGuas.png")  
+    else:
+        plt.show()
     
             
-if plotVarience:
+if plotVariance:
     figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
     figureVar.set_size_inches(10, 15)
     axesVar[0][0].set_title("Off Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
@@ -403,7 +421,10 @@ if plotVarience:
 
     plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
     #figureVar.xticks(range(len(allOffVarPol)), polLabels)
-    plt.show()
+    if saveFigures:
+        plt.savefig("variance.png")
+    else:
+        plt.show()
 
 if plotFWHM:
     figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
@@ -434,7 +455,11 @@ if plotFWHM:
 
     plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
     #figureVar.xticks(range(len(allOffVarPol)), polLabels)
-    plt.show()
+    if saveFigures:
+        plt.savefig("FWHM.png")
+    else:
+        plt.show()
+        
 
 
 if graphType == "smooth":
@@ -485,5 +510,6 @@ if graphType == "smooth":
     showFFT(onFrequencies)
     showFFT(bothFrequencies)
 
-input()
+if saveFigures == False:
+    input()
 
