@@ -13,24 +13,24 @@ import os
 MODEL_NAME = "Frequency-{}".format(int(time.time()))
 tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
 
-frameSize = 200
+frameSize = 150
 timeFrame = "750"
-inputData,outputData = getData.getMachineLearningData(frameSize)
+inputData,outputData = getData.getMachineLearningDataWaveforms(frameSize)
 print(inputData.shape)
 
 trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,outputData,test_size=0.1, random_state = 42)
 
 
 model = keras.Sequential([
-    keras.layers.AveragePooling1D(pool_size=5,input_shape=(200, 3), strides=None, padding='valid', data_format='channels_last'),
-    keras.layers.GRU(75, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False),
+    
+    keras.layers.GRU(50, activation='tanh', recurrent_activation='sigmoid',input_shape=(frameSize, 3), use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False),
     keras.layers.Flatten(),
-    keras.layers.Dense(300, activation=tf.nn.sigmoid),
+    keras.layers.Dense(400, activation=tf.nn.relu),
     keras.layers.GaussianDropout(0.01),
-    keras.layers.Dense(150, activation=tf.nn.sigmoid),
+    keras.layers.Dense(200, activation=tf.nn.relu),
     keras.layers.GaussianDropout(0.01),
-    keras.layers.Dense(75, activation=tf.nn.sigmoid),
-    keras.layers.Dense(27, activation=tf.nn.sigmoid)
+    keras.layers.Dense(100, activation=tf.nn.relu),
+    keras.layers.Dense(5, activation=tf.nn.sigmoid)
 ])
 
 
@@ -38,7 +38,7 @@ model = keras.Sequential([
 model.compile(optimizer=tf.optimizers.Adamax(), 
               loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output
               metrics=['accuracy'])
-history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=40,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
+history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=75,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
 # if acc is a lot better than test accuracy then the data is overfit
 
 #i added validation_data to get val_acc and val_loss in the history for the graphs
@@ -58,11 +58,11 @@ val_loss = history.history['val_loss']
 
 epochs = range(1, len(acc) + 1)
 
-np.save(os.path.join('MachineLearning','resultData', 'epochs.npy'),epochs)
-np.save(os.path.join('MachineLearning','resultData',timeFrame +'loss.npy'),loss)
-np.save(os.path.join('MachineLearning','resultData',timeFrame +'val_loss.npy'),val_loss)
-np.save(os.path.join('MachineLearning','resultData',timeFrame +'acc.npy'),acc)
-np.save(os.path.join('MachineLearning','resultData',timeFrame +'val_acc.npy'),val_acc)
+np.save(os.path.join('MachineLearning','resultDataMotion', 'epochs.npy'),epochs)
+np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'loss.npy'),loss)
+np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'val_loss.npy'),val_loss)
+np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'acc.npy'),acc)
+np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'val_acc.npy'),val_acc)
 
 # "bo" is for "blue dot"
 plt.plot(epochs, loss, 'bo', label='Training loss')

@@ -4,3 +4,4 @@ __pycache__
 eventChunkData/
 logs
 *.png
+waveforms/

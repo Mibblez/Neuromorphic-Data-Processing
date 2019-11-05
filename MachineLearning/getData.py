@@ -87,22 +87,22 @@ def getMachineLearningData(numberOfFrames):
                     i+= 1
     return np.array(allInputData), np.array(allOutputData)
 
-def getMachineLearningData(numberOfFrames):
+def getMachineLearningDataWaveforms(numberOfFrames):
     allInputData = []#numberOfFrames x 3
     allOutputData = []#frequency
 
-    folders = os.listdir("data/")
+    folders = os.listdir("waveforms/")
     folders.sort(key=natural_keys)
     
     for folderName in folders:
-        onlyfiles = [f for f in listdir("./data/" +folderName) if isfile(join("./data/" + folderName, f))]
+        onlyfiles = [f for f in listdir("./waveforms/" +folderName) if isfile(join("./waveforms/" + folderName, f))]
 
         for file in onlyfiles:
-            with open('./data/'+folderName+"/" +file, 'r') as csvfile:
+            with open('./waveforms/'+folderName+"/" +file, 'r') as csvfile:
                     
                 reader = csv.reader(csvfile, delimiter=',')
                 i =0
-                name = folderName.lower().replace("nopol","").replace("no pol","").replace("30deg","").replace("30 deg","").replace("hz","").replace(" ","").replace("eventchunks","").replace("foam","")
+                name = folderName.lower().replace("-"," ").replace("nopol","").replace("no pol","").replace("30deg","").replace("30 deg","").replace("1hz","").replace("event chunks","").replace("foam","").replace("1Hz","").replace("500mv","").replace(" ","")
                 print(name)
                 inputGroup = []
                 for row in reader:
@@ -111,12 +111,24 @@ def getMachineLearningData(numberOfFrames):
 
                         if i % numberOfFrames == 0:
                             allInputData.append(np.array(inputGroup))
-                            allOutputData.append(int(name))
+                            if name == 'burst':
+                                allOutputData.append(0)
+                            elif name == 'sine':
+                                allOutputData.append(1)
+                            elif name == 'square':
+                                allOutputData.append(2)
+                            elif name == 'triangle':
+                                allOutputData.append(3)
+                            elif name == 'dc':
+                                allOutputData.append(4)
+                            elif name == 'noise':
+                                allOutputData.append(5)
                             inputGroup = []
                     i+= 1
     return np.array(allInputData), np.array(allOutputData)
 
                     
+           
 
 
 
