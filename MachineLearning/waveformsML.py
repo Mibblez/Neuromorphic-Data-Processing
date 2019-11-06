@@ -15,6 +15,8 @@ tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
 
 frameCount = 10000
 timeFrame = "500"
+numEpochs = 125
+
 inputData,outputData = getData.getMachineLearningDataWaveforms(frameCount)
 print(inputData.shape)
 
@@ -23,7 +25,8 @@ trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,o
 
 model = keras.Sequential([
     
-    keras.layers.GRU(25, activation='tanh', recurrent_activation='sigmoid',input_shape=(frameCount, 3), use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False),
+    keras.layers.AveragePooling1D(pool_size=5,input_shape=(frameCount, 3), strides=None, padding='valid', data_format='channels_last'),
+    keras.layers.GRU(25, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False),
     keras.layers.Flatten(),
     keras.layers.Dense(300, activation=tf.nn.relu),
     keras.layers.GaussianDropout(0.01),
@@ -35,10 +38,10 @@ model = keras.Sequential([
 
 
 
-model.compile(optimizer=tf.optimizers.Adamax(), 
+model.compile(optimizer=tf.optimizers.Adamax(lr=0.001), 
               loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output
               metrics=['accuracy'])
-history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=75,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
+history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=numEpochs,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
 # if acc is a lot better than test accuracy then the data is overfit
 
 #i added validation_data to get val_acc and val_loss in the history for the graphs
@@ -80,4 +83,3 @@ plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
 plt.show()
-
