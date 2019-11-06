@@ -13,7 +13,7 @@ import os
 MODEL_NAME = "Frequency-{}".format(int(time.time()))
 tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
 
-frameCount = 10000
+frameCount = 8500
 timeFrame = "500"
 numEpochs = 125
 
@@ -25,13 +25,14 @@ trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,o
 
 model = keras.Sequential([
     
-    keras.layers.AveragePooling1D(pool_size=5,input_shape=(frameCount, 3), strides=None, padding='valid', data_format='channels_last'),
-    keras.layers.GRU(25, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False),
+    keras.layers.AveragePooling1D(pool_size=3,input_shape=(frameCount, 3), strides=None, padding='valid', data_format='channels_last'),
+    keras.layers.GRU(30, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False),
     keras.layers.Flatten(),
+    keras.layers.Dense(350, activation=tf.nn.relu),
+    keras.layers.GaussianDropout(0.01),
     keras.layers.Dense(300, activation=tf.nn.relu),
     keras.layers.GaussianDropout(0.01),
     keras.layers.Dense(200, activation=tf.nn.relu),
-    keras.layers.GaussianDropout(0.01),
     keras.layers.Dense(100, activation=tf.nn.relu),
     keras.layers.Dense(5, activation=tf.nn.sigmoid)
 ])
