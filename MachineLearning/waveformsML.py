@@ -15,7 +15,7 @@ tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
 
 frameCount = 1000
 timeFrame = "500"
-numEpochs = 200
+numEpochs = 250
 
 inputData,outputData = getData.getMachineLearningDataWaveforms(frameCount)
 print(inputData.shape)
@@ -32,7 +32,7 @@ model = keras.Sequential([
     keras.layers.Dense(650, activation=tf.nn.relu),
     keras.layers.GaussianDropout(0.01),
     keras.layers.Dense(450, activation=tf.nn.relu),
-    keras.layers.Dense(100, activation=tf.nn.relu),
+    keras.layers.Dense(200, activation=tf.nn.relu),
     keras.layers.Dense(5, activation=tf.nn.softmax)
 ])
 
@@ -68,7 +68,7 @@ np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'acc.npy'),
 np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'val_acc.npy'),val_acc)
 
 # "bo" is for "blue dot"
-plt.plot(epochs, loss, 'bo', label='Training loss')
+plt.plot(epochs, loss, 'r', label='Training loss')
 # b is for "solid blue line"
 plt.plot(epochs, val_loss, 'b', label='Validation loss')
 plt.title('Training and validation loss')
@@ -77,7 +77,7 @@ plt.ylabel('Loss')
 plt.legend()
 plt.show()
 
-plt.plot(epochs, acc,'bo', label='Training Accuracy')
+plt.plot(epochs, acc,'r', label='Training Accuracy')
 plt.plot(epochs, val_acc,'b', label='Validation Accuracy')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
