@@ -17,12 +17,26 @@ tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
 
 frameCount = 1000
 timeFrame = "500"
-numEpochs = 250
+numEpochs = 1
 
-inputData,outputData = getData.getMachineLearningDataWaveforms(frameCount)
+inputData,outputData = getData.getMachineLearningDataWaveformsAndFrequency(frameCount)
 print(inputData.shape)
 
 trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,outputData,test_size=0.1, random_state = 42)
+
+waveformTrainOutput = []
+frequencyTrainOutput = []
+waveformTestOutput = []
+frequencyTestOutput = []
+for item in trainOutput:
+    waveformTrainOutput.append(item[0])
+    frequencyTrainOutput.append(item[1])
+
+for item in testOutput:
+    waveformTestOutput.append(item[0])
+    frequencyTestOutput.append(item[1])
+
+
 input_1 =Input(shape=(frameCount, 3,))
 
 waveformModel = keras.layers.AveragePooling1D(pool_size=3, strides=None, padding='valid', data_format='channels_last')(input_1)
@@ -32,17 +46,17 @@ waveformModel = keras.layers.Dense(650, activation=tf.nn.relu)(waveformModel)
 waveformModel = keras.layers.GaussianDropout(0.01)(waveformModel)
 waveformModel = keras.layers.Dense(450, activation=tf.nn.relu)(waveformModel)
 waveformModel = keras.layers.Dense(200, activation=tf.nn.relu)(waveformModel)
-output_wave = keras.layers.Dense(5, activation=tf.nn.softmax)(waveformModel)
+output_wave = keras.layers.Dense(5, activation=tf.nn.softmax, name="Waveform")(waveformModel)
 
 frequencyModel = keras.layers.AveragePooling1D(pool_size=5,input_shape=(200, 3), strides=None, padding='valid', data_format='channels_last')(input_1)
-frequencyModel =keras.layers.GRU(75, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False)(frequencyModel)
-frequencyModel =keras.layers.Flatten()(frequencyModel)
-frequencyModel =keras.layers.Dense(300, activation=tf.nn.sigmoid)(frequencyModel)
-frequencyModel =keras.layers.GaussianDropout(0.01)(frequencyModel)
-frequencyModel =keras.layers.Dense(150, activation=tf.nn.sigmoid)(frequencyModel)
-frequencyModel =keras.layers.GaussianDropout(0.01)(frequencyModel)
-frequencyModel =keras.layers.Dense(75, activation=tf.nn.sigmoid)(frequencyModel)
-output_freq =keras.layers.Dense(4, activation=tf.nn.sigmoid)(frequencyModel)
+frequencyModel = keras.layers.GRU(75, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False)(frequencyModel)
+frequencyModel = keras.layers.Flatten()(frequencyModel)
+frequencyModel = keras.layers.Dense(300, activation=tf.nn.sigmoid)(frequencyModel)
+frequencyModel = keras.layers.GaussianDropout(0.01)(frequencyModel)
+frequencyModel = keras.layers.Dense(150, activation=tf.nn.sigmoid)(frequencyModel)
+frequencyModel = keras.layers.GaussianDropout(0.01)(frequencyModel)
+frequencyModel = keras.layers.Dense(75, activation=tf.nn.sigmoid)(frequencyModel)
+output_freq = keras.layers.Dense(4, activation=tf.nn.sigmoid, name="Frequency")(frequencyModel)
 
 model2 = Model(inputs = input_1,outputs = [output_wave,output_freq])
 
@@ -50,12 +64,12 @@ model2 = Model(inputs = input_1,outputs = [output_wave,output_freq])
 model2.compile(optimizer=tf.optimizers.Adamax(lr=0.001), 
               loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output
               metrics=['accuracy'])
-history = model2.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=numEpochs,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
+history = model2.fit(trainInput, [np.array(waveformTrainOutput), np.array(frequencyTrainOutput)], validation_data=(testInput, [np.array(waveformTestOutput), np.array(frequencyTestOutput)]),epochs=numEpochs,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
 # if acc is a lot better than test accuracy then the data is overfit
 
 #i added validation_data to get val_acc and val_loss in the history for the graphs
 
-test_loss, test_acc = model2.evaluate(testInput, testOutput)
+test_loss, test_acc = model2.evaluate(testInput, waveformTestOutput)
 
 print('Test accuracy:', test_acc)
 

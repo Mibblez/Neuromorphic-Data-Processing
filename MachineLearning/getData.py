@@ -132,18 +132,18 @@ def getMachineLearningDataWaveformsAndFrequency(numberOfFrames):
     allInputData = []#numberOfFrames x 3
     allOutputData = []#frequency
 
-    folders = os.listdir("waveforms/")
+    folders = os.listdir("waveformsAndFrequency/")
     folders.sort(key=natural_keys)
     
     for folderName in folders:
-        onlyfiles = [f for f in listdir("./waveforms/" +folderName) if isfile(join("./waveforms/" + folderName, f))]
+        onlyfiles = [f for f in listdir("./waveformsAndFrequency/" +folderName) if isfile(join("./waveformsAndFrequency/" + folderName, f))]
 
         for file in onlyfiles:
-            with open('./waveforms/'+folderName+"/" +file, 'r') as csvfile:
+            with open('./waveformsAndFrequency/'+folderName+"/" +file, 'r') as csvfile:
                     
                 reader = csv.reader(csvfile, delimiter=',')
                 i =0
-                name = folderName.lower().replace("-"," ").replace("nopol","").replace("no pol","").replace("30deg","").replace("30 deg","").replace("1hz","").replace("event chunks","").replace("foam","").replace("1Hz","").replace("500mv","").replace(" ","")
+                name = folderName.lower()
                 print(name)
                 inputGroup = []
                 for row in reader:
@@ -152,20 +152,31 @@ def getMachineLearningDataWaveformsAndFrequency(numberOfFrames):
 
                         if i % numberOfFrames == 0:
                             allInputData.append(np.array(inputGroup))
-                            shapeOutput = 0
-                            if name == 'burst':
-                                shapeOutput =0
-                            elif name == 'sine':
-                                shapeOutput = 1
-                            elif name == 'square':
-                                shapeOutput = 2
-                            elif name == 'triangle':
-                                shapeOutput = 3
-                            elif name == 'dc':
-                                shapeOutput = 4
-                            elif name == 'noise':
-                                shapeOutput = 5
-                            allOutputData.append([shapeOutput,0])
+                            waveformOutput = 0
+                            if  'burst' in name:
+                                waveformOutput =0
+                            elif 'sine' in name:
+                                waveformOutput = 1
+                            elif 'square' in name:
+                                waveformOutput = 2
+                            elif 'triangle' in name:
+                                waveformOutput = 3
+                            elif 'dc' in name:
+                                waveformOutput = 4
+                            elif 'noise' in name:
+                                waveformOutput = 5
+
+                            frequencyOuput = 0
+                            if '500mv' in name:
+                                frequencyOuput = 0
+                            elif '400mv' in name:
+                                frequencyOuput = 1
+                            elif '300mv' in name:
+                                frequencyOuput = 2
+                            elif '200mv' in name:
+                                frequencyOuput = 3
+                            
+                            allOutputData.append([waveformOutput,frequencyOuput])
                             inputGroup = []
                     i+= 1
     return np.array(allInputData), np.array(allOutputData)
