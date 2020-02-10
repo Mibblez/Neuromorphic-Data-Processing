@@ -7,6 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import getData
 import time
+import datetime
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
@@ -18,6 +19,8 @@ tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
 frameCount = 1000
 timeFrame = "500"
 numEpochs = 500
+
+show_plots = False
 
 inputData,outputData = getData.getMachineLearningDataWaveformsAndFrequency(frameCount)
 print(inputData.shape)
@@ -37,25 +40,25 @@ for item in testOutput:
     frequencyTestOutput.append(item[1])
 
 
-input_1 =Input(shape=(frameCount, 3,))
+input_1 =Input(shape=(frameCount, 3,), name='Input')
 
-waveformModel = keras.layers.AveragePooling1D(pool_size=3, strides=None, padding='valid', data_format='channels_last')(input_1)
-waveformModel = keras.layers.GRU(180, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False)(waveformModel)
-waveformModel = keras.layers.Flatten()(waveformModel)
-waveformModel = keras.layers.Dense(650, activation=tf.nn.relu)(waveformModel)
-waveformModel = keras.layers.GaussianDropout(0.01)(waveformModel)
-waveformModel = keras.layers.Dense(550, activation=tf.nn.relu)(waveformModel)
-waveformModel = keras.layers.Dense(200, activation=tf.nn.relu)(waveformModel)
+waveformModel = keras.layers.AveragePooling1D(pool_size=3, strides=None, padding='valid', data_format='channels_last', name='Waveform_Pooling')(input_1)
+waveformModel = keras.layers.GRU(180, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False, name='Waveform_GRU')(waveformModel)
+waveformModel = keras.layers.Flatten(name='Waveform_Flatten')(waveformModel)
+waveformModel = keras.layers.Dense(650, activation=tf.nn.relu, name='Waveform_Dense1')(waveformModel)
+waveformModel = keras.layers.GaussianDropout(0.01, name='Waveform_Dropout1')(waveformModel)
+waveformModel = keras.layers.Dense(550, activation=tf.nn.relu, name='Waveform_Dense2')(waveformModel)
+waveformModel = keras.layers.Dense(200, activation=tf.nn.relu, name='Waveform_Dense3')(waveformModel)
 output_wave = keras.layers.Dense(5, activation=tf.nn.softmax, name="Waveform")(waveformModel)
 
-frequencyModel = keras.layers.AveragePooling1D(pool_size=5,input_shape=(200, 3), strides=None, padding='valid', data_format='channels_last')(input_1)
-frequencyModel = keras.layers.GRU(60, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False)(frequencyModel)
-frequencyModel = keras.layers.Flatten()(frequencyModel)
-frequencyModel = keras.layers.Dense(300, activation=tf.nn.sigmoid)(frequencyModel)
-frequencyModel = keras.layers.GaussianDropout(0.01)(frequencyModel)
-frequencyModel = keras.layers.Dense(150, activation=tf.nn.sigmoid)(frequencyModel)
-frequencyModel = keras.layers.GaussianDropout(0.01)(frequencyModel)
-frequencyModel = keras.layers.Dense(75, activation=tf.nn.sigmoid)(frequencyModel)
+frequencyModel = keras.layers.AveragePooling1D(pool_size=5,input_shape=(200, 3), strides=None, padding='valid', data_format='channels_last', name='Frequency_Pooling')(input_1)
+frequencyModel = keras.layers.GRU(60, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False, name='Frequency_GRU')(frequencyModel)
+frequencyModel = keras.layers.Flatten(name='Frequency_Flatten')(frequencyModel)
+frequencyModel = keras.layers.Dense(300, activation=tf.nn.sigmoid, name='Frequency_Dense1')(frequencyModel)
+frequencyModel = keras.layers.GaussianDropout(0.01, name='Frequency_Dropout1')(frequencyModel)
+frequencyModel = keras.layers.Dense(150, activation=tf.nn.sigmoid, name='Frequency_Dense2')(frequencyModel)
+frequencyModel = keras.layers.GaussianDropout(0.01, name='Frequency_Dropout2')(frequencyModel)
+frequencyModel = keras.layers.Dense(75, activation=tf.nn.sigmoid, name='Frequency_Dense3')(frequencyModel)
 output_freq = keras.layers.Dense(4, activation=tf.nn.sigmoid, name="Frequency")(frequencyModel)
 
 model2 = Model(inputs = input_1,outputs = [output_wave,output_freq])
@@ -74,7 +77,6 @@ test_loss, waveform_loss, frequency_loss, waveform_accuracy, frequency_accuracy 
 print('Waveform accuracy:', waveform_accuracy)
 print('Frequency accuracy:', frequency_accuracy)
 
-model2.summary()
 
 history_dict = history.history
 history_dict.keys()
@@ -100,14 +102,26 @@ if not os.path.exists(os.path.join("results","MachineLearning")):
 if not os.path.exists(os.path.join("results","MachineLearning","WaveformAndFreq")):
     os.makedirs(os.path.join("results","MachineLearning","WaveformAndFreq"))
 
-
 nn_label = '_waveforms_and_freq'
-nn_desc = "test"
+nn_desc = datetime.datetime.now().strftime("%b-%d-%Y-%H-%M-%S")
+resultPath = os.path.join("results","MachineLearning","WaveformAndFreq", nn_desc)
 
 if not os.path.exists(os.path.join("results","MachineLearning","WaveformAndFreq",nn_desc)):
     os.makedirs(os.path.join("results","MachineLearning","WaveformAndFreq",nn_desc))
 
-resultPath =os.path.join("results","MachineLearning","WaveformAndFreq",nn_desc)
+# Write NN result data to file
+with open(os.path.join(resultPath, 'results.txt'), 'w') as f:
+    model2.summary(print_fn=lambda x: f.write(x + '\n'))
+    f.write('\n')
+    f.write(f'Frame Count: {frameCount}\n')
+    f.write(f'Num Epochs: {numEpochs}\n')
+    f.write(f'Total Loss: {total_loss_v[-1]}\n')
+    f.write(f'Total Validation Loss: {test_loss}\n')
+    f.write(f'Waveform Accuracy: {waveform_accuracy_v[-1]}\n')
+    f.write(f'Waveform Validation Accuracy: {waveform_accuracy}\n')
+    f.write(f'Frequency Accuracy: {frequency_accuracy_v[-1]}\n')
+    f.write(f'Frequency Validaion Accuracy: {frequency_accuracy}\n')
+
 np.save(os.path.join(resultPath, 'epochs' + nn_label + '.npy'),epochs)
 np.save(os.path.join(resultPath,timeFrame +'loss' + nn_label + '.npy'),total_loss_v)
 np.save(os.path.join(resultPath,timeFrame +'val_loss' + nn_label + '.npy'),total_val_loss_v)
@@ -125,7 +139,11 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
 plt.savefig(os.path.join(resultPath, "Loss.png"))
-plt.show()
+
+if show_plots:
+    plt.show()
+else:
+    plt.clf()
 
 
 plt.plot(epochs, frequency_accuracy_v,'r', label='Frequency Accuracy')
@@ -136,4 +154,8 @@ plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
 plt.savefig(os.path.join(resultPath,"Accuracy.png"))
-plt.show()
+
+if show_plots:
+    plt.show()
+else:
+    plt.clf()
