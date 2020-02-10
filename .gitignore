@@ -6,3 +6,4 @@ logs
 *.png
 waveforms/
 waveformsAndfrequency/
+*.csv
