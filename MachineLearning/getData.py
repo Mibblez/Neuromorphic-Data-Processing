@@ -5,6 +5,7 @@ from os import listdir
 from os.path import isfile, join
 import numpy as np
 import re
+import sklearn.model_selection as sk
 
 def atoi(text):
     return int(text) if text.isdigit() else text
@@ -179,7 +180,21 @@ def getMachineLearningDataWaveformsAndFrequency(numberOfFrames):
                             allOutputData.append([waveformOutput,frequencyOuput])
                             inputGroup = []
                     i+= 1
-    return np.array(allInputData), np.array(allOutputData)
+    
+    trainInput, testInput, trainOutput, testOutput = sk.train_test_split(allInputData,allOutputData,test_size=0.1, random_state = 42)
+
+    waveformTrainOutput = []
+    frequencyTrainOutput = []
+    waveformTestOutput = []
+    frequencyTestOutput = []
+    for item in trainOutput:
+        waveformTrainOutput.append(item[0])
+        frequencyTrainOutput.append(item[1])
+
+    for item in testOutput:
+        waveformTestOutput.append(item[0])
+        frequencyTestOutput.append(item[1])
+    return np.array(waveformTrainOutput), np.array(frequencyTrainOutput), np.array(waveformTestOutput), np.array(frequencyTestOutput), np.array(trainInput), np.array(testInput)
 
                 
 
