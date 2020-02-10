@@ -69,40 +69,71 @@ history = model2.fit(trainInput, [np.array(waveformTrainOutput), np.array(freque
 
 #i added validation_data to get val_acc and val_loss in the history for the graphs
 
-test_loss, test_acc = model2.evaluate(testInput, waveformTestOutput)
+test_loss, waveform_loss, frequency_loss, waveform_accuracy, frequency_accuracy = model2.evaluate(testInput, [np.array(waveformTestOutput),np.array(frequencyTestOutput)])
 
-print('Test accuracy:', test_acc)
+print('Waveform accuracy:', waveform_accuracy)
+print('Frequency accuracy:', frequency_accuracy)
+
+model2.summary()
 
 history_dict = history.history
 history_dict.keys()
 print(history_dict.keys())
+
 #plot loss per training cycle, they should be close
-acc = history.history['accuracy']
-val_acc = history.history['val_accuracy']
-loss = history.history['loss']
-val_loss = history.history['val_loss']
+total_loss_v = history_dict['loss']
+total_val_loss_v = history_dict['val_loss']
+waveform_accuracy_v = history_dict['Waveform_accuracy']
+frequency_accuracy_v = history_dict['Frequency_accuracy']
+waveform_val_accuracy_v = history_dict['val_Waveform_accuracy']
+frequency_val_accuracy_v = history_dict['val_Frequency_accuracy']
 
-epochs = range(1, len(acc) + 1)
+epochs = range(1, len(total_loss_v) + 1)
 
-np.save(os.path.join('MachineLearning','resultDataMotion', 'epochs.npy'),epochs)
-np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'loss.npy'),loss)
-np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'val_loss.npy'),val_loss)
-np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'acc.npy'),acc)
-np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'val_acc.npy'),val_acc)
 
-# "bo" is for "blue dot"
-plt.plot(epochs, loss, 'r', label='Training loss')
-# b is for "solid blue line"
-plt.plot(epochs, val_loss, 'b', label='Validation loss')
+if not os.path.exists(os.path.join("results")):
+    os.makedirs(os.path.join("results"))
+
+if not os.path.exists(os.path.join("results","MachineLearning")):
+    os.makedirs(os.path.join("results","MachineLearning"))
+
+if not os.path.exists(os.path.join("results","MachineLearning","WaveformAndFreq")):
+    os.makedirs(os.path.join("results","MachineLearning","WaveformAndFreq"))
+
+
+nn_label = '_waveforms_and_freq'
+nn_desc = "test"
+
+if not os.path.exists(os.path.join("results","MachineLearning","WaveformAndFreq",nn_desc)):
+    os.makedirs(os.path.join("results","MachineLearning","WaveformAndFreq",nn_desc))
+
+resultPath =os.path.join("results","MachineLearning","WaveformAndFreq",nn_desc)
+np.save(os.path.join(resultPath, 'epochs' + nn_label + '.npy'),epochs)
+np.save(os.path.join(resultPath,timeFrame +'loss' + nn_label + '.npy'),total_loss_v)
+np.save(os.path.join(resultPath,timeFrame +'val_loss' + nn_label + '.npy'),total_val_loss_v)
+np.save(os.path.join(resultPath,timeFrame +'waveform_accuracy' + nn_label + '.npy'),waveform_accuracy_v)
+np.save(os.path.join(resultPath,timeFrame +'frequency_accuracy' + nn_label + '.npy'),frequency_accuracy_v)
+np.save(os.path.join(resultPath,timeFrame +'waveform_val_accuracy' + nn_label + '.npy'),waveform_val_accuracy_v)
+np.save(os.path.join(resultPath,timeFrame +'frequency_val_accuracy' + nn_label + '.npy'),frequency_val_accuracy_v)
+
 plt.title('Training and validation loss')
+# "bo" is for "blue dot"
+plt.plot(epochs, total_loss_v, 'r', label='Training loss')
+# b is for "solid blue line"
+plt.plot(epochs, total_val_loss_v, 'b', label='Validation loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
+plt.savefig(os.path.join(resultPath, "Loss.png"))
 plt.show()
 
-plt.plot(epochs, acc,'r', label='Training Accuracy')
-plt.plot(epochs, val_acc,'b', label='Validation Accuracy')
+
+plt.plot(epochs, frequency_accuracy_v,'r', label='Frequency Accuracy')
+plt.plot(epochs, frequency_val_accuracy_v,'g', label='Frequency Validation Accuracy')
+plt.plot(epochs, waveform_val_accuracy_v,'b', label='Waveform Validation Accuracy')
+plt.plot(epochs, waveform_val_accuracy_v,'y', label='Waveform Accuracy')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()
+plt.savefig(os.path.join(resultPath,"Accuracy.png"))
 plt.show()

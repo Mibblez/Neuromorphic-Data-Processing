@@ -6,3 +6,5 @@ logs
 *.png
 waveforms/
 waveformsAndfrequency/
+results/
+*.npy
