@@ -7,3 +7,5 @@ logs
 waveforms/
 waveformsAndfrequency/
 *.csv
+results/
+*.npy
