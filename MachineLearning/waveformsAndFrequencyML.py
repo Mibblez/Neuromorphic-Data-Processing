@@ -11,18 +11,25 @@ import os
 import saveWaveformsAndFreqResult
 
 
-def trainAndSave(model, frameCount, numEpochs):
+def trainAndSave(model, frame_count, num_epochs):
 
-    waveformTrainOutput, frequencyTrainOutput, waveformTestOutput, frequencyTestOutput, trainInput, testInput = getData.getMachineLearningDataWaveformsAndFrequency(frameCount)
+    # waveformTrainOutput, frequencyTrainOutput, waveformTestOutput, frequencyTestOutput, trainInput, testInput = getData.getMachineLearningDataWaveformsAndFrequency(frameCount)
+    
+    # Object test
+    wf_data = getData.WaveAndFreqData(frame_count)
 
     model.compile(optimizer=tf.optimizers.Adamax(lr=0.001), 
                 loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output
                 metrics=['accuracy'])
-    history = model.fit(trainInput, [waveformTrainOutput, frequencyTrainOutput], validation_data=(testInput, [waveformTestOutput,frequencyTestOutput]),epochs=numEpochs) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
-    # if acc is a lot better than test accuracy then the data is overfit
+    
+    # Fit is same as train; epochs- how long to train, if you train too much you overfit the data
+    # If acc is a lot better than test accuracy then the data is overfit
+    history = model.fit(wf_data.train_input, [wf_data.waveform_train_output, wf_data.frequency_train_output],
+                        validation_data=(wf_data.test_input, [wf_data.waveform_test_output,wf_data.frequency_test_output]),
+                        epochs=num_epochs) 
 
     #i added validation_data to get val_acc and val_loss in the history for the graphs
-    saveWaveformsAndFreqResult.save(history,model, testInput, waveformTestOutput, frequencyTestOutput, frameCount,numEpochs, False )
+    saveWaveformsAndFreqResult.save(history,model, wf_data.test_input, wf_data.waveform_test_output, wf_data.frequency_test_output, frame_count,num_epochs, False )
 
 
 
