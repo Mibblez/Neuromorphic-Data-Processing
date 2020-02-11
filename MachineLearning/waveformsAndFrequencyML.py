@@ -39,19 +39,22 @@ if __name__ == "__main__":
     frameCount = 1000
     input_1 =Input(shape=(frameCount, 3,), name='Input')
 
-    waveformModel = keras.layers.AveragePooling1D(pool_size=3, strides=None, padding='valid', data_format='channels_last', name='Waveform_Pooling')(input_1)
-    waveformModel = keras.layers.GRU(180, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False, name='Waveform_GRU')(waveformModel)
-    waveformModel = keras.layers.Flatten(name='Waveform_Flatten')(waveformModel)
-    waveformModel = keras.layers.Dense(650, activation=tf.nn.relu, name='Waveform_Dense1')(waveformModel)
+    common = keras.layers.AveragePooling1D(pool_size=3, strides=None, padding='valid', data_format='channels_last', name='Common_Pooling')(input_1)
+    common = keras.layers.GRU(180, activation='tanh', recurrent_activation='sigmoid',
+    use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal',
+    bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, 
+    bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None,
+    bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False,
+    return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False, name='Common_GRU')(common)
+    commmon = keras.layers.Flatten(name='Common_Flatten')(common)
+
+    waveformModel = keras.layers.Dense(650, activation=tf.nn.relu, name='Waveform_Dense1')(commmon)
     waveformModel = keras.layers.GaussianDropout(0.01, name='Waveform_Dropout1')(waveformModel)
     waveformModel = keras.layers.Dense(550, activation=tf.nn.relu, name='Waveform_Dense2')(waveformModel)
     waveformModel = keras.layers.Dense(200, activation=tf.nn.relu, name='Waveform_Dense3')(waveformModel)
     output_wave = keras.layers.Dense(5, activation=tf.nn.softmax, name="Waveform")(waveformModel)
 
-    frequencyModel = keras.layers.AveragePooling1D(pool_size=5, strides=None, padding='valid', data_format='channels_last', name='Frequency_Pooling')(input_1)
-    frequencyModel = keras.layers.GRU(60, activation='tanh', recurrent_activation='sigmoid', use_bias=True, kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal', bias_initializer='zeros', kernel_regularizer=None, recurrent_regularizer=None, bias_regularizer=None, activity_regularizer=None, kernel_constraint=None, recurrent_constraint=None, bias_constraint=None, dropout=0.0, recurrent_dropout=0.0, implementation=2, return_sequences=False, return_state=False, go_backwards=False, stateful=False, unroll=False, reset_after=False, name='Frequency_GRU')(frequencyModel)
-    frequencyModel = keras.layers.Flatten(name='Frequency_Flatten')(frequencyModel)
-    frequencyModel = keras.layers.Dense(300, activation=tf.nn.sigmoid, name='Frequency_Dense1')(frequencyModel)
+    frequencyModel = keras.layers.Dense(300, activation=tf.nn.sigmoid, name='Frequency_Dense1')(commmon)
     frequencyModel = keras.layers.GaussianDropout(0.01, name='Frequency_Dropout1')(frequencyModel)
     frequencyModel = keras.layers.Dense(150, activation=tf.nn.sigmoid, name='Frequency_Dense2')(frequencyModel)
     frequencyModel = keras.layers.GaussianDropout(0.01, name='Frequency_Dropout2')(frequencyModel)
@@ -59,4 +62,4 @@ if __name__ == "__main__":
     output_freq = keras.layers.Dense(4, activation=tf.nn.sigmoid, name="Frequency")(frequencyModel)
     model2 = Model(inputs = input_1,outputs = [output_wave,output_freq])
 
-    trainAndSave(model2, frameCount, 500)
+    trainAndSave(model2, frameCount, 3)
