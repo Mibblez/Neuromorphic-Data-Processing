@@ -22,14 +22,14 @@ def getMachineLearningData(num_frames):
     all_input_data = []     # numberOfFrames x 3
     all_output_data = []    # frequency
 
-    folders = os.listdir("data/data")
+    folders = os.listdir("data/frequency")
     folders.sort(key=natural_keys)
     
     for folder_name in folders:
-        onlyfiles = [f for f in listdir(f'data/data/{folder_name}') if isfile(join(f'data/data/{folder_name}', f))]
+        onlyfiles = [f for f in listdir(f'data/frequency/{folder_name}') if isfile(join(f'data/frequency/{folder_name}', f))]
 
         for data_file in onlyfiles:
-            with open(f'data/data/{folder_name}/{data_file}', 'r') as csvfile: 
+            with open(f'data/frequency/{folder_name}/{data_file}', 'r') as csvfile: 
                 reader = csv.reader(csvfile, delimiter=',')
                 name = folder_name.lower().replace("nopol","").replace("no pol","").replace("30deg","").replace("30 deg","").replace("hz","").replace(" ","").replace("eventchunks","").replace("foam","")
                 print(name)
