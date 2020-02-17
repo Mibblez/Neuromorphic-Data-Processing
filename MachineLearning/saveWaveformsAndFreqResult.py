@@ -79,7 +79,7 @@ def save(history,model, testInput, waveformTestOutput, frequencyTestOutput, fram
     plt.plot(epochs, frequency_accuracy_v,'r', label='Frequency Accuracy')
     plt.plot(epochs, frequency_val_accuracy_v,'g', label='Frequency Validation Accuracy')
     plt.plot(epochs, waveform_val_accuracy_v,'b', label='Waveform Validation Accuracy')
-    plt.plot(epochs, waveform_val_accuracy_v,'y', label='Waveform Accuracy')
+    plt.plot(epochs, waveform_accuracy_v,'y', label='Waveform Accuracy')
     plt.xlabel('Epochs')
     plt.ylabel('Accuracy')
     plt.legend()
