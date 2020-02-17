@@ -1,23 +1,25 @@
 import numpy as np
 from scipy.optimize import leastsq
 import pylab as plt
-import getData
+import getPlottingData
+from scipy.signal import savgol_filter
+
 
 N = 1000 # number of data points
 
 f = 1.15247 # Optional!! Advised not to use
 #data = 3.0*np.sin(f*t+0.001) + 0.5 + np.random.randn(N) # create artificial data with noise
 
-on,off,all2, N,x= getData.getData()
-
-data = np.array(off)
+on,off,all2, N,x= getPlottingData.getData()
+yhat = savgol_filter(off, 51, 3)
+data = np.array(yhat)
 t = np.linspace(0, 4*np.pi, N)
 
 guess_mean = np.mean(data)
 guess_std = 3*np.std(data)/(2**0.5)/(2**0.5)
 guess_phase = 0
-guess_freq = 1
-guess_amp = 1
+guess_freq = 12
+guess_amp = 120
 
 # we'll use this to plot our first estimate. This might already be good enough for you
 data_first_guess = guess_std*np.sin(t+guess_phase) + guess_mean
@@ -35,10 +37,15 @@ data_fit = est_amp*np.sin(est_freq*t+est_phase) + est_mean
 fine_t = np.arange(0,max(t),0.1)
 data_fit=est_amp*np.sin(est_freq*fine_t+est_phase)+est_mean
 
-print(est_freq,est_freq/fine_t[1])
+print(est_freq,est_freq/t[1])
 
-plt.plot(t, data, '.')
-plt.plot(t, data_first_guess, label='first guess')
+#plt.plot(t, on, '.',c="green")
+#plt.plot(t,off, '.',c="red")
+#plt.plot(t, data_first_guess, label='first guess')
 plt.plot(fine_t, data_fit, label='after fitting')
+plt.plot(t,data, '.',c="red")
 plt.legend()
+plt.show()
+
+plt.scatter(x,data)
 plt.show()

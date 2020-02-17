@@ -13,12 +13,11 @@ from scipy.signal import argrelextrema
 from sklearn.metrics import pairwise_distances_argmin
 from scipy import stats
 import plotSpectrum
-import getData
+import getPlottingData
 import scipy.fftpack
 import pywt
 import pywt.data
 import math
-
 
 
 def find_clusters(X, n_clusters, rseed=2):
@@ -107,11 +106,11 @@ allKMeansNoPolBoth = []
 #allKMeansNoPolLabels = []
 
 folders = os.listdir("data/")
-folders.sort(key=getData.natural_keys)
+folders.sort(key=getPlottingData.natural_keys)
 for folderName in folders:
     
     #folderName = "26hz_nopol Event Chunks"
-    y_on,y_off,y_all, fileCount,x= getData.getData(folderName)  
+    y_on,y_off,y_all, fileCount,x= getPlottingData.getData(folderName)  
 
     if logValues:
         onAvg = np.array(y_on).mean()

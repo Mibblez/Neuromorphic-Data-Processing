@@ -62,4 +62,4 @@ if __name__ == "__main__":
     output_freq = keras.layers.Dense(4, activation=tf.nn.sigmoid, name="Frequency")(frequencyModel)
     model2 = Model(inputs = input_1,outputs = [output_wave,output_freq])
 
-    trainAndSave(model2, frameCount, 3)
+    trainAndSave(model2, frameCount, 500)

@@ -18,74 +18,31 @@ def natural_keys(text):
     '''
     return [ atoi(c) for c in re.split(r'(\d+)', text) ]
 
-def getMachineLearningData(numberOfFrames):
-    allInputData = []#numberOfFrames x 3
-    allOutputData = []#frequency
+def getMachineLearningData(num_frames):
+    all_input_data = []     # numberOfFrames x 3
+    all_output_data = []    # frequency
 
-    folders = os.listdir("data/")
+    folders = os.listdir("data/data")
     folders.sort(key=natural_keys)
     
-    for folderName in folders:
-        onlyfiles = [f for f in listdir("./data/" +folderName) if isfile(join("./data/" + folderName, f))]
+    for folder_name in folders:
+        onlyfiles = [f for f in listdir(f'data/data/{folder_name}') if isfile(join(f'data/data/{folder_name}', f))]
 
-        for file in onlyfiles:
-            with open('./data/'+folderName+"/" +file, 'r') as csvfile:
-                    
+        for data_file in onlyfiles:
+            with open(f'data/data/{folder_name}/{data_file}', 'r') as csvfile: 
                 reader = csv.reader(csvfile, delimiter=',')
-                i =0
-                name = folderName.lower().replace("nopol","").replace("no pol","").replace("30deg","").replace("30 deg","").replace("hz","").replace(" ","").replace("eventchunks","").replace("foam","")
+                name = folder_name.lower().replace("nopol","").replace("no pol","").replace("30deg","").replace("30 deg","").replace("hz","").replace(" ","").replace("eventchunks","").replace("foam","")
                 print(name)
-                inputGroup = []
-                for row in reader:
+                input_group = []
+                for i, row in enumerate(reader):
                     if i != 0:
-                        inputGroup.append((int(row[0]), int(row[1]), int(row[2])))
+                        input_group.append((int(row[0]), int(row[1]), int(row[2])))
 
-                        if i % numberOfFrames == 0:
-                            allInputData.append(np.array(inputGroup))
-                            allOutputData.append(int(name))
-                            inputGroup = []
-                    i+= 1
-    return np.array(allInputData), np.array(allOutputData)
-
-def getMachineLearningDataWaveforms(numberOfFrames):
-    allInputData = []#numberOfFrames x 3
-    allOutputData = []#frequency
-
-    folders = os.listdir("waveforms/")
-    folders.sort(key=natural_keys)
-    
-    for folderName in folders:
-        onlyfiles = [f for f in listdir("./waveforms/" +folderName) if isfile(join("./waveforms/" + folderName, f))]
-
-        for file in onlyfiles:
-            with open('./waveforms/'+folderName+"/" +file, 'r') as csvfile:
-                    
-                reader = csv.reader(csvfile, delimiter=',')
-                i =0
-                name = folderName.lower().replace("-"," ").replace("nopol","").replace("no pol","").replace("30deg","").replace("30 deg","").replace("1hz","").replace("event chunks","").replace("foam","").replace("1Hz","").replace("500mv","").replace(" ","")
-                print(name)
-                inputGroup = []
-                for row in reader:
-                    if i != 0:
-                        inputGroup.append((int(row[0]), int(row[1]), int(row[2])))
-
-                        if i % numberOfFrames == 0:
-                            allInputData.append(np.array(inputGroup))
-                            if name == 'burst':
-                                allOutputData.append(0)
-                            elif name == 'sine':
-                                allOutputData.append(1)
-                            elif name == 'square':
-                                allOutputData.append(2)
-                            elif name == 'triangle':
-                                allOutputData.append(3)
-                            elif name == 'dc':
-                                allOutputData.append(4)
-                            elif name == 'noise':
-                                allOutputData.append(5)
-                            inputGroup = []
-                    i+= 1
-    return np.array(allInputData), np.array(allOutputData)
+                        if i % num_frames == 0:
+                            all_input_data.append(np.array(input_group))
+                            all_output_data.append(int(name))
+                            input_group = []
+    return np.array(all_input_data), np.array(all_output_data)
 
 class WaveAndFreqData:
     waveform_train_output = []
@@ -99,14 +56,15 @@ class WaveAndFreqData:
         all_input_data = []     # Number of frames * 3
         all_output_data = []    # Frequency
 
-        folders = os.listdir("waveformsAndFrequency/")
+        folders = os.listdir('data/waveformsAndFrequency')
         folders.sort(key=natural_keys)
 
         for folder_name in folders:
-            onlyfiles = [f for f in listdir(f'./waveformsAndFrequency/{folder_name}') if isfile(join(f'./waveformsAndFrequency/{folder_name}', f))]
+            onlyfiles = [f for f in listdir(f'./data/waveformsAndFrequency/{folder_name}') if isfile(join(f'./data/waveformsAndFrequency/{folder_name}', f))]
 
-            for file in onlyfiles:
-                with open(f'./waveformsAndFrequency/{folder_name}/{file}', 'r') as csv_file:
+            for data_file in onlyfiles:
+                #with open(f'./waveformsAndFrequency/{folder_name}/{file}', 'r') as csv_file:
+                with open(f'./data/waveformsAndFrequency/{folder_name}/{data_file}', 'r') as csv_file:
                         
                     reader = csv.reader(csv_file, delimiter=',')
                     name = folder_name.lower()
