@@ -11,14 +11,14 @@ import os
 import saveWaveformsAndFreqResult
 
 
-def trainAndSave(model, frame_count, num_epochs):
+def trainAndSave(model, frame_count, num_epochs, learning_rate):
 
     # waveformTrainOutput, frequencyTrainOutput, waveformTestOutput, frequencyTestOutput, trainInput, testInput = getData.getMachineLearningDataWaveformsAndFrequency(frameCount)
     
     # Object test
     wf_data = getData.WaveAndFreqData(frame_count)
 
-    model.compile(optimizer=tf.optimizers.Adamax(lr=0.001), 
+    model.compile(optimizer=tf.optimizers.Adamax(lr=learning_rate), 
                 loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output
                 metrics=['accuracy'])
     
@@ -29,13 +29,11 @@ def trainAndSave(model, frame_count, num_epochs):
                         epochs=num_epochs) 
 
     #i added validation_data to get val_acc and val_loss in the history for the graphs
-    saveWaveformsAndFreqResult.save(history,model, wf_data.test_input, wf_data.waveform_test_output, wf_data.frequency_test_output, frame_count,num_epochs, False )
+    saveWaveformsAndFreqResult.save(history,model, wf_data.test_input, wf_data.waveform_test_output, wf_data.frequency_test_output, frame_count,num_epochs, learning_rate, False )
 
 
 
 if __name__ == "__main__":
-
-
     frameCount = 1000
     input_1 =Input(shape=(frameCount, 3,), name='Input')
 
@@ -62,4 +60,4 @@ if __name__ == "__main__":
     output_freq = keras.layers.Dense(4, activation=tf.nn.sigmoid, name="Frequency")(frequencyModel)
     model2 = Model(inputs = input_1,outputs = [output_wave,output_freq])
 
-    trainAndSave(model2, frameCount, 500)
+    trainAndSave(model2, frameCount, 500, 0.001)

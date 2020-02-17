@@ -63,7 +63,6 @@ class WaveAndFreqData:
             onlyfiles = [f for f in listdir(f'./data/waveformsAndFrequency/{folder_name}') if isfile(join(f'./data/waveformsAndFrequency/{folder_name}', f))]
 
             for data_file in onlyfiles:
-                #with open(f'./waveformsAndFrequency/{folder_name}/{file}', 'r') as csv_file:
                 with open(f'./data/waveformsAndFrequency/{folder_name}/{data_file}', 'r') as csv_file:
                         
                     reader = csv.reader(csv_file, delimiter=',')
