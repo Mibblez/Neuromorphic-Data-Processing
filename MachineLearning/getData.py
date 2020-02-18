@@ -17,9 +17,9 @@ def getMachineLearningData(num_frames: int, base_folder: str):
     folders = natsorted(folders, alg=ns.IGNORECASE)
     
     for folder_name in folders:
-        onlyfiles = [f for f in listdir(f'data/{base_folder}/{folder_name}') if isfile(join(f'data/{base_folder}/{folder_name}', f))]
+        only_files = [f for f in listdir(f'data/{base_folder}/{folder_name}') if isfile(join(f'data/{base_folder}/{folder_name}', f))]
 
-        for data_file in onlyfiles:
+        for data_file in only_files:
             with open(f'data/{base_folder}/{folder_name}/{data_file}', 'r') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
 
