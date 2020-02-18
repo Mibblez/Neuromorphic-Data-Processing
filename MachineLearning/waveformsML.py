@@ -10,18 +10,17 @@ import time
 from tensorflow.keras.callbacks import TensorBoard
 import os
 
-MODEL_NAME = "Frequency-{}".format(int(time.time()))
+MODEL_NAME = f'Frequency-{int(time.time())}'
 tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
 
 frameCount = 1000
 timeFrame = "500"
-numEpochs = 250
+num_epochs = 250
 
-inputData,outputData = getData.getMachineLearningDataWaveforms(frameCount)
-print(inputData.shape)
+inputData,outputData = getData.getMachineLearningData(frameCount, 'waveforms')
+print(f'Input Shape: {inputData.shape}')
 
 trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,outputData,test_size=0.1, random_state = 42)
-
 
 model = keras.Sequential([
     keras.layers.AveragePooling1D(pool_size=3,input_shape=(frameCount, 3), strides=None, padding='valid', data_format='channels_last'),
@@ -36,49 +35,39 @@ model = keras.Sequential([
     keras.layers.Dense(5, activation=tf.nn.softmax)
 ])
 
-
-
 model.compile(optimizer=tf.optimizers.Adamax(lr=0.001), 
               loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output
               metrics=['accuracy'])
-history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=numEpochs,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
-# if acc is a lot better than test accuracy then the data is overfit
-
-#i added validation_data to get val_acc and val_loss in the history for the graphs
+history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=num_epochs,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
 
 test_loss, test_acc = model.evaluate(testInput, testOutput)
 
-print('Test accuracy:', test_acc)
+print(f'Test accuracy: {test_acc}')
 
 history_dict = history.history
-history_dict.keys()
-print(history_dict.keys())
+
 #plot loss per training cycle, they should be close
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 
-epochs = range(1, len(acc) + 1)
-
-np.save(os.path.join('MachineLearning','resultDataMotion', 'epochs.npy'),epochs)
+np.save(os.path.join('MachineLearning','resultDataMotion', 'epochs.npy'),num_epochs)
 np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'loss.npy'),loss)
 np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'val_loss.npy'),val_loss)
 np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'acc.npy'),acc)
 np.save(os.path.join('MachineLearning','resultDataMotion',timeFrame +'val_acc.npy'),val_acc)
 
-# "bo" is for "blue dot"
-plt.plot(epochs, loss, 'r', label='Training loss')
-# b is for "solid blue line"
-plt.plot(epochs, val_loss, 'b', label='Validation loss')
+plt.plot(num_epochs, loss, 'r', label='Training loss')
+plt.plot(num_epochs, val_loss, 'b', label='Validation loss')
 plt.title('Training and validation loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
 plt.show()
 
-plt.plot(epochs, acc,'r', label='Training Accuracy')
-plt.plot(epochs, val_acc,'b', label='Validation Accuracy')
+plt.plot(num_epochs, acc,'r', label='Training Accuracy')
+plt.plot(num_epochs, val_acc,'b', label='Validation Accuracy')
 plt.xlabel('Epochs')
 plt.ylabel('Accuracy')
 plt.legend()

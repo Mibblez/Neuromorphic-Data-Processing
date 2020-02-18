@@ -6,33 +6,41 @@ from os.path import isfile, join
 import numpy as np
 import re
 import sklearn.model_selection as sk
+from natsort import natsorted, ns
 
-def atoi(text):
-    return int(text) if text.isdigit() else text
 
-def natural_keys(text):
-    '''
-    alist.sort(key=natural_keys) sorts in human order
-    http://nedbatchelder.com/blog/200712/human_sorting.html
-    (See Toothy's implementation in the comments)
-    '''
-    return [ atoi(c) for c in re.split(r'(\d+)', text) ]
-
-def getMachineLearningData(num_frames):
+def getMachineLearningData(num_frames: int, base_folder: str):
     all_input_data = []     # numberOfFrames x 3
     all_output_data = []    # frequency
 
-    folders = os.listdir("data/frequency")
-    folders.sort(key=natural_keys)
+    folders = os.listdir(f"data/{base_folder}")
+    folders = natsorted(folders, alg=ns.IGNORECASE)
     
     for folder_name in folders:
-        onlyfiles = [f for f in listdir(f'data/frequency/{folder_name}') if isfile(join(f'data/frequency/{folder_name}', f))]
+        onlyfiles = [f for f in listdir(f'data/{base_folder}/{folder_name}') if isfile(join(f'data/{base_folder}/{folder_name}', f))]
 
         for data_file in onlyfiles:
-            with open(f'data/frequency/{folder_name}/{data_file}', 'r') as csvfile: 
+            with open(f'data/{base_folder}/{folder_name}/{data_file}', 'r') as csvfile:
                 reader = csv.reader(csvfile, delimiter=',')
-                name = folder_name.lower().replace("nopol","").replace("no pol","").replace("30deg","").replace("30 deg","").replace("hz","").replace(" ","").replace("eventchunks","").replace("foam","")
-                print(name)
+
+                # Waveform files
+                if 'burst' in folder_name:
+                    file_class = 0
+                elif 'sine' in folder_name:
+                    file_class = 1
+                elif 'square' in folder_name:
+                    file_class = 2
+                elif 'triangle' in folder_name:
+                    file_class = 3
+                elif 'dc' in folder_name:
+                    file_class = 4
+                elif 'noise' in folder_name:
+                    file_class = 5
+                # This must be a frequency file. Use the frequency as the class
+                else:
+                    file_class = folder_name.lower().replace("nopol","").replace("no pol","").replace("30deg","").replace("30 deg","").replace("hz","").replace(" ","").replace("eventchunks","").replace("foam","")
+                
+                print(file_class)
                 input_group = []
                 for i, row in enumerate(reader):
                     if i != 0:
@@ -40,7 +48,7 @@ def getMachineLearningData(num_frames):
 
                         if i % num_frames == 0:
                             all_input_data.append(np.array(input_group))
-                            all_output_data.append(int(name))
+                            all_output_data.append(file_class)
                             input_group = []
     return np.array(all_input_data), np.array(all_output_data)
 
@@ -52,18 +60,18 @@ class WaveAndFreqData:
     train_input = []
     test_input = []
 
-    def __init__(self, num_frames):
+    def __init__(self, num_frames: int, base_folder: str):
         all_input_data = []     # Number of frames * 3
         all_output_data = []    # Frequency
 
-        folders = os.listdir('data/waveformsAndFrequency')
-        folders.sort(key=natural_keys)
+        folders = os.listdir(f'data/{base_folder}')
+        folders = natsorted(folders, alg=ns.IGNORECASE)
 
         for folder_name in folders:
-            onlyfiles = [f for f in listdir(f'./data/waveformsAndFrequency/{folder_name}') if isfile(join(f'./data/waveformsAndFrequency/{folder_name}', f))]
+            onlyfiles = [f for f in listdir(f'./data/{base_folder}/{folder_name}') if isfile(join(f'./data/{base_folder}/{folder_name}', f))]
 
             for data_file in onlyfiles:
-                with open(f'./data/waveformsAndFrequency/{folder_name}/{data_file}', 'r') as csv_file:
+                with open(f'./data/{base_folder}/{folder_name}/{data_file}', 'r') as csv_file:
                         
                     reader = csv.reader(csv_file, delimiter=',')
                     name = folder_name.lower()
@@ -103,6 +111,7 @@ class WaveAndFreqData:
                                 all_output_data.append([waveform_output,frequency_ouput])
                                 input_group = []
         
+        # Split data into train/test sets
         self.train_input, self.test_input, train_output, test_output = sk.train_test_split(all_input_data, all_output_data, test_size=0.1, random_state = 42)
 
         for item in train_output:

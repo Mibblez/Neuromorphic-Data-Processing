@@ -16,7 +16,7 @@ def trainAndSave(model, frame_count, num_epochs, learning_rate):
     # waveformTrainOutput, frequencyTrainOutput, waveformTestOutput, frequencyTestOutput, trainInput, testInput = getData.getMachineLearningDataWaveformsAndFrequency(frameCount)
     
     # Object test
-    wf_data = getData.WaveAndFreqData(frame_count)
+    wf_data = getData.WaveAndFreqData(frame_count, 'waveformsAndFrequency')
 
     model.compile(optimizer=tf.optimizers.Adamax(lr=learning_rate), 
                 loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output

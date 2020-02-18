@@ -10,16 +10,15 @@ import time
 from tensorflow.keras.callbacks import TensorBoard
 import os
 
-MODEL_NAME = "Frequency-{}".format(int(time.time()))
+MODEL_NAME = f'Frequency-{int(time.time())}'
 tensorboard = TensorBoard(log_dir=f'logs\\{MODEL_NAME}')
 
 frameSize = 200
 timeFrame = "750"
-inputData,outputData = getData.getMachineLearningData(frameSize)
+inputData,outputData = getData.getMachineLearningData(frameSize, 'frequency')
 print(inputData.shape)
 
 trainInput, testInput, trainOutput, testOutput = sk.train_test_split(inputData,outputData,test_size=0.1, random_state = 42)
-
 
 model = keras.Sequential([
     keras.layers.AveragePooling1D(pool_size=5,input_shape=(200, 3), strides=None, padding='valid', data_format='channels_last'),
@@ -33,23 +32,17 @@ model = keras.Sequential([
     keras.layers.Dense(27, activation=tf.nn.sigmoid)
 ])
 
-
-
 model.compile(optimizer=tf.optimizers.Adamax(), 
               loss='sparse_categorical_crossentropy',# outputs multiple values, use binary_crossentropy for 1 or 0 output
               metrics=['accuracy'])
 history = model.fit(trainInput, trainOutput, validation_data=(testInput, testOutput),epochs=40,callbacks=[tensorboard]) #fit is same as train; epochs- how long to train, if you train too much you overfit the data
-# if acc is a lot better than test accuracy then the data is overfit
-
-#i added validation_data to get val_acc and val_loss in the history for the graphs
 
 test_loss, test_acc = model.evaluate(testInput, testOutput)
 
 print('Test accuracy:', test_acc)
 
 history_dict = history.history
-history_dict.keys()
-print(history_dict.keys())
+
 #plot loss per training cycle, they should be close
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
