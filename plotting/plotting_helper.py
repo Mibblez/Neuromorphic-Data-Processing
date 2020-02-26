@@ -66,3 +66,64 @@ def plotKmeans(data,axes, row, columnIndex,numberOfCenters):
     centers, labels = find_clusters(pts,numberOfCenters)
     axes[row][columnIndex].scatter(pts[:, 0], pts[:, 1], c=labels, s=10, cmap='viridis')
     axes[row][columnIndex].scatter(centers[:, 0], centers[:, 1], c='red')
+
+def centerAllGuas(lines,axesIndex, labels, title, axes):
+
+
+
+        maxHeight = 0
+
+        for line in lines:
+            if np.max(line._y) > maxHeight:
+                maxHeight = np.max(line._y)
+
+        for i,line in enumerate(lines):
+            max_y = np.max(line._y) 
+            index = np.where(line._y == max_y)
+            offset = line._x[index]-1
+            for j in range(len(line._x)):
+                line._x[j] = line._x[j]- offset
+            row = 0
+            if "NoPolarizer" in labels[i]:
+                row = 1
+                labels[i] = labels[i].replace(" NoPolarizer","")
+            labels[i] =labels[i].replace(" Off Events","")
+            labels[i] =labels[i].replace(" On Events","")
+            labels[i] =labels[i].replace(" All Events","")
+            labels[i] =labels[i].replace("  "," ")
+            axes[axesIndex][row].plot(line._x,line._y/maxHeight, label=labels[i])
+        axes[axesIndex][1].title.set_text("Non-Polarized "+title)
+        axes[axesIndex][0].title.set_text("Polarized " +title)
+        axes[axesIndex][0].legend(loc=1, prop={'size':11})
+        axes[axesIndex][1].legend(loc=1, prop={'size': 11})
+
+
+def showAllGuas(lines, labels, axesIndex, title, axes):
+    maxHeight = 0
+
+    for line in lines:
+        if np.max(line._y) > maxHeight:
+            maxHeight = np.max(line._y)
+
+    for i, line in enumerate(lines):
+        shiftX = line._x[0]
+        for j, x in enumerate(line._x):
+            line._x[j] = x - shiftX
+        shiftY = line._y[0]
+        for j, y in enumerate(line._y):
+            line._y[j] = y - shiftY
+        row = 0
+        if "NoPolarizer" in labels[i]:
+            labels[i] = labels[i].replace(" NoPolarizer","")
+            row = 1
+        
+        labels[i] =labels[i].replace(" Off Events","")
+        labels[i] =labels[i].replace(" On Events","")
+        labels[i] =labels[i].replace(" All Events","")
+        labels[i] =labels[i].replace("  "," ")
+        axes[axesIndex][row].plot(line._x,line._y/maxHeight, label=labels[i])
+
+    axes[axesIndex][1].title.set_text("Non-Polarized "+title)
+    axes[axesIndex][0].title.set_text("Polarized " +title)
+    axes[axesIndex][0].legend(loc=1, prop={'size':11})
+    axes[axesIndex][1].legend(loc=1, prop={'size': 11})

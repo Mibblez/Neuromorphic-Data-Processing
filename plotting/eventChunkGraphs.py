@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
+import matplotlib
 from scipy.stats import norm
 import csv
 import os
@@ -18,6 +19,19 @@ import pywt.data
 import math
 from natsort import natsorted, ns
 import plotting_helper
+from typing import List
+
+class OnOffBothLines:
+    on:matplotlib.lines.Line2D = None
+    off:matplotlib.lines.Line2D = None
+    both:matplotlib.lines.Line2D = None
+
+class Waveforms:
+    sine: List[OnOffBothLines] =[]
+    square: List[OnOffBothLines] = []
+    burst: List[OnOffBothLines] = []
+    triangle: List[OnOffBothLines] = []
+    dc: List[OnOffBothLines] = []
 
 
 if not os.path.exists(os.path.join("results","EventChunkGraphs")):
@@ -54,6 +68,8 @@ plotVariance = True
 plotFWHM = True
 logValues = False
 differentFrequencies = True # different frequencies =True or backgrounds= False
+waveformsAndFrequency = True
+plotWaveformsOrFrequency = "waveforms"
 saveFigures = True
 
 #variance Arrays
@@ -84,7 +100,9 @@ allKMeansNoPolOff = []
 allKMeansNoPolBoth = []
 #allKMeansNoPolLabels = []
 
-data_folder = 'frequency'
+waveforms = Waveforms()
+
+data_folder = 'waveformsAndFrequency'
 folders = os.listdir(f'data/{data_folder}')
 folders = natsorted(folders, alg=ns.IGNORECASE)
 for folderName in folders:
@@ -125,47 +143,43 @@ for folderName in folders:
         folderName = folderName.replace('18hz ','')
         folderName = folderName.replace('18 hz ','')
     print(folderName)
-
-    if graphType != 'kmeans':
-        f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
-        f.set_size_inches(15, 9.5)
-        f.tight_layout()
+   
+    f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
+    f.set_size_inches(15, 9.5)
+    f.tight_layout()
 
     if graphType == 'hist':
 
+        lines = OnOffBothLines()
 
         # Off events
         l = plotting_helper.plot_hist(y_off, axes, 1, 0, 'red', logValues)
         l.remove()
         offGuas.append(l)
-        
+        lines.off = l
 
         # On Events
         l = plotting_helper.plot_hist(y_on, axes, 1, 1, 'green', logValues)
         l.remove()
         onGuas.append(l)
+        lines.on = l
 
         # On & Off Events
         l = plotting_helper.plot_hist(y_all, axes, 1, 2, 'blue', logValues)
         l.remove()
         bothGuas.append(l)
+        lines.both = l
 
-    elif graphType == 'kmeans':
-   
-        if "NoPolarizer" in folderName:
-            for i, point in enumerate(y_on):
-                allKMeansNoPolOn.append([i,point])
-            for i, point in enumerate(y_off):
-                allKMeansNoPolOff.append([i,point])
-            for i, point in enumerate(y_all):
-                allKMeansNoPolBoth.append([i,point])
-        else:
-            for i, point in enumerate(y_on):
-                allKMeansPolOn.append([i,point])
-            for i, point in enumerate(y_off):
-                allKMeansPolOff.append([i,point])
-            for i, point in enumerate(y_all):
-                allKMeansPolBoth.append([i,point])
+        if differentFrequencies:
+            if "sine" in folderName:
+                waveforms.sine.append(lines)
+            elif "square"  in folderName:
+                waveforms.square.append(lines)
+            elif "triangle" in folderName:
+                waveforms.triangle.append(lines)
+            elif "burst" in folderName:
+                waveforms.burst.append(lines)
+
             
     elif graphType == "wavelets":
         data = []
@@ -198,22 +212,20 @@ for folderName in folders:
         onFrequencies.append(scipy.fftpack.fft(yOnSmoothed))
         bothFrequencies.append(scipy.fftpack.fft(yBothSmoothed))
     
-    if graphType != 'kmeans':
-        offLabel.append(folderName + " Off Events")
-        onLabel.append(folderName + " On Events")
-        bothLabel.append(folderName + " All Events")
+    offLabel.append(folderName + " Off Events")
+    onLabel.append(folderName + " On Events")
+    bothLabel.append(folderName + " All Events")
 
-        axes[0][0].scatter(x,y_off,c='red',picker=True,s=1)
+    axes[0][0].scatter(x,y_off,c='red',picker=True,s=1)
 
-        axes[1][0].title.set_text(folderName +" Off Events")
-        axes[0][1].scatter(x,y_on,c='green',picker=True,s=1)
-        axes[1][1].title.set_text(folderName +" On Events")
+    axes[1][0].title.set_text(folderName +" Off Events")
+    axes[0][1].scatter(x,y_on,c='green',picker=True,s=1)
+    axes[1][1].title.set_text(folderName +" On Events")
 
-        axes[0][2].scatter(x,y_all,c='blue',picker=True,s=1)
-        plt.title(folderName +" All Events")
+    axes[0][2].scatter(x,y_all,c='blue',picker=True,s=1)
+    plt.title(folderName +" All Events")
     
-    #print(coeff)
-    #plt.show()
+
     if 'NoPolarizer' in folderName:
         noPolLabels.append(folderName.replace("NoPolarizer",""))
     else:
@@ -244,99 +256,87 @@ for folderName in folders:
         plt.savefig(os.path.join("results","EventChunkGraphs","Dots",folderName+'Dots.png'))
 
 
-if graphType == 'kmeans':
-    f, axes = plt.subplots(nrows = 2, ncols = 3, sharex=False, sharey = False )
-    f.set_size_inches(15, 10.5)
-    f.tight_layout()
-    plotting_helper.plotKmeans(allKMeansNoPolOff, axes,0,0, int(len(folders)/2))
-    plotting_helper.plotKmeans(allKMeansPolOff, axes,1,0, int(len(folders)/2))
-    plotting_helper.plotKmeans(allKMeansNoPolOn, axes,0,1, int(len(folders)/2))
-    plotting_helper.plotKmeans(allKMeansPolOn, axes,1,1, int(len(folders)/2))
-    plotting_helper.plotKmeans(allKMeansNoPolBoth, axes,0,2, int(len(folders)/2))
-    plotting_helper.plotKmeans(allKMeansPolBoth, axes,1,2, int(len(folders)/2))
-
 if saveFigures == False:
     plt.show()
 
 if graphType == "hist":
-    f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
-    f.set_size_inches(10, 15)
-  
-    def showAllGuas(lines, labels, axesIndex, title):
-        maxHeight = 0
+    
+    if waveformsAndFrequency:
+        if plotWaveformsOrFrequency == "waveforms":
+            f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+            f.set_size_inches(10, 15)
+            offEvents = [waveforms.sine[0].off, waveforms.square[0].off, waveforms.burst[0].off,waveforms.triangle[0].off]
+            onEvents = [waveforms.sine[0].on, waveforms.square[0].on, waveforms.burst[0].on,waveforms.triangle[0].on]
+            bothEvents = [waveforms.sine[0].both, waveforms.square[0].both, waveforms.burst[0].both,waveforms.triangle[0].both]
+            plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events 200mV", axes)
+            plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "On Events 200mV", axes)
+            plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Combined Events 200mV", axes)
+            if saveFigures:
+                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus 200mV.png'))  
+            else:
+                plt.show()
 
-        for line in lines:
-            if np.max(line._y) > maxHeight:
-                maxHeight = np.max(line._y)
-
-        for i, line in enumerate(lines):
-            shiftX = line._x[0]
-            for j, x in enumerate(line._x):
-                line._x[j] = x - shiftX
-            shiftY = line._y[0]
-            for j, y in enumerate(line._y):
-                line._y[j] = y - shiftY
-            row = 0
-            if "NoPolarizer" in labels[i]:
-                labels[i] = labels[i].replace(" NoPolarizer","")
-                row = 1
+            f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+            f.set_size_inches(10, 15)
+            offEvents = [waveforms.sine[1].off, waveforms.square[1].off, waveforms.burst[1].off,waveforms.triangle[1].off]
+            onEvents = [waveforms.sine[1].on, waveforms.square[1].on, waveforms.burst[1].on,waveforms.triangle[1].on]
+            bothEvents = [waveforms.sine[1].both, waveforms.square[1].both, waveforms.burst[1].both,waveforms.triangle[1].both]
+            plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events 300mV", axes)
+            plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "On Events 300mV", axes)
+            plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Combined Events 300mV", axes)
+            if saveFigures:
+                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus 300mV.png'))  
+            else:
+                plt.show()
             
-            labels[i] =labels[i].replace(" Off Events","")
-            labels[i] =labels[i].replace(" On Events","")
-            labels[i] =labels[i].replace(" All Events","")
-            labels[i] =labels[i].replace("  "," ")
-
+            f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+            f.set_size_inches(10, 15)
+            offEvents = [waveforms.sine[2].off, waveforms.square[2].off, waveforms.burst[2].off,waveforms.triangle[2].off]
+            onEvents = [waveforms.sine[2].on, waveforms.square[2].on, waveforms.burst[2].on,waveforms.triangle[2].on]
+            bothEvents = [waveforms.sine[2].both, waveforms.square[2].both, waveforms.burst[2].both,waveforms.triangle[2].both]
+            plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events 400mV", axes)
+            plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "On Events 400mV", axes)
+            plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Combined Events 400mV", axes)
+            if saveFigures:
+                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus 400mV.png'))  
+            else:
+                plt.show()
             
-
-            axes[axesIndex][row].plot(line._x,line._y/maxHeight, label=labels[i])
-        axes[axesIndex][1].title.set_text("Non-Polarized "+title)
-        axes[axesIndex][0].title.set_text("Polarized " +title)
-        axes[axesIndex][0].legend(loc=1, prop={'size':11})
-        axes[axesIndex][1].legend(loc=1, prop={'size': 11})
-    showAllGuas(offGuas, np.copy(offLabel),0, "Off Events")
-    showAllGuas(onGuas, np.copy(onLabel),1, "On Events")
-    showAllGuas(bothGuas, np.copy(bothLabel),2, "Both Events")
-    if saveFigures:
-        plt.savefig(os.path.join("results","EventChunkGraphs",'Gaus.png'))  
+            f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+            f.set_size_inches(10, 15)
+            offEvents = [waveforms.sine[3].off, waveforms.square[3].off, waveforms.burst[3].off,waveforms.triangle[3].off]
+            onEvents = [waveforms.sine[3].on, waveforms.square[3].on, waveforms.burst[3].on,waveforms.triangle[3].on]
+            bothEvents = [waveforms.sine[3].both, waveforms.square[3].both, waveforms.burst[3].both,waveforms.triangle[3].both]
+            plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events 500mV", axes)
+            plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "Off Events 500mV", axes)
+            plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Off Events 500mV", axes)
+            if saveFigures:
+                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus 500mV.png'))  
+            else:
+                plt.show()
     else:
-        plt.show()
-    f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
-    f.set_size_inches(10, 15)
+        f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+        f.set_size_inches(10, 15)
+    
+        
+        plotting_helper.showAllGuas(offGuas, np.copy(offLabel),0, "Off Events", axes)
+        plotting_helper.showAllGuas(onGuas, np.copy(onLabel),1, "On Events", axes)
+        plotting_helper.showAllGuas(bothGuas, np.copy(bothLabel),2, "Both Events", axes)
+        if saveFigures:
+            plt.savefig(os.path.join("results","EventChunkGraphs",'Gaus.png'))  
+        else:
+            plt.show()
+        f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+        f.set_size_inches(10, 15)
 
-    def centerAllGuas(lines,axesIndex, labels, title):
 
-        maxHeight = 0
-
-        for line in lines:
-            if np.max(line._y) > maxHeight:
-                maxHeight = np.max(line._y)
-
-        for i,line in enumerate(lines):
-            max_y = np.max(line._y) 
-            index = np.where(line._y == max_y)
-            offset = line._x[index]-1
-            for j in range(len(line._x)):
-                line._x[j] = line._x[j]- offset
-            row = 0
-            if "NoPolarizer" in labels[i]:
-                row = 1
-                labels[i] = labels[i].replace(" NoPolarizer","")
-            labels[i] =labels[i].replace(" Off Events","")
-            labels[i] =labels[i].replace(" On Events","")
-            labels[i] =labels[i].replace(" All Events","")
-            labels[i] =labels[i].replace("  "," ")
-            axes[axesIndex][row].plot(line._x,line._y/maxHeight, label=labels[i])
-        axes[axesIndex][1].title.set_text("Non-Polarized "+title)
-        axes[axesIndex][0].title.set_text("Polarized " +title)
-        axes[axesIndex][0].legend(loc=1, prop={'size':11})
-        axes[axesIndex][1].legend(loc=1, prop={'size': 11})
-    centerAllGuas(offGuas,0,offLabel, "Off Events")
-    centerAllGuas(onGuas,1, onLabel, "On Events")
-    centerAllGuas(bothGuas,2, bothLabel, "Both Events")
-    if saveFigures:
-        plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus.png'))  
-    else:
-        plt.show()
+        plotting_helper.centerAllGuas(offGuas,0,offLabel, "Off Events",axes)
+        plotting_helper.centerAllGuas(onGuas,1, onLabel, "On Events",axes)
+        plotting_helper.centerAllGuas(bothGuas,2, bothLabel, "Both Events",axes)
+        if saveFigures:
+            plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus.png'))  
+        else:
+            plt.show()
     
             
 if plotVariance:
@@ -406,8 +406,6 @@ if plotFWHM:
         plt.savefig(os.path.join("results","EventChunkGraphs","FWHM.png"))
     else:
         plt.show()
-        
-
 
 if graphType == "smooth":
     def showFFT(data):

@@ -17,14 +17,20 @@ def getData(folderName):
         with open('./data/'+folderName+"/" +file, 'r') as csvfile:
             fileCount +=1
             reader = csv.reader(csvfile, delimiter=',')
-            i =0
-            for row in reader:
+
+            for i, row in enumerate(reader):
                 if i != 0:
                     x.append((i-1) *1500*0.000001)
-                    y_all.append(int(row[2]))
-                    y_off.append(int(row[1]))
-                    y_on.append(int(row[0]))
-                i+=1
+                    #TODO: If timewindow is large this will not work
+                    # also machineLearning Get data might need this fix for outliers
+                    if int(row[2]) > 8000: # If camera bugs out and registers too many events, add like data
+                        y_all.append(sum(y_all)/len(y_all))
+                        y_off.append(sum(y_off)/len(y_off))
+                        y_on.append(sum(y_on)/len(y_on))
+                    else:
+                        y_all.append(int(row[2]))
+                        y_off.append(int(row[1]))
+                        y_on.append(int(row[0]))
                 
     N= fileCount
     return y_on,y_off,y_all,N,x
