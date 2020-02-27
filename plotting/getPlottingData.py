@@ -31,8 +31,7 @@ def getData(folderName):
                         y_all.append(int(row[2]))
                         y_off.append(int(row[1]))
                         y_on.append(int(row[0]))
-                    if i == 10000:
-                                break
+                    
                 
     N= fileCount
     return y_on,y_off,y_all,N,x

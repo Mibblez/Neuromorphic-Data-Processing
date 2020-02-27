@@ -37,6 +37,11 @@ class WaveformsLines:
     burst: List[OnOffBothLines] = []
     triangle: List[OnOffBothLines] = []
     dc: List[OnOffBothLines] = []
+    def __init__(self):
+        self.sine = []
+        self.square = []
+        self.burst = []
+        self.triangle = []
     
 
 class WaveformsNumbers:
@@ -45,7 +50,7 @@ class WaveformsNumbers:
     burst: List[OnOffBothFloat] = []
     triangle: List[OnOffBothFloat] = []
     dc: List[OnOffBothFloat] = []
-    def __init__(self,test):
+    def __init__(self):
         self.sine = []
         self.square = []
         self.burst = []
@@ -86,7 +91,7 @@ plotFWHM = True
 logValues = False
 differentFrequencies = True # different frequencies =True or backgrounds= False
 waveformsAndFrequency = True
-plotWaveformsOrFrequency = "waveforms"
+plotWaveformsOrFrequency = "waveforms" # waveforms or frequency
 saveFigures = True
 
 #variance Arrays
@@ -119,8 +124,8 @@ allKMeansNoPolBoth = []
 
 waveforms = WaveformsLines()
 waveformsNoPolLines = WaveformsLines()
-waveformsPolVariance = WaveformsNumbers(1)
-waveformsNoPolVariance = WaveformsNumbers(2)
+waveformsPolVariance = WaveformsNumbers()
+waveformsNoPolVariance = WaveformsNumbers()
 
 data_folder = 'waveformsAndFrequencyWithNoPol'
 folders = os.listdir(f'data/{data_folder}')
@@ -342,15 +347,16 @@ if graphType == "hist":
                 plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "On Events " + speed, axes)
                 plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Combined Events " + speed, axes)
 
-                plotting_helper.showAllGuas(offEventsNoPol, ["Sine","Square","Burst","Triangle"],0, "Off Events " + speed + " NoPolarizer", axes)
-                plotting_helper.showAllGuas(onEventsNoPol, ["Sine","Square","Burst","Triangle"],1, "On Events " + speed + " NoPolarizer", axes)
-                plotting_helper.showAllGuas(bothEventsNoPol, ["Sine","Square","Burst","Triangle"],2, "Combined Events " + speed + " NoPolarizer", axes)
+                plotting_helper.showAllGuas(offEventsNoPol, ["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"],0, "Off Events " + speed , axes)
+                plotting_helper.showAllGuas(onEventsNoPol, ["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"],1, "On Events " + speed , axes)
+                plotting_helper.showAllGuas(bothEventsNoPol, ["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"],2, "Combined Events " + speed , axes)
                 if saveFigures:
-                    plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGausWaveforms '+speed+'.png'))  
+                    plt.savefig(os.path.join("results","EventChunkGraphs",'showAllGuasWaveforms '+speed+'.png'))  
                 else:
                     plt.show()
         else:
             labels =  ["200mV","300mV","400mV","500mV"]
+            labelsNoPol =  ["200mV NoPolarizer","300mV NoPolarizer","400mV NoPolarizer","500mV NoPolarizer"]
             f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
             f.set_size_inches(10, 15)
             offEvents = [waveforms.sine[0].off, waveforms.sine[1].off, waveforms.sine[2].off,waveforms.sine[3].off]
@@ -365,11 +371,11 @@ if graphType == "hist":
             plotting_helper.showAllGuas(onEvents, labels,1, "On Events " + "Sine", axes)
             plotting_helper.showAllGuas(bothEvents, labels,2, "Combined Events " + "Sine", axes)
 
-            plotting_helper.showAllGuas(offEventsNoPol, labels,0, "Off Events " + "Sine" + " NoPolarizer", axes)
-            plotting_helper.showAllGuas(onEventsNoPol, labels,1, "On Events " + "Sine" + " NoPolarizer", axes)
-            plotting_helper.showAllGuas(bothEventsNoPol, labels,2, "Combined Events " + "Sine" + " NoPolarizer", axes)
+            plotting_helper.showAllGuas(offEventsNoPol, np.copy(labelsNoPol),0, "Off Events " + "Sine", axes)
+            plotting_helper.showAllGuas(onEventsNoPol, np.copy(labelsNoPol),1, "On Events " + "Sine", axes)
+            plotting_helper.showAllGuas(bothEventsNoPol, np.copy(labelsNoPol),2, "Combined Events " + "Sine", axes)
             if saveFigures:
-                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGausFrequency '+speed+'.png'))  
+                plt.savefig(os.path.join("results","EventChunkGraphs",'showAllGuasFrequencySine.png'))  
             else:
                 plt.show()
     else:
