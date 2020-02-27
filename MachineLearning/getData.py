@@ -110,6 +110,7 @@ class WaveAndFreqData:
                                 
                                 all_output_data.append([waveform_output,frequency_ouput])
                                 input_group = []
+                            
         
         # Split data into train/test sets
         self.train_input, self.test_input, train_output, test_output = sk.train_test_split(all_input_data, all_output_data, test_size=0.1, random_state = 42)

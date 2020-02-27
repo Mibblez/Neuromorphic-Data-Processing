@@ -37,6 +37,7 @@ class WaveformsLines:
     burst: List[OnOffBothLines] = []
     triangle: List[OnOffBothLines] = []
     dc: List[OnOffBothLines] = []
+    
 
 class WaveformsNumbers:
     sine: List[OnOffBothFloat] =[]
@@ -44,6 +45,11 @@ class WaveformsNumbers:
     burst: List[OnOffBothFloat] = []
     triangle: List[OnOffBothFloat] = []
     dc: List[OnOffBothFloat] = []
+    def __init__(self,test):
+        self.sine = []
+        self.square = []
+        self.burst = []
+        self.triangle = []
 
 if not os.path.exists(os.path.join("results","EventChunkGraphs")):
     os.makedirs(os.path.join("results","EventChunkGraphs"))
@@ -113,10 +119,10 @@ allKMeansNoPolBoth = []
 
 waveforms = WaveformsLines()
 waveformsNoPolLines = WaveformsLines()
-waveformsPolVariance = WaveformsNumbers()
-waveformsNoPolVariance = WaveformsNumbers()
+waveformsPolVariance = WaveformsNumbers(1)
+waveformsNoPolVariance = WaveformsNumbers(2)
 
-data_folder = 'waveformsAndFrequency'
+data_folder = 'waveformsAndFrequencyWithNoPol'
 folders = os.listdir(f'data/{data_folder}')
 folders = natsorted(folders, alg=ns.IGNORECASE)
 for folderName in folders:
@@ -146,6 +152,7 @@ for folderName in folders:
 
 
     folderName = folderName.replace('Event Chunks', '')
+    folderName = folderName.replace('nopol', "NoPolarizer")
     folderName = folderName.replace('no pol', "NoPolarizer")
     folderName = folderName.replace('30deg','')
     folderName = folderName.replace('30 deg','')
@@ -319,7 +326,7 @@ if graphType == "hist":
         if plotWaveformsOrFrequency == "waveforms":
 
             labels =["Sine","Square","Burst","Triangle"]
-            speeds = ["200mV","300mV","400mV","500mV"]
+            speeds = ["200mV"]
             for i ,speed in enumerate( speeds):
                 f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
                 f.set_size_inches(10, 15)
@@ -331,11 +338,11 @@ if graphType == "hist":
                 onEventsNoPol = [waveformsNoPolLines.sine[i].on, waveformsNoPolLines.square[i].on, waveformsNoPolLines.burst[i].on,waveformsNoPolLines.triangle[i].on]
                 bothEventsNoPol = [waveformsNoPolLines.sine[i].both, waveformsNoPolLines.square[i].both, waveformsNoPolLines.burst[i].both,waveformsNoPolLines.triangle[i].both]
 
-                plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events " + speeds, axes)
+                plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events " + speed, axes)
                 plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "On Events " + speed, axes)
                 plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Combined Events " + speed, axes)
 
-                plotting_helper.showAllGuas(offEventsNoPol, ["Sine","Square","Burst","Triangle"],0, "Off Events " + speeds + " NoPolarizer", axes)
+                plotting_helper.showAllGuas(offEventsNoPol, ["Sine","Square","Burst","Triangle"],0, "Off Events " + speed + " NoPolarizer", axes)
                 plotting_helper.showAllGuas(onEventsNoPol, ["Sine","Square","Burst","Triangle"],1, "On Events " + speed + " NoPolarizer", axes)
                 plotting_helper.showAllGuas(bothEventsNoPol, ["Sine","Square","Burst","Triangle"],2, "Combined Events " + speed + " NoPolarizer", axes)
                 if saveFigures:
@@ -391,14 +398,15 @@ if graphType == "hist":
     
             
 if plotVariance :
-    figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
-    figureVar.set_size_inches(10, 15)
-
+    
     if waveformsAndFrequency:
         if plotWaveformsOrFrequency == "waveforms":
             labels =["Sine","Square","Burst","Triangle"]
-            speeds = ["200mV","300mV","400mV","500mV"]
+            speeds = ["200mV"]
             for i ,speed in enumerate( speeds):
+                figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+                figureVar.set_size_inches(10, 15)
+
                 offEventsPol:List[float] = [waveformsPolVariance.sine[i].off, waveformsPolVariance.square[i].off, waveformsPolVariance.burst[i].off,waveformsPolVariance.triangle[i].off]
                 onEventsPol:List[float] = [waveformsPolVariance.sine[i].on, waveformsPolVariance.square[i].on, waveformsPolVariance.burst[i].on,waveformsPolVariance.triangle[i].on]
                 bothEventsPol:List[float] = [waveformsPolVariance.sine[i].both, waveformsPolVariance.square[i].both, waveformsPolVariance.burst[i].both,waveformsPolVariance.triangle[i].both]
@@ -443,6 +451,10 @@ if plotVariance :
 
 
     else:
+        figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+        figureVar.set_size_inches(10, 15)
+
+
         axesVar[0][0].set_title("Off Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
         axesVar[0][0].bar(polLabels, allOffVarPol)
         axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
