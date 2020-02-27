@@ -112,6 +112,7 @@ allKMeansNoPolBoth = []
 #allKMeansNoPolLabels = []
 
 waveforms = WaveformsLines()
+waveformsNoPolLines = WaveformsLines()
 waveformsPolVariance = WaveformsNumbers()
 waveformsNoPolVariance = WaveformsNumbers()
 
@@ -148,6 +149,8 @@ for folderName in folders:
     folderName = folderName.replace('no pol', "NoPolarizer")
     folderName = folderName.replace('30deg','')
     folderName = folderName.replace('30 deg','')
+    folderName = folderName.replace("15min",'')
+    folderName = folderName.replace("1hz",'')
     if differentFrequencies:
         folderName = folderName.replace('foam ','')
     else:
@@ -184,14 +187,24 @@ for folderName in folders:
         lines.both = l
 
         if differentFrequencies:
-            if "sine" in folderName:
-                waveforms.sine.append(lines)
-            elif "square"  in folderName:
-                waveforms.square.append(lines)
-            elif "triangle" in folderName:
-                waveforms.triangle.append(lines)
-            elif "burst" in folderName:
-                waveforms.burst.append(lines)
+            if 'NoPolarizer' in folderName:
+                if "sine" in folderName:
+                    waveformsNoPolLines.sine.append(lines)
+                elif "square"  in folderName:
+                    waveformsNoPolLines.square.append(lines)
+                elif "triangle" in folderName:
+                    waveformsNoPolLines.triangle.append(lines)
+                elif "burst" in folderName:
+                    waveformsNoPolLines.burst.append(lines)
+            else:
+                if "sine" in folderName:
+                    waveforms.sine.append(lines)
+                elif "square"  in folderName:
+                    waveforms.square.append(lines)
+                elif "triangle" in folderName:
+                    waveforms.triangle.append(lines)
+                elif "burst" in folderName:
+                    waveforms.burst.append(lines)
 
             
     elif graphType == "wavelets":
@@ -304,55 +317,52 @@ if graphType == "hist":
     
     if waveformsAndFrequency:
         if plotWaveformsOrFrequency == "waveforms":
-            f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
-            f.set_size_inches(10, 15)
-            offEvents = [waveforms.sine[0].off, waveforms.square[0].off, waveforms.burst[0].off,waveforms.triangle[0].off]
-            onEvents = [waveforms.sine[0].on, waveforms.square[0].on, waveforms.burst[0].on,waveforms.triangle[0].on]
-            bothEvents = [waveforms.sine[0].both, waveforms.square[0].both, waveforms.burst[0].both,waveforms.triangle[0].both]
-            plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events 200mV", axes)
-            plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "On Events 200mV", axes)
-            plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Combined Events 200mV", axes)
-            if saveFigures:
-                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus 200mV.png'))  
-            else:
-                plt.show()
 
+            labels =["Sine","Square","Burst","Triangle"]
+            speeds = ["200mV","300mV","400mV","500mV"]
+            for i ,speed in enumerate( speeds):
+                f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+                f.set_size_inches(10, 15)
+                offEvents = [waveforms.sine[i].off, waveforms.square[i].off, waveforms.burst[i].off,waveforms.triangle[i].off]
+                onEvents = [waveforms.sine[i].on, waveforms.square[i].on, waveforms.burst[i].on,waveforms.triangle[i].on]
+                bothEvents = [waveforms.sine[i].both, waveforms.square[i].both, waveforms.burst[i].both,waveforms.triangle[i].both]
+
+                offEventsNoPol = [waveformsNoPolLines.sine[i].off, waveformsNoPolLines.square[i].off, waveformsNoPolLines.burst[i].off,waveformsNoPolLines.triangle[i].off]
+                onEventsNoPol = [waveformsNoPolLines.sine[i].on, waveformsNoPolLines.square[i].on, waveformsNoPolLines.burst[i].on,waveformsNoPolLines.triangle[i].on]
+                bothEventsNoPol = [waveformsNoPolLines.sine[i].both, waveformsNoPolLines.square[i].both, waveformsNoPolLines.burst[i].both,waveformsNoPolLines.triangle[i].both]
+
+                plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events " + speeds, axes)
+                plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "On Events " + speed, axes)
+                plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Combined Events " + speed, axes)
+
+                plotting_helper.showAllGuas(offEventsNoPol, ["Sine","Square","Burst","Triangle"],0, "Off Events " + speeds + " NoPolarizer", axes)
+                plotting_helper.showAllGuas(onEventsNoPol, ["Sine","Square","Burst","Triangle"],1, "On Events " + speed + " NoPolarizer", axes)
+                plotting_helper.showAllGuas(bothEventsNoPol, ["Sine","Square","Burst","Triangle"],2, "Combined Events " + speed + " NoPolarizer", axes)
+                if saveFigures:
+                    plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGausWaveforms '+speed+'.png'))  
+                else:
+                    plt.show()
+        else:
+            labels =  ["200mV","300mV","400mV","500mV"]
             f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
             f.set_size_inches(10, 15)
-            offEvents = [waveforms.sine[1].off, waveforms.square[1].off, waveforms.burst[1].off,waveforms.triangle[1].off]
-            onEvents = [waveforms.sine[1].on, waveforms.square[1].on, waveforms.burst[1].on,waveforms.triangle[1].on]
-            bothEvents = [waveforms.sine[1].both, waveforms.square[1].both, waveforms.burst[1].both,waveforms.triangle[1].both]
-            plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events 300mV", axes)
-            plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "On Events 300mV", axes)
-            plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Combined Events 300mV", axes)
+            offEvents = [waveforms.sine[0].off, waveforms.sine[1].off, waveforms.sine[2].off,waveforms.sine[3].off]
+            onEvents = [waveforms.sine[0].on, waveforms.sine[1].on, waveforms.sine[2].on,waveforms.sine[3].on]
+            bothEvents = [waveforms.sine[0].both, waveforms.sine[1].both, waveforms.sine[2].both,waveforms.sine[3].both]
+
+            offEventsNoPol = [waveformsNoPolLines.sine[0].off, waveformsNoPolLines.sine[1].off, waveformsNoPolLines.sine[2].off,waveformsNoPolLines.sine[3].off]
+            onEventsNoPol = [waveformsNoPolLines.sine[0].on, waveformsNoPolLines.sine[1].on, waveformsNoPolLines.sine[2].on,waveformsNoPolLines.sine[3].on]
+            bothEventsNoPol = [waveformsNoPolLines.sine[0].both, waveformsNoPolLines.sine[1].both, waveformsNoPolLines.sine[2].both,waveformsNoPolLines.sine[3].both]
+
+            plotting_helper.showAllGuas(offEvents,labels,0, "Off Events " + "Sine", axes)
+            plotting_helper.showAllGuas(onEvents, labels,1, "On Events " + "Sine", axes)
+            plotting_helper.showAllGuas(bothEvents, labels,2, "Combined Events " + "Sine", axes)
+
+            plotting_helper.showAllGuas(offEventsNoPol, labels,0, "Off Events " + "Sine" + " NoPolarizer", axes)
+            plotting_helper.showAllGuas(onEventsNoPol, labels,1, "On Events " + "Sine" + " NoPolarizer", axes)
+            plotting_helper.showAllGuas(bothEventsNoPol, labels,2, "Combined Events " + "Sine" + " NoPolarizer", axes)
             if saveFigures:
-                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus 300mV.png'))  
-            else:
-                plt.show()
-            
-            f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
-            f.set_size_inches(10, 15)
-            offEvents = [waveforms.sine[2].off, waveforms.square[2].off, waveforms.burst[2].off,waveforms.triangle[2].off]
-            onEvents = [waveforms.sine[2].on, waveforms.square[2].on, waveforms.burst[2].on,waveforms.triangle[2].on]
-            bothEvents = [waveforms.sine[2].both, waveforms.square[2].both, waveforms.burst[2].both,waveforms.triangle[2].both]
-            plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events 400mV", axes)
-            plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "On Events 400mV", axes)
-            plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Combined Events 400mV", axes)
-            if saveFigures:
-                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus 400mV.png'))  
-            else:
-                plt.show()
-            
-            f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
-            f.set_size_inches(10, 15)
-            offEvents = [waveforms.sine[3].off, waveforms.square[3].off, waveforms.burst[3].off,waveforms.triangle[3].off]
-            onEvents = [waveforms.sine[3].on, waveforms.square[3].on, waveforms.burst[3].on,waveforms.triangle[3].on]
-            bothEvents = [waveforms.sine[3].both, waveforms.square[3].both, waveforms.burst[3].both,waveforms.triangle[3].both]
-            plotting_helper.showAllGuas(offEvents, ["Sine","Square","Burst","Triangle"],0, "Off Events 500mV", axes)
-            plotting_helper.showAllGuas(onEvents, ["Sine","Square","Burst","Triangle"],1, "Off Events 500mV", axes)
-            plotting_helper.showAllGuas(bothEvents, ["Sine","Square","Burst","Triangle"],2, "Off Events 500mV", axes)
-            if saveFigures:
-                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus 500mV.png'))  
+                plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGausFrequency '+speed+'.png'))  
             else:
                 plt.show()
     else:
@@ -401,30 +411,30 @@ if plotVariance :
                 axesVar[0][0].bar(labels, offEventsPol)
                 axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[1][0].set_title("On Events Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[1][0].set_title("On Events Polarized Variance "+ speed + (" Log" if logValues else ""), fontsize=10)
                 axesVar[1][0].bar(labels, onEventsPol)
                 axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[2][0].set_title("Both Events Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[2][0].set_title("Both Events Polarized Variance "+ speed + (" Log" if logValues else ""), fontsize=10)
                 axesVar[2][0].bar(labels, bothEventsPol)
                 axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[0][1].set_title("Off Events Not Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[0][1].set_title("Off Events Not Polarized Variance "+ speed + (" Log" if logValues else ""), fontsize=10)
                 axesVar[0][1].bar(labels, offEventsNoPol, color='red')
                 axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[1][1].set_title("On Events Not Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[1][1].set_title("On Events Not Polarized Variance "+ speed + (" Log" if logValues else ""), fontsize=10)
                 axesVar[1][1].bar(labels, onEventsNoPol, color='red')
                 axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[2][1].set_title("Both Events Not Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[2][1].set_title("Both Events Not Polarized Variance "+ speed + (" Log" if logValues else ""), fontsize=10)
                 axesVar[2][1].bar(labels, bothEventsNoPol, color='red')
                 axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
                 plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
                 #figureVar.xticks(range(len(allOffVarPol)), polLabels)
                 if saveFigures:
-                    plt.savefig(os.path.join("results","EventChunkGraphs","variance.png"))
+                    plt.savefig(os.path.join("results","EventChunkGraphs","variance" + speed + ".png"))
                 else:
                     plt.show()
 
