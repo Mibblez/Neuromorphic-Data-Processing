@@ -26,13 +26,24 @@ class OnOffBothLines:
     off:matplotlib.lines.Line2D = None
     both:matplotlib.lines.Line2D = None
 
-class Waveforms:
+class OnOffBothFloat:
+    on:float = None
+    off:float = None
+    both:float = None
+
+class WaveformsLines:
     sine: List[OnOffBothLines] =[]
     square: List[OnOffBothLines] = []
     burst: List[OnOffBothLines] = []
     triangle: List[OnOffBothLines] = []
     dc: List[OnOffBothLines] = []
 
+class WaveformsNumbers:
+    sine: List[OnOffBothFloat] =[]
+    square: List[OnOffBothFloat] = []
+    burst: List[OnOffBothFloat] = []
+    triangle: List[OnOffBothFloat] = []
+    dc: List[OnOffBothFloat] = []
 
 if not os.path.exists(os.path.join("results","EventChunkGraphs")):
     os.makedirs(os.path.join("results","EventChunkGraphs"))
@@ -73,14 +84,14 @@ plotWaveformsOrFrequency = "waveforms"
 saveFigures = True
 
 #variance Arrays
-allOffVarPol =[]
-allOnVarPol = []
-allBothVarPol = []
-allOffVarNoPol =[]
-allOnVarNoPol = []
-allBothVarNoPol = []
-polLabels = []
-noPolLabels = []
+allOffVarPol:List[float] =[]
+allOnVarPol:List[float]  = []
+allBothVarPol:List[float]  = []
+allOffVarNoPol:List[float]  =[]
+allOnVarNoPol:List[float]  = []
+allBothVarNoPol:List[float]  = []
+polLabels:List[float]  = []
+noPolLabels:List[float]  = []
 
 
 #FWHM Arrays
@@ -100,7 +111,9 @@ allKMeansNoPolOff = []
 allKMeansNoPolBoth = []
 #allKMeansNoPolLabels = []
 
-waveforms = Waveforms()
+waveforms = WaveformsLines()
+waveformsPolVariance = WaveformsNumbers()
+waveformsNoPolVariance = WaveformsNumbers()
 
 data_folder = 'waveformsAndFrequency'
 folders = os.listdir(f'data/{data_folder}')
@@ -234,13 +247,41 @@ for folderName in folders:
 
     if plotVariance:
         if 'NoPolarizer' in folderName:
-            allOffVarNoPol.append(np.var(y_off))
-            allOnVarNoPol.append(np.var(y_on))
-            allBothVarNoPol.append(np.var(y_all))
+            if waveformsAndFrequency:
+                onOffBoth = OnOffBothFloat()
+                onOffBoth.off =np.var(y_off)
+                onOffBoth.on = np.var(y_on)
+                onOffBoth.both = np.var(y_all)
+                if "sine" in folderName:
+                    waveformsNoPolVariance.sine.append(onOffBoth)
+                elif "square"  in folderName:
+                    waveformsNoPolVariance.square.append(onOffBoth)
+                elif "triangle" in folderName:
+                    waveformsNoPolVariance.triangle.append(onOffBoth)
+                elif "burst" in folderName:
+                    waveformsNoPolVariance.burst.append(onOffBoth)
+            else:
+                allOffVarNoPol.append(np.var(y_off))
+                allOnVarNoPol.append(np.var(y_on))
+                allBothVarNoPol.append(np.var(y_all))
         else:
-            allOffVarPol.append(np.var(y_off))
-            allOnVarPol.append(np.var(y_on))
-            allBothVarPol.append(np.var(y_all))
+            if waveformsAndFrequency:
+                onOffBoth = OnOffBothFloat()
+                onOffBoth.off =np.var(y_off)
+                onOffBoth.on = np.var(y_on)
+                onOffBoth.both = np.var(y_all)
+                if "sine" in folderName:
+                    waveformsPolVariance.sine.append(onOffBoth)
+                elif "square"  in folderName:
+                    waveformsPolVariance.square.append(onOffBoth)
+                elif "triangle" in folderName:
+                    waveformsPolVariance.triangle.append(onOffBoth)
+                elif "burst" in folderName:
+                    waveformsPolVariance.burst.append(onOffBoth)
+            else:
+                allOffVarPol.append(np.var(y_off))
+                allOnVarPol.append(np.var(y_on))
+                allBothVarPol.append(np.var(y_all))
 
     if plotFWHM:
         if 'NoPolarizer' in folderName:
@@ -339,68 +380,127 @@ if graphType == "hist":
             plt.show()
     
             
-if plotVariance:
+if plotVariance :
     figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
     figureVar.set_size_inches(10, 15)
-    axesVar[0][0].set_title("Off Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][0].bar(polLabels, allOffVarPol)
-    axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[1][0].set_title("On Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][0].bar(polLabels, allOnVarPol)
-    axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+    if waveformsAndFrequency:
+        if plotWaveformsOrFrequency == "waveforms":
+            labels =["Sine","Square","Burst","Triangle"]
+            speeds = ["200mV","300mV","400mV","500mV"]
+            for i ,speed in enumerate( speeds):
+                offEventsPol:List[float] = [waveformsPolVariance.sine[i].off, waveformsPolVariance.square[i].off, waveformsPolVariance.burst[i].off,waveformsPolVariance.triangle[i].off]
+                onEventsPol:List[float] = [waveformsPolVariance.sine[i].on, waveformsPolVariance.square[i].on, waveformsPolVariance.burst[i].on,waveformsPolVariance.triangle[i].on]
+                bothEventsPol:List[float] = [waveformsPolVariance.sine[i].both, waveformsPolVariance.square[i].both, waveformsPolVariance.burst[i].both,waveformsPolVariance.triangle[i].both]
 
-    axesVar[2][0].set_title("Both Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[2][0].bar(polLabels, allBothVarPol)
-    axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+                offEventsNoPol:List[float] = [waveformsNoPolVariance.sine[i].off, waveformsNoPolVariance.square[i].off, waveformsNoPolVariance.burst[i].off,waveformsNoPolVariance.triangle[i].off]
+                onEventsNoPol:List[float] = [waveformsNoPolVariance.sine[i].on, waveformsNoPolVariance.square[i].on, waveformsNoPolVariance.burst[i].on,waveformsNoPolVariance.triangle[i].on]
+                bothEventsNoPol:List[float] = [waveformsNoPolVariance.sine[i].both, waveformsNoPolVariance.square[i].both, waveformsNoPolVariance.burst[i].both,waveformsNoPolVariance.triangle[i].both]
 
-    axesVar[0][1].set_title("Off Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][1].bar(noPolLabels, allOffVarNoPol, color='red')
-    axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+                axesVar[0][0].set_title("Off Events Polarized Variance " + speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[0][0].bar(labels, offEventsPol)
+                axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[1][1].set_title("On Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][1].bar(noPolLabels, allOnVarNoPol, color='red')
-    axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+                axesVar[1][0].set_title("On Events Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[1][0].bar(labels, onEventsPol)
+                axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[2][1].set_title("Both Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[2][1].bar(noPolLabels, allBothVarNoPol, color='red')
-    axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+                axesVar[2][0].set_title("Both Events Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[2][0].bar(labels, bothEventsPol)
+                axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
-    #figureVar.xticks(range(len(allOffVarPol)), polLabels)
-    if saveFigures:
-        plt.savefig(os.path.join("results","EventChunkGraphs","variance.png"))
+                axesVar[0][1].set_title("Off Events Not Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[0][1].bar(labels, offEventsNoPol, color='red')
+                axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+                axesVar[1][1].set_title("On Events Not Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[1][1].bar(labels, onEventsNoPol, color='red')
+                axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+                axesVar[2][1].set_title("Both Events Not Polarized Variance"+ speed + (" Log" if logValues else ""), fontsize=10)
+                axesVar[2][1].bar(labels, bothEventsNoPol, color='red')
+                axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+                plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
+                #figureVar.xticks(range(len(allOffVarPol)), polLabels)
+                if saveFigures:
+                    plt.savefig(os.path.join("results","EventChunkGraphs","variance.png"))
+                else:
+                    plt.show()
+
+
+
+
+
     else:
-        plt.show()
+        axesVar[0][0].set_title("Off Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[0][0].bar(polLabels, allOffVarPol)
+        axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-if plotFWHM:
+        axesVar[1][0].set_title("On Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[1][0].bar(polLabels, allOnVarPol)
+        axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+        axesVar[2][0].set_title("Both Events Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[2][0].bar(polLabels, allBothVarPol)
+        axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+        axesVar[0][1].set_title("Off Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[0][1].bar(noPolLabels, allOffVarNoPol, color='red')
+        axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+        axesVar[1][1].set_title("On Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[1][1].bar(noPolLabels, allOnVarNoPol, color='red')
+        axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+        axesVar[2][1].set_title("Both Events Not Polarized Variance" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[2][1].bar(noPolLabels, allBothVarNoPol, color='red')
+        axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+        plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
+        #figureVar.xticks(range(len(allOffVarPol)), polLabels)
+        if saveFigures:
+            plt.savefig(os.path.join("results","EventChunkGraphs","variance.png"))
+        else:
+            plt.show()
+
+if plotFWHM and False:
     figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
     figureVar.set_size_inches(10, 15)
-    axesVar[0][0].set_title("Off Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][0].bar(polLabels, allOffFWHMPol)
-    axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+    if waveformsAndFrequency:
+         if plotWaveformsOrFrequency == "waveforms":
+            
+            axesVar[0][0].set_title("Off Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+            axesVar[0][0].bar(polLabels, allOffFWHMPol)
+            axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[1][0].set_title("On Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][0].bar(polLabels, allOnFWHMPol)
-    axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+    else:
+        
+        axesVar[0][0].set_title("Off Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[0][0].bar(polLabels, allOffFWHMPol)
+        axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[2][0].set_title("Both Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[2][0].bar(polLabels, allBothFWHMPol)
-    axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+        axesVar[1][0].set_title("On Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[1][0].bar(polLabels, allOnFWHMPol)
+        axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[0][1].set_title("Off Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[0][1].bar(noPolLabels, allOffFWHMNoPol, color='red')
-    axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+        axesVar[2][0].set_title("Both Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[2][0].bar(polLabels, allBothFWHMPol)
+        axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[1][1].set_title("On Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[1][1].bar(noPolLabels, allOnFWHMNoPol, color='red')
-    axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+        axesVar[0][1].set_title("Off Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[0][1].bar(noPolLabels, allOffFWHMNoPol, color='red')
+        axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    axesVar[2][1].set_title("Both Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-    axesVar[2][1].bar(noPolLabels, allBothFWHMNoPol, color='red')
-    axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+        axesVar[1][1].set_title("On Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[1][1].bar(noPolLabels, allOnFWHMNoPol, color='red')
+        axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-    plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
+        axesVar[2][1].set_title("Both Events Not Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
+        axesVar[2][1].bar(noPolLabels, allBothFWHMNoPol, color='red')
+        axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+        plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
     #figureVar.xticks(range(len(allOffVarPol)), polLabels)
     if saveFigures:
         plt.savefig(os.path.join("results","EventChunkGraphs","FWHM.png"))
