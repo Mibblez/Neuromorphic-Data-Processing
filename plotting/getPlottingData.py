@@ -5,7 +5,7 @@ from os import listdir
 from os.path import isfile, join
 import numpy as np
 
-def getData(folderName):
+def getData(folderName, timeWindow):
     onlyfiles = [f for f in listdir("./data/" + folderName) if isfile(join("./data/" + folderName, f))]
 
     fileCount = 0
@@ -20,7 +20,7 @@ def getData(folderName):
 
             for i, row in enumerate(reader):
                 if i != 0:
-                    x.append((i-1) *1500*0.000001)
+                    x.append((i-1) *timeWindow*0.000001)
                     #TODO: If timewindow is large this will not work
                     # also machineLearning Get data might need this fix for outliers
                     if int(row[2]) > 8000: # If camera bugs out and registers too many events, add like data
@@ -31,7 +31,7 @@ def getData(folderName):
                         y_all.append(int(row[2]))
                         y_off.append(int(row[1]))
                         y_on.append(int(row[0]))
-                    
+                   
                 
     N= fileCount
     return y_on,y_off,y_all,N,x

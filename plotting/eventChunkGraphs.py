@@ -88,10 +88,12 @@ graphType = "hist"
 
 plotVariance = True
 plotFWHM = True
+FWHMmultiplier = 2.355 # standard deviation if == 1, 2.355 for FWHM
 logValues = False
 differentFrequencies = True # different frequencies =True or backgrounds= False
 waveformsAndFrequency = True
 plotWaveformsOrFrequency = "waveforms" # waveforms or frequency
+
 saveFigures = True
 
 #variance Arrays
@@ -126,6 +128,8 @@ waveforms = WaveformsLines()
 waveformsNoPolLines = WaveformsLines()
 waveformsPolVariance = WaveformsNumbers()
 waveformsNoPolVariance = WaveformsNumbers()
+waveformsFWHM = WaveformsNumbers()
+waveformsNoPolFWHM = WaveformsNumbers()
 
 data_folder = 'waveformsAndFrequencyWithNoPol'
 folders = os.listdir(f'data/{data_folder}')
@@ -133,7 +137,7 @@ folders = natsorted(folders, alg=ns.IGNORECASE)
 for folderName in folders:
     
     #folderName = "26hz_nopol Event Chunks"
-    y_on,y_off,y_all, fileCount,x= getPlottingData.getData(f'{data_folder}/{folderName}')  
+    y_on,y_off,y_all, fileCount,x= getPlottingData.getData(f'{data_folder}/{folderName}', 1500)  
 
     if logValues:
         onAvg = np.array(y_on).mean()
@@ -309,17 +313,63 @@ for folderName in folders:
                 allBothVarPol.append(np.var(y_all))
 
     if plotFWHM:
+        # if FWHMmultiplier is 2.355 it will polt the FWHM, if is 1 it will plot the standard deviation
         if 'NoPolarizer' in folderName:
-            allOffFWHMNoPol.append(2.355*np.std(y_off))
-            allOnFWHMNoPol.append(2.355*np.std(y_on))
-            allBothFWHMNoPol.append(2.355*np.std(y_all))
+            if waveformsAndFrequency:
+                onOffBoth = OnOffBothFloat()
+                onOffBoth.off =FWHMmultiplier*np.std(y_off)
+                onOffBoth.on = FWHMmultiplier*np.std(y_on)
+                onOffBoth.both = FWHMmultiplier*np.std(y_all)
+                if "sine" in folderName:
+                    waveformsNoPolFWHM.sine.append(onOffBoth)
+                    waveformsNoPolFWHM.sine.append(onOffBoth)
+                    waveformsNoPolFWHM.sine.append(onOffBoth)
+                elif "square"  in folderName:
+                    waveformsNoPolFWHM.square.append(onOffBoth)
+                    waveformsNoPolFWHM.square.append(onOffBoth)
+                    waveformsNoPolFWHM.square.append(onOffBoth)
+                elif "triangle" in folderName:
+                    waveformsNoPolFWHM.triangle.append(onOffBoth)
+                    waveformsNoPolFWHM.triangle.append(onOffBoth)
+                    waveformsNoPolFWHM.triangle.append(onOffBoth)
+                elif "burst" in folderName:
+                    waveformsNoPolFWHM.burst.append(onOffBoth)
+                    waveformsNoPolFWHM.burst.append(onOffBoth)
+                    waveformsNoPolFWHM.burst.append(onOffBoth)
+            else:
+                allOffFWHMNoPol.append(FWHMmultiplier*np.std(y_off))
+                allOnFWHMNoPol.append(FWHMmultiplier*np.std(y_on))
+                allBothFWHMNoPol.append(FWHMmultiplier*np.std(y_all))
         else:
-            allOffFWHMPol.append(2.355*np.std(y_off))
-            allOnFWHMPol.append(2.355*np.std(y_on))
-            allBothFWHMPol.append(2.355*np.std(y_all))
+            if waveformsAndFrequency:
+                onOffBoth = OnOffBothFloat()
+                onOffBoth.off =FWHMmultiplier*np.std(y_off)
+                onOffBoth.on = FWHMmultiplier*np.std(y_on)
+                onOffBoth.both = FWHMmultiplier*np.std(y_all)
+                if "sine" in folderName:
+                    waveformsFWHM.sine.append(onOffBoth)
+                    waveformsFWHM.sine.append(onOffBoth)
+                    waveformsFWHM.sine.append(onOffBoth)
+                elif "square"  in folderName:
+                    waveformsFWHM.square.append(onOffBoth)
+                    waveformsFWHM.square.append(onOffBoth)
+                    waveformsFWHM.square.append(onOffBoth)
+                elif "triangle" in folderName:
+                    waveformsFWHM.triangle.append(onOffBoth)
+                    waveformsFWHM.triangle.append(onOffBoth)
+                    waveformsFWHM.triangle.append(onOffBoth)
+                elif "burst" in folderName:
+                    waveformsFWHM.burst.append(onOffBoth)
+                    waveformsFWHM.burst.append(onOffBoth)
+                    waveformsFWHM.burst.append(onOffBoth)
+            else:
+                allOffFWHMPol.append(FWHMmultiplier*np.std(y_off))
+                allOnFWHMPol.append(FWHMmultiplier*np.std(y_on))
+                allBothFWHMPol.append(FWHMmultiplier*np.std(y_all))
     
     if saveFigures:
         plt.savefig(os.path.join("results","EventChunkGraphs","Dots",folderName+'Dots.png'))
+        plt.close()
 
 
 if saveFigures == False:
@@ -352,8 +402,30 @@ if graphType == "hist":
                 plotting_helper.showAllGuas(bothEventsNoPol, ["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"],2, "Combined Events " + speed , axes)
                 if saveFigures:
                     plt.savefig(os.path.join("results","EventChunkGraphs",'showAllGuasWaveforms '+speed+'.png'))  
+                    plt.close()
                 else:
                     plt.show()
+
+                f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
+                f.set_size_inches(10, 15)
+
+
+                plotting_helper.centerAllGuas(offEvents,0,["Sine","Square","Burst","Triangle"], "Off Events",axes)
+                plotting_helper.centerAllGuas(onEvents,1, ["Sine","Square","Burst","Triangle"], "On Events",axes)
+                plotting_helper.centerAllGuas(bothEvents,2, ["Sine","Square","Burst","Triangle"], "Both Events",axes)
+
+                plotting_helper.centerAllGuas(offEventsNoPol,0,["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"], "Off Events",axes)
+                plotting_helper.centerAllGuas(onEventsNoPol,1, ["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"], "On Events",axes)
+                plotting_helper.centerAllGuas(bothEventsNoPol,2, ["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"], "Both Events",axes)
+                if saveFigures:
+                    plt.show()
+                    input()
+                    plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus.png'))  
+                    plt.close()
+                else:
+                    plt.show()
+
+                
         else:
             labels =  ["200mV","300mV","400mV","500mV"]
             labelsNoPol =  ["200mV NoPolarizer","300mV NoPolarizer","400mV NoPolarizer","500mV NoPolarizer"]
@@ -375,7 +447,8 @@ if graphType == "hist":
             plotting_helper.showAllGuas(onEventsNoPol, np.copy(labelsNoPol),1, "On Events " + "Sine", axes)
             plotting_helper.showAllGuas(bothEventsNoPol, np.copy(labelsNoPol),2, "Combined Events " + "Sine", axes)
             if saveFigures:
-                plt.savefig(os.path.join("results","EventChunkGraphs",'showAllGuasFrequencySine.png'))  
+                plt.savefig(os.path.join("results","EventChunkGraphs",'showAllGuasFrequencySine.png'))
+                plt.close()
             else:
                 plt.show()
     else:
@@ -388,6 +461,8 @@ if graphType == "hist":
         plotting_helper.showAllGuas(bothGuas, np.copy(bothLabel),2, "Both Events", axes)
         if saveFigures:
             plt.savefig(os.path.join("results","EventChunkGraphs",'Gaus.png'))  
+            plt.close()
+
         else:
             plt.show()
         f, axes = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
@@ -399,6 +474,7 @@ if graphType == "hist":
         plotting_helper.centerAllGuas(bothGuas,2, bothLabel, "Both Events",axes)
         if saveFigures:
             plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus.png'))  
+            plt.close()        
         else:
             plt.show()
     
@@ -449,6 +525,7 @@ if plotVariance :
                 #figureVar.xticks(range(len(allOffVarPol)), polLabels)
                 if saveFigures:
                     plt.savefig(os.path.join("results","EventChunkGraphs","variance" + speed + ".png"))
+                    plt.close()
                 else:
                     plt.show()
 
@@ -489,18 +566,56 @@ if plotVariance :
         #figureVar.xticks(range(len(allOffVarPol)), polLabels)
         if saveFigures:
             plt.savefig(os.path.join("results","EventChunkGraphs","variance.png"))
+            plt.close()
         else:
             plt.show()
 
-if plotFWHM and False:
+if plotFWHM:
     figureVar, axesVar = plt.subplots(nrows = 3, ncols = 2, sharex=False, sharey = False )
     figureVar.set_size_inches(10, 15)
     if waveformsAndFrequency:
          if plotWaveformsOrFrequency == "waveforms":
-            
-            axesVar[0][0].set_title("Off Events Polarized FWHM" + (" Log" if logValues else ""), fontsize=10)
-            axesVar[0][0].bar(polLabels, allOffFWHMPol)
-            axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+            speeds = ["200mV"]
+            for i ,speed in enumerate( speeds):
+                labels =["Sine","Square","Burst","Triangle"]
+                offEventsPol:List[float] = [waveformsFWHM.sine[i].off, waveformsFWHM.square[i].off, waveformsFWHM.burst[i].off,waveformsFWHM.triangle[i].off]
+                onEventsPol:List[float] = [waveformsFWHM.sine[i].on, waveformsFWHM.square[i].on, waveformsFWHM.burst[i].on,waveformsFWHM.triangle[i].on]
+                bothEventsPol:List[float] = [waveformsFWHM.sine[i].both, waveformsFWHM.square[i].both, waveformsFWHM.burst[i].both,waveformsFWHM.triangle[i].both]
+
+                offEventsNoPol:List[float] = [waveformsNoPolFWHM.sine[i].off, waveformsNoPolFWHM.square[i].off, waveformsNoPolFWHM.burst[i].off,waveformsNoPolFWHM.triangle[i].off]
+                onEventsNoPol:List[float] = [waveformsNoPolFWHM.sine[i].on, waveformsNoPolFWHM.square[i].on, waveformsNoPolFWHM.burst[i].on,waveformsNoPolFWHM.triangle[i].on]
+                bothEventsNoPol:List[float] = [waveformsNoPolFWHM.sine[i].both, waveformsNoPolFWHM.square[i].both, waveformsNoPolFWHM.burst[i].both,waveformsNoPolFWHM.triangle[i].both]
+
+                axesVar[0][0].set_title("Off Events Polarized "+(" FWHM" if FWHMmultiplier == 2.355 else "Standard Deviation") + (" Log" if logValues else ""), fontsize=10)
+                axesVar[0][0].bar(labels, offEventsPol)
+                axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+                axesVar[1][0].set_title("On Events Polarized "+(" FWHM" if FWHMmultiplier == 2.355 else "Standard Deviation") + (" Log" if logValues else ""), fontsize=10)
+                axesVar[1][0].bar(labels, onEventsPol)
+                axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+                axesVar[2][0].set_title("Both Events Polarized "+(" FWHM" if FWHMmultiplier == 2.355 else "Standard Deviation") + (" Log" if logValues else ""), fontsize=10)
+                axesVar[2][0].bar(labels, bothEventsPol)
+                axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+                axesVar[0][1].set_title("Off Events Not Polarized "+(" FWHM" if FWHMmultiplier == 2.355 else "Standard Deviation") + (" Log" if logValues else ""), fontsize=10)
+                axesVar[0][1].bar(labels, offEventsNoPol, color='red')
+                axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+                axesVar[1][1].set_title("On Events Not Polarized "+(" FWHM" if FWHMmultiplier == 2.355 else "Standard Deviation") + (" Log" if logValues else ""), fontsize=10)
+                axesVar[1][1].bar(labels, onEventsNoPol, color='red')
+                axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+                axesVar[2][1].set_title("Both Events Not Polarized "+(" FWHM" if FWHMmultiplier == 2.355 else "Standard Deviation") + (" Log" if logValues else ""), fontsize=10)
+                axesVar[2][1].bar(labels, bothEventsNoPol, color='red')
+                axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
+
+                plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
+                if saveFigures:
+                    plt.savefig(os.path.join("results","EventChunkGraphs",(" FWHM" if FWHMmultiplier == 2.355 else "Standard Deviation") +".png"))
+                    plt.close()
+                else:
+                    plt.show()
 
     else:
         
@@ -529,11 +644,12 @@ if plotFWHM and False:
         axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
         plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
-    #figureVar.xticks(range(len(allOffVarPol)), polLabels)
-    if saveFigures:
-        plt.savefig(os.path.join("results","EventChunkGraphs","FWHM.png"))
-    else:
-        plt.show()
+        #figureVar.xticks(range(len(allOffVarPol)), polLabels)
+        if saveFigures:
+            plt.savefig(os.path.join("results","EventChunkGraphs","FWHM.png"))
+            plt.close()
+        else:
+            plt.show()
 
 if graphType == "smooth":
     def showFFT(data):

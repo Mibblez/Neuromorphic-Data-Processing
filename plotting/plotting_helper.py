@@ -22,7 +22,7 @@ def plot_hist(data:list, axes, plot_major: int, plot_minor: int, plot_color: str
     """
     Plots only the hist.
     """
-    y, x, _ = axes[plot_major][plot_minor].hist(data, bins=80, color=plot_color,edgecolor='black', linewidth=1.2, normed=1)
+    y, x, _ = axes[plot_major][plot_minor].hist(data, bins=400, color=plot_color,edgecolor='black', linewidth=1.2, normed=1)
     x = paddBins(x,100)
     
     (mu, sigma) = norm.fit(data)
@@ -36,6 +36,7 @@ def plot_hist(data:list, axes, plot_major: int, plot_minor: int, plot_color: str
     while(y[len(y)-1] < accuracy):
         y = np.delete(y,len(y)-1)
         x = np.delete(x,len(x)-1)
+
     l = axes[plot_major][plot_minor].plot(x, y, linewidth=2)
     
     return l[0]
@@ -70,17 +71,16 @@ def plotKmeans(data,axes, row, columnIndex,numberOfCenters):
 def centerAllGuas(lines,axesIndex, labels, title, axes):
 
 
-
-        maxHeight = 0
-
+        maxHeight = 0#Get the largest y value in all the lines
         for line in lines:
             if np.max(line._y) > maxHeight:
                 maxHeight = np.max(line._y)
 
+
         for i,line in enumerate(lines):
             max_y = np.max(line._y) 
             index = np.where(line._y == max_y)
-            offset = line._x[index]-1
+            offset = line._x[index[0][0]]
             for j in range(len(line._x)):
                 line._x[j] = line._x[j]- offset
             row = 0
