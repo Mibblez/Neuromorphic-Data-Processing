@@ -81,8 +81,10 @@ class EventChunkConfig:
 
     maxEventCount:int
     ''' The max event count to read from the file '''
+    
     reconstructionWindow:int
     ''' The settings used to generate the csv files'''
+
     def __init__(self):
         self.graphType = 'hist'
         self.dataFolder =''

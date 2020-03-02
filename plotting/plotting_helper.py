@@ -71,35 +71,39 @@ def plotKmeans(data,axes, row, columnIndex,numberOfCenters):
     axes[row][columnIndex].scatter(centers[:, 0], centers[:, 1], c='red')
 
 def centerAllGuas(lines: List[matplotlib.lines.Line2D],axesIndex: int, labels: List[str], title: str, axes: np.ndarray):
-        maxHeight = 0#Get the largest y value in all the lines
-        for line in lines:
-            if np.max(line._y) > maxHeight:
-                maxHeight = np.max(line._y)
+
+    labelsCopy = np.copy(labels)
+
+    maxHeight = 0#Get the largest y value in all the lines
+    for line in lines:
+        if np.max(line._y) > maxHeight:
+            maxHeight = np.max(line._y)
 
 
-        for i,line in enumerate(lines):
-            max_y = np.max(line._y) 
-            index = np.where(line._y == max_y)
-            offset = line._x[index[0][0]]
-            for j in range(len(line._x)):
-                line._x[j] = line._x[j]- offset
-            row = 0
-            if "NoPolarizer" in labels[i]:
-                row = 1
-                labels[i] = labels[i].replace(" NoPolarizer","")
-            labels[i] =labels[i].replace(" Off Events","")
-            labels[i] =labels[i].replace(" On Events","")
-            labels[i] =labels[i].replace(" All Events","")
-            labels[i] =labels[i].replace("  "," ")
-            axes[axesIndex][row].plot(line._x,line._y/maxHeight, label=labels[i])
-        axes[axesIndex][1].title.set_text("Non-Polarized "+title)
-        axes[axesIndex][0].title.set_text("Polarized " +title)
-        axes[axesIndex][0].legend(loc=1, prop={'size':11})
-        axes[axesIndex][1].legend(loc=1, prop={'size': 11})
+    for i,line in enumerate(lines):
+        max_y = np.max(line._y) 
+        index = np.where(line._y == max_y)
+        offset = line._x[index[0][0]]
+        for j in range(len(line._x)):
+            line._x[j] = line._x[j]- offset
+        row = 0
+        if "NoPolarizer" in labelsCopy[i]:
+            row = 1
+            labelsCopy[i] = labelsCopy[i].replace(" NoPolarizer","")
+        labelsCopy[i] =labelsCopy[i].replace(" Off Events","")
+        labelsCopy[i] =labelsCopy[i].replace(" On Events","")
+        labelsCopy[i] =labelsCopy[i].replace(" All Events","")
+        labelsCopy[i] =labelsCopy[i].replace("  "," ")
+        axes[axesIndex][row].plot(line._x,line._y/maxHeight, label=labelsCopy[i])
+    axes[axesIndex][1].title.set_text("Non-Polarized "+title)
+    axes[axesIndex][0].title.set_text("Polarized " +title)
+    axes[axesIndex][0].legend(loc=1, prop={'size':11})
+    axes[axesIndex][1].legend(loc=1, prop={'size': 11})
 
 
 def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axesIndex: int, title: str, axes: np.ndarray):
 
+    labelsCopy = np.copy(labels)
     max_height = 0
 
     for line in lines:
@@ -114,15 +118,15 @@ def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axesInd
         for j, y in enumerate(line._y):
             line._y[j] = y - shiftY
         row = 0
-        if "NoPolarizer" in labels[i]:
-            labels[i] = labels[i].replace(" NoPolarizer","")
+        if "NoPolarizer" in labelsCopy[i]:
+            labelsCopy[i] = labelsCopy[i].replace(" NoPolarizer","")
             row = 1
         
-        labels[i] =labels[i].replace(" Off Events","")
-        labels[i] =labels[i].replace(" On Events","")
-        labels[i] =labels[i].replace(" All Events","")
-        labels[i] =labels[i].replace("  "," ")
-        axes[axesIndex][row].plot(line._x,line._y/max_height, label=labels[i])
+        labelsCopy[i] =labelsCopy[i].replace(" Off Events","")
+        labelsCopy[i] =labelsCopy[i].replace(" On Events","")
+        labelsCopy[i] =labelsCopy[i].replace(" All Events","")
+        labelsCopy[i] =labelsCopy[i].replace("  "," ")
+        axes[axesIndex][row].plot(line._x,line._y/max_height, label=labelsCopy[i])
 
     axes[axesIndex][1].title.set_text("Non-Polarized "+title)
     axes[axesIndex][0].title.set_text("Polarized " +title)
