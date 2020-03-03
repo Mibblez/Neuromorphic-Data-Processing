@@ -379,13 +379,13 @@ if config.graphType == "hist":
                 onEventsNoPol = [waveformsNoPolLines.sine[i].on, waveformsNoPolLines.square[i].on, waveformsNoPolLines.burst[i].on,waveformsNoPolLines.triangle[i].on]
                 bothEventsNoPol = [waveformsNoPolLines.sine[i].both, waveformsNoPolLines.square[i].both, waveformsNoPolLines.burst[i].both,waveformsNoPolLines.triangle[i].both]
 
-                plotting_helper.showAllGuas(offEvents,labels,0, "Off Events " + speed, axes)
-                plotting_helper.showAllGuas(onEvents, labels,1, "On Events " + speed, axes)
-                plotting_helper.showAllGuas(bothEvents, labels,2, "Combined Events " + speed, axes)
+                plotting_helper.showAllGuas(offEvents,labels,0, "Off Events " + speed, axes, config)
+                plotting_helper.showAllGuas(onEvents, labels,1, "On Events " + speed, axes, config)
+                plotting_helper.showAllGuas(bothEvents, labels,2, "Combined Events " + speed, axes, config)
 
-                plotting_helper.showAllGuas(offEventsNoPol, labelsNoPol,0, "Off Events " + speed , axes)
-                plotting_helper.showAllGuas(onEventsNoPol, labelsNoPol,1, "On Events " + speed , axes)
-                plotting_helper.showAllGuas(bothEventsNoPol, labelsNoPol,2, "Combined Events " + speed , axes)
+                plotting_helper.showAllGuas(offEventsNoPol, labelsNoPol,0, "Off Events " + speed , axes, config)
+                plotting_helper.showAllGuas(onEventsNoPol, labelsNoPol,1, "On Events " + speed , axes, config)
+                plotting_helper.showAllGuas(bothEventsNoPol, labelsNoPol,2, "Combined Events " + speed , axes, config)
                 
                 if saveFigures:
                     plt.savefig(os.path.join("results","EventChunkGraphs",'showAllGuasWaveforms '+speed+'.png'))  
@@ -397,13 +397,14 @@ if config.graphType == "hist":
                 f.set_size_inches(10, 15)
 
 
-                plotting_helper.centerAllGuas(offEvents,0,["Sine","Square","Burst","Triangle"], "Off Events",axes)
-                plotting_helper.centerAllGuas(onEvents,1, ["Sine","Square","Burst","Triangle"], "On Events",axes)
-                plotting_helper.centerAllGuas(bothEvents,2, ["Sine","Square","Burst","Triangle"], "Both Events",axes)
+                plotting_helper.centerAllGuas(offEvents,0,labels, "Off Events",axes, config)
+                plotting_helper.centerAllGuas(onEvents,1, labels, "On Events",axes, config)
+                plotting_helper.centerAllGuas(bothEvents,2, labels, "Both Events",axes, config)
 
-                plotting_helper.centerAllGuas(offEventsNoPol,0,["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"], "Off Events",axes)
-                plotting_helper.centerAllGuas(onEventsNoPol,1, ["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"], "On Events",axes)
-                plotting_helper.centerAllGuas(bothEventsNoPol,2, ["Sine NoPolarizer","Square NoPolarizer","Burst NoPolarizer","Triangle NoPolarizer"], "Both Events",axes)
+                plotting_helper.centerAllGuas(offEventsNoPol,0,labelsNoPol, "Off Events",axes, config)
+                plotting_helper.centerAllGuas(onEventsNoPol,1, labelsNoPol, "On Events",axes, config)
+                plotting_helper.centerAllGuas(bothEventsNoPol,2, labelsNoPol, "Both Events",axes, config)
+
                 if saveFigures:
                     plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus.png'))  
                     plt.close()
@@ -425,13 +426,13 @@ if config.graphType == "hist":
             onEventsNoPol = [waveformsNoPolLines.sine[0].on, waveformsNoPolLines.sine[1].on, waveformsNoPolLines.sine[2].on,waveformsNoPolLines.sine[3].on]
             bothEventsNoPol = [waveformsNoPolLines.sine[0].both, waveformsNoPolLines.sine[1].both, waveformsNoPolLines.sine[2].both,waveformsNoPolLines.sine[3].both]
 
-            plotting_helper.showAllGuas(offEvents,labels,0, "Off Events " + "Sine", axes)
-            plotting_helper.showAllGuas(onEvents, labels,1, "On Events " + "Sine", axes)
-            plotting_helper.showAllGuas(bothEvents, labels,2, "Combined Events " + "Sine", axes)
+            plotting_helper.showAllGuas(offEvents,labels,0, "Off Events " + "Sine", axes, config)
+            plotting_helper.showAllGuas(onEvents, labels,1, "On Events " + "Sine", axes, config)
+            plotting_helper.showAllGuas(bothEvents, labels,2, "Combined Events " + "Sine", axes, config)
 
-            plotting_helper.showAllGuas(offEventsNoPol, labelsNoPol,0, "Off Events " + "Sine", axes)
-            plotting_helper.showAllGuas(onEventsNoPol, labelsNoPol,1, "On Events " + "Sine", axes)
-            plotting_helper.showAllGuas(bothEventsNoPol, labelsNoPol,2, "Combined Events " + "Sine", axes)
+            plotting_helper.showAllGuas(offEventsNoPol, labelsNoPol,0, "Off Events " + "Sine", axes, config)
+            plotting_helper.showAllGuas(onEventsNoPol, labelsNoPol,1, "On Events " + "Sine", axes, config)
+            plotting_helper.showAllGuas(bothEventsNoPol, labelsNoPol,2, "Combined Events " + "Sine", axes, config)
             
             if saveFigures:
                 plt.savefig(os.path.join("results","EventChunkGraphs",'showAllGuasFrequencySine.png'))
@@ -442,9 +443,9 @@ if config.graphType == "hist":
         f, axes = plt.subplots(nrows=3, ncols=2, sharex=False, sharey=False)
         f.set_size_inches(10, 15)
     
-        plotting_helper.showAllGuas(offGuas, offLabel,0, "Off Events", axes)
-        plotting_helper.showAllGuas(onGuas, onLabel,1, "On Events", axes)
-        plotting_helper.showAllGuas(bothGuas, bothLabel,2, "Both Events", axes)
+        plotting_helper.showAllGuas(offGuas, offLabel,0, "Off Events", axes, config)
+        plotting_helper.showAllGuas(onGuas, onLabel,1, "On Events", axes, config)
+        plotting_helper.showAllGuas(bothGuas, bothLabel,2, "Both Events", axes, config)
 
         if saveFigures:
             plt.savefig(os.path.join("results","EventChunkGraphs",'Gaus.png'))  
@@ -455,9 +456,9 @@ if config.graphType == "hist":
         f, axes = plt.subplots(nrows=3, ncols=2, sharex=False, sharey=False)
         f.set_size_inches(10, 15)
 
-        plotting_helper.centerAllGuas(offGuas,0,offLabel, "Off Events",axes)
-        plotting_helper.centerAllGuas(onGuas,1, onLabel, "On Events",axes)
-        plotting_helper.centerAllGuas(bothGuas,2, bothLabel, "Both Events",axes)
+        plotting_helper.centerAllGuas(offGuas,0,offLabel, "Off Events",axes, config)
+        plotting_helper.centerAllGuas(onGuas,1, onLabel, "On Events",axes, config)
+        plotting_helper.centerAllGuas(bothGuas,2, bothLabel, "Both Events",axes, config)
 
         if saveFigures:
             plt.savefig(os.path.join("results","EventChunkGraphs",'CenterGaus.png'))  
@@ -509,6 +510,7 @@ if config.plotVariance:
 
                 plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
                 #figureVar.xticks(range(len(allOffVarPol)), polLabels)
+
                 if saveFigures:
                     plt.savefig(os.path.join("results","EventChunkGraphs","variance" + speed + ".png"))
                     plt.close()
@@ -553,6 +555,9 @@ if config.plotVariance:
 if config.plotFWHM:
     figureVar, axesVar = plt.subplots(nrows=3, ncols=2, sharex=False, sharey=False)
     figureVar.set_size_inches(10, 15)
+
+    logOrStandardDeviation = (" FWHM" if config.FWHMMultiplier == 2.355 else "Standard Deviation") + (" Log" if config.logValues else "")
+
     if config.dataSetType == 'waveformsAndFrequency':
          if config.plotConstant == "waveforms":
             speeds = ["200mV"]
@@ -566,65 +571,66 @@ if config.plotFWHM:
                 onEventsNoPol:List[float] = [waveformsNoPolFWHM.sine[i].on, waveformsNoPolFWHM.square[i].on, waveformsNoPolFWHM.burst[i].on,waveformsNoPolFWHM.triangle[i].on]
                 bothEventsNoPol:List[float] = [waveformsNoPolFWHM.sine[i].both, waveformsNoPolFWHM.square[i].both, waveformsNoPolFWHM.burst[i].both,waveformsNoPolFWHM.triangle[i].both]
 
-                axesVar[0][0].set_title("Off Events Polarized "+(" FWHM" if config.FWHMMultiplier == 2.355 else "Standard Deviation") + (" Log" if config.logValues else ""), fontsize=10)
+
+                axesVar[0][0].set_title("Off Events Polarized "+ logOrStandardDeviation, fontsize=10)
                 axesVar[0][0].bar(labels, offEventsPol)
                 axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[1][0].set_title("On Events Polarized "+(" FWHM" if config.FWHMMultiplier == 2.355 else "Standard Deviation") + (" Log" if config.logValues else ""), fontsize=10)
+                axesVar[1][0].set_title("On Events Polarized "+logOrStandardDeviation, fontsize=10)
                 axesVar[1][0].bar(labels, onEventsPol)
                 axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[2][0].set_title("Both Events Polarized "+(" FWHM" if config.FWHMMultiplier == 2.355 else "Standard Deviation") + (" Log" if config.logValues else ""), fontsize=10)
+                axesVar[2][0].set_title("Both Events Polarized "+logOrStandardDeviation, fontsize=10)
                 axesVar[2][0].bar(labels, bothEventsPol)
                 axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[0][1].set_title("Off Events Not Polarized "+(" FWHM" if config.FWHMMultiplier == 2.355 else "Standard Deviation") + (" Log" if config.logValues else ""), fontsize=10)
+                axesVar[0][1].set_title("Off Events Not Polarized "+logOrStandardDeviation, fontsize=10)
                 axesVar[0][1].bar(labels, offEventsNoPol, color='red')
                 axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[1][1].set_title("On Events Not Polarized "+(" FWHM" if config.FWHMMultiplier == 2.355 else "Standard Deviation") + (" Log" if config.logValues else ""), fontsize=10)
+                axesVar[1][1].set_title("On Events Not Polarized "+logOrStandardDeviation, fontsize=10)
                 axesVar[1][1].bar(labels, onEventsNoPol, color='red')
                 axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-                axesVar[2][1].set_title("Both Events Not Polarized "+(" FWHM" if config.FWHMMultiplier == 2.355 else "Standard Deviation") + (" Log" if config.logValues else ""), fontsize=10)
+                axesVar[2][1].set_title("Both Events Not Polarized "+logOrStandardDeviation, fontsize=10)
                 axesVar[2][1].bar(labels, bothEventsNoPol, color='red')
                 axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
                 plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
                 if saveFigures:
-                    plt.savefig(os.path.join("results","EventChunkGraphs",(" FWHM" if config.FWHMMultiplier == 2.355 else "Standard Deviation") +".png"))
+                    plt.savefig(os.path.join("results","EventChunkGraphs",logOrStandardDeviation + speed +".png"))
                     plt.close()
                 else:
                     plt.show()
     else:
-        axesVar[0][0].set_title("Off Events Polarized FWHM" + (" Log" if config.logValues else ""), fontsize=10)
+        axesVar[0][0].set_title("Off Events Polarized " + logOrStandardDeviation, fontsize=10)
         axesVar[0][0].bar(polLabels, allOffFWHMPol)
         axesVar[0][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-        axesVar[1][0].set_title("On Events Polarized FWHM" + (" Log" if config.logValues else ""), fontsize=10)
+        axesVar[1][0].set_title("On Events Polarized " + logOrStandardDeviation, fontsize=10)
         axesVar[1][0].bar(polLabels, allOnFWHMPol)
         axesVar[1][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-        axesVar[2][0].set_title("Both Events Polarized FWHM" + (" Log" if config.logValues else ""), fontsize=10)
+        axesVar[2][0].set_title("Both Events Polarized " + logOrStandardDeviation, fontsize=10)
         axesVar[2][0].bar(polLabels, allBothFWHMPol)
         axesVar[2][0].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-        axesVar[0][1].set_title("Off Events Not Polarized FWHM" + (" Log" if config.logValues else ""), fontsize=10)
+        axesVar[0][1].set_title("Off Events Not Polarized " + logOrStandardDeviation, fontsize=10)
         axesVar[0][1].bar(noPolLabels, allOffFWHMNoPol, color='red')
         axesVar[0][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-        axesVar[1][1].set_title("On Events Not Polarized FWHM" + (" Log" if config.logValues else ""), fontsize=10)
+        axesVar[1][1].set_title("On Events Not Polarized " + logOrStandardDeviation, fontsize=10)
         axesVar[1][1].bar(noPolLabels, allOnFWHMNoPol, color='red')
         axesVar[1][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
-        axesVar[2][1].set_title("Both Events Not Polarized FWHM" + (" Log" if config.logValues else ""), fontsize=10)
+        axesVar[2][1].set_title("Both Events Not Polarized " + logOrStandardDeviation, fontsize=10)
         axesVar[2][1].bar(noPolLabels, allBothFWHMNoPol, color='red')
         axesVar[2][1].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
 
         plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
         #figureVar.xticks(range(len(allOffVarPol)), polLabels)
         if saveFigures:
-            plt.savefig(os.path.join("results","EventChunkGraphs","FWHM.png"))
+            plt.savefig(os.path.join("results","EventChunkGraphs",logOrStandardDeviation+ ".png"))
             plt.close()
         else:
             plt.show()

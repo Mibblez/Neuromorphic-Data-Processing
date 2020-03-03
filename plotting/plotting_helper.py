@@ -6,6 +6,7 @@ import matplotlib
 from sklearn.metrics import pairwise_distances_argmin
 import typing
 from typing import Dict, Tuple, Sequence, List
+import getPlottingData
 
 def paddBins(bins2: np.ndarray, paddTimes: int):
 
@@ -70,7 +71,7 @@ def plotKmeans(data,axes, row, columnIndex,numberOfCenters):
     axes[row][columnIndex].scatter(pts[:, 0], pts[:, 1], c=labels, s=10, cmap='viridis')
     axes[row][columnIndex].scatter(centers[:, 0], centers[:, 1], c='red')
 
-def centerAllGuas(lines: List[matplotlib.lines.Line2D],axesIndex: int, labels: List[str], title: str, axes: np.ndarray):
+def centerAllGuas(lines: List[matplotlib.lines.Line2D],axesIndex: int, labels: List[str], title: str, axes: np.ndarray, config: getPlottingData.EventChunkConfig):
 
     labelsCopy = np.copy(labels)
 
@@ -100,8 +101,11 @@ def centerAllGuas(lines: List[matplotlib.lines.Line2D],axesIndex: int, labels: L
     axes[axesIndex][0].legend(loc=1, prop={'size':11})
     axes[axesIndex][1].legend(loc=1, prop={'size': 11})
 
+    axes[axesIndex][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
+    axes[axesIndex][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
 
-def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axesIndex: int, title: str, axes: np.ndarray):
+
+def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axesIndex: int, title: str, axes: np.ndarray, config: getPlottingData.EventChunkConfig):
 
     labelsCopy = np.copy(labels)
     max_height = 0
@@ -132,6 +136,9 @@ def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axesInd
     axes[axesIndex][0].title.set_text("Polarized " +title)
     axes[axesIndex][0].legend(loc=1, prop={'size':11})
     axes[axesIndex][1].legend(loc=1, prop={'size': 11})
+
+    axes[axesIndex][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
+    axes[axesIndex][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
 
 def showFFT(data, file_count, folders):
     fftX = np.linspace(0.0, 1.0/(2.0*(1.0 / 800.0)), file_count/2)

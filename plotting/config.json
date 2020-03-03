@@ -10,5 +10,7 @@
     "dataSetType":"waveformsAndFrequency",
     "plotConstant":"waveforms",
     "maxEventCount": 500,
-    "reconstructionWindow":500
+    "reconstructionWindow":500,
+    "gaussianMinY": 0.4,
+    "gaussianMaxY": 1
 }

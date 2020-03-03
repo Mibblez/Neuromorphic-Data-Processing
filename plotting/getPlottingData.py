@@ -85,6 +85,10 @@ class EventChunkConfig:
     reconstructionWindow:int
     ''' The settings used to generate the csv files'''
 
+    gaussianMinY:float
+
+    gaussianMaxY:float
+
     def __init__(self):
         self.graphType = 'hist'
         self.dataFolder =''
@@ -97,6 +101,8 @@ class EventChunkConfig:
         self.plotConstant = 'waveforms'
         self.maxEventCount = -1
         self.reconstructionWindow = 500
+        self.gaussianMinY = 0
+        self.gaussianMaxY = 1
 
         
 
