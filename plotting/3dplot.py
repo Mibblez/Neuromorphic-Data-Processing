@@ -55,11 +55,10 @@ def get_args():
 
     viewing_angles = ['default', 'top', 'side']
 
-    if view is not None:
+    if args.view is not None:
         view = args.view.lower()
         if view not in viewing_angles:
             print('Invalid view. Using default instead.')
-            view = None
 
 
 if __name__ == '__main__':
@@ -82,7 +81,7 @@ if __name__ == '__main__':
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(all_x, all_y, all_time, c=color, marker='.', s=3, depthshade=False)
+    ax.scatter(all_x, all_y, all_time, c=color, marker='s', s=4, depthshade=False)
 
     ax.set_xlabel('X Position')
     ax.set_ylabel('Y Position')
