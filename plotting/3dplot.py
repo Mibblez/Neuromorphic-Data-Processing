@@ -81,17 +81,19 @@ if __name__ == '__main__':
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(all_x, all_y, all_time, c=color, marker='s', s=4, depthshade=False)
-
     ax.set_xlabel('X Position')
     ax.set_ylabel('Y Position')
     ax.set_zlabel('Time (μs)')
 
     if view == 'top':
+        ax.scatter(all_x, all_y, all_time, c=color, marker='H', s=4, depthshade=False)
         ax.set_zticklabels([])
         ax.view_init(azim=-90, elev=90)
     elif view == 'side':
+        ax.scatter(all_x, all_y, all_time, c=color, marker='H', s=4, depthshade=False)
         ax.view_init(azim=0, elev=8)
+    else:
+        ax.scatter(all_x, all_y, all_time, c=color, marker='.', s=4, depthshade=False)
 
     fig.set_size_inches(12, 10)
 
