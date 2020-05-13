@@ -1,12 +1,10 @@
-from mpl_toolkits.mplot3d import Axes3D
-import matplotlib.pyplot as plt
-import numpy as np
-import csv
-import os
-from os import walk
 from os import listdir
 from os.path import isfile, join
 import argparse
+import os
+import csv
+
+import matplotlib.pyplot as plt
 
 show_plot = True
 save_fig = False
@@ -19,9 +17,8 @@ def get_event_chunk_data(folder):
     only_files = [f for f in listdir(folder) if isfile(join(folder, f))]
     for file in only_files:
         with open(os.path.join(folder, file), 'r') as csvfile:
-            
             reader = csv.reader(csvfile, delimiter=',')
-            
+
             for i, row in enumerate(reader):
                 # Skip header
                 if i == 0:
@@ -40,19 +37,27 @@ def get_event_chunk_data(folder):
     return points
 
 def get_args():
-    global show_plot, save_fig, folder_to_plot
+    global show_plot, save_fig, folder_to_plot, view
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument("folder", help='folder containing event chunks to be plotted', type=str)
-    parser.add_argument('--hide_plot', '-h', help='prevents the plot from being shown', action='store_true')
-    parser.add_argument('--save_fig', '-s', help='saves the figure to disk', action='store_true')
+    parser.add_argument('--hide_plot', '-hp', help='prevents the plot from being shown', action='store_true')
+    parser.add_argument('--save_fig', '-sf', help='saves the figure to disk', action='store_true')
+    parser.add_argument('--view', '-v', help='sets plot viewing angle [default, top, side]', action='store', type=str)
 
     args = parser.parse_args()
 
     show_plot = not args.hide_plot
     save_fig = args.save_fig
     folder_to_plot = args.folder
+
+    viewing_angles = ['default', 'top', 'side']
+    view = args.view.lower()
+
+    if view is not None and view not in viewing_angles:
+        print('Invalid view. Using default instead.')
+        view = None
 
 
 if __name__ == '__main__':
@@ -62,7 +67,7 @@ if __name__ == '__main__':
     all_x = []
     all_y = []
     all_time = []
-    color= []
+    color = []
 
     for event in events:
         all_x.append(event[1])
@@ -80,6 +85,12 @@ if __name__ == '__main__':
     ax.set_xlabel('X Position')
     ax.set_ylabel('Y Position')
     ax.set_zlabel('Time (μs)')
+
+    if view == 'top':
+        ax.set_zticklabels([])
+        ax.view_init(azim=-90, elev=90)
+    elif view == 'side':
+        ax.view_init(azim=0, elev=8)
 
     fig.set_size_inches(12, 10)
 
