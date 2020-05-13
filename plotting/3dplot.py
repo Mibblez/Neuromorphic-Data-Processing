@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 show_plot = True
 save_fig = False
 folder_to_plot = ''
+view = None
 
 def get_event_chunk_data(folder):
     points = []
@@ -53,11 +54,12 @@ def get_args():
     folder_to_plot = args.folder
 
     viewing_angles = ['default', 'top', 'side']
-    view = args.view.lower()
 
-    if view is not None and view not in viewing_angles:
-        print('Invalid view. Using default instead.')
-        view = None
+    if view is not None:
+        view = args.view.lower()
+        if view not in viewing_angles:
+            print('Invalid view. Using default instead.')
+            view = None
 
 
 if __name__ == '__main__':
