@@ -3,6 +3,7 @@ from os.path import isfile, join
 import argparse
 import os
 import csv
+import itertools
 
 import matplotlib.pyplot as plt
 
@@ -11,22 +12,20 @@ save_fig = False
 file_to_plot = ''
 view = None
 
-def get_event_chunk_data(csv_file):
+def get_aedat_csv_data(csv_file):
     points = []
     first_timestamp = 0
 
     with open(csv_file, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
 
-        for i, row in enumerate(reader):
-            # Skip header
-            if i == 0:
-                continue
+        next(reader, None) # Skip header
 
-            if i == 1 and first_timestamp == 0:
-                first_timestamp = int(row[3])
+        first_row = next(reader, None)
+        first_timestamp = int(first_row[3])
 
-            polarity = True if row[0] == "True" else False
+        for row in itertools.chain([first_row], reader):
+            polarity = row[0] == "True"
             x_pos = int(row[1])
             y_pos = 128 - int(row[2])
             timestamp = int(row[3]) - first_timestamp
@@ -61,7 +60,7 @@ def get_args():
 
 if __name__ == '__main__':
     get_args()
-    events = get_event_chunk_data(file_to_plot)
+    events = get_aedat_csv_data(file_to_plot)
 
     all_x = []
     all_y = []
