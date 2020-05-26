@@ -2,15 +2,15 @@
 {
     "graphType":"hist",
     "saveFigures":true,
-    "dataFolder":"waveformsAndFrequencyWithNoPol",
+    "dataFolder":"data",
     "plotVariance": true,
     "plotFWHM": true,
     "FWHMMultiplier": 2.355,
     "logValues": false,
     "dataSetType":"waveformsAndFrequency",
     "plotConstant":"waveforms",
-    "maxEventCount": 500,
-    "reconstructionWindow":500,
+    "maxEventCount": 10000,
+    "reconstructionWindow":1200,
     "gaussianMinY": 0.4,
     "gaussianMaxY": 1
 }
