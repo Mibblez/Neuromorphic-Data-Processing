@@ -18,25 +18,24 @@ def paddBins(bins2: np.ndarray, paddTimes: int):
     for i in range(paddTimes):
         bins2= np.append(bins2,bins2[len(bins2)-1]+difference*(i+1) )
 
-    
     return bins2
 
-def plot_hist(data: list, axes, plot_major: int, plot_minor: int, plot_color: str, log_values: bool)->matplotlib.lines.Line2D :
+def plot_hist(data: list, axes, plot_major: int, plot_minor: int, plot_color: str, log_values: bool)->matplotlib.lines.Line2D:
     """
     Plots only the hist.
     """
-    y, x, _ = axes[plot_major][plot_minor].hist(data, bins=400, color=plot_color,edgecolor='black', linewidth=1.2, normed=1)
-    x = paddBins(x,100)
+    y, x, _ = axes[plot_major][plot_minor].hist(data, bins=400, color=plot_color, edgecolor=plot_color, linewidth=1.5, density=True)
+    x = paddBins(x, 100)
     
     (mu, sigma) = norm.fit(data)
     y = stats.norm.pdf(x, mu, sigma)
     accuracy = 0.002
-    if log_values == False:
+    if log_values:
         accuracy = 0.00002
-    while(y[0] < accuracy):
+    while y[0] < accuracy:
         y = np.delete(y,0)
         x = np.delete(x,0)
-    while(y[len(y)-1] < accuracy):
+    while y[len(y)-1] < accuracy:
         y = np.delete(y,len(y)-1)
         x = np.delete(x,len(x)-1)
 
