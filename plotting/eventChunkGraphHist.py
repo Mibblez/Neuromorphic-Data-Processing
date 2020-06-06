@@ -12,7 +12,7 @@ import getPlottingData
 import plotting_helper
 
 def clean_folder_name(folder_name: str, data_set_type: str) -> str:
-    # TODO: regex in folder_name_changes for deg and min ans stuff?
+    # TODO: regex in folder_name_changes for deg and min and stuff?
     folder_name_changes = {"Event Chunks" : "", "nopol" : "NoPolarizer", "no pol" : "NoPolarizer",
                            "30deg" : "", "30 deg" : "", "15min" : "", "1hz" : ""}
 
@@ -49,6 +49,7 @@ def plot_bars(ax_var: np.ndarray, event_lists: List, labels: List, titles: List,
     titles_iter = iter(titles)
     colors_iter = iter(["tab:blue", "tab:blue", "tab:blue", "red", "red", "red"])
 
+    # Populate subplots
     for i in range(2):
         for j in range(3):
             ax_var[j][i].tick_params(axis='x', which='major', labelsize=10, labelrotation=35)
@@ -124,7 +125,6 @@ allOnVarNoPol: List[float] = []
 allBothVarNoPol: List[float] = []
 polLabels: List[float] = []
 noPolLabels: List[float] = []
-
 
 #FWHM Arrays
 allOffFWHMPol = []
@@ -225,6 +225,7 @@ for folderName in folders:
     onLabel.append(folderName + " On Events")
     bothLabel.append(folderName + " All Events")
 
+    # Format & add data to scatter sub-plots
     axes[0][0].scatter(x, y_off, c='red', picker=True, s=1)
     axes[1][0].title.set_text(folderName +" Off Events")
     axes[0][1].scatter(x, y_on, c='green', picker=True, s=1)
@@ -281,24 +282,15 @@ for folderName in folders:
         onOffBoth.on = config.FWHMMultiplier * np.std(y_on)
         onOffBoth.both = config.FWHMMultiplier * np.std(y_all)
 
-        # TODO: extend instead of three appends?
         if 'NoPolarizer' in folderName:
             if config.dataSetType == 'waveformsAndFrequency':
                 if "sine" in folderName:
                     waveformsNoPolFWHM.sine.append(onOffBoth)
-                    waveformsNoPolFWHM.sine.append(onOffBoth)
-                    waveformsNoPolFWHM.sine.append(onOffBoth)
                 elif "square"  in folderName:
-                    waveformsNoPolFWHM.square.append(onOffBoth)
-                    waveformsNoPolFWHM.square.append(onOffBoth)
                     waveformsNoPolFWHM.square.append(onOffBoth)
                 elif "triangle" in folderName:
                     waveformsNoPolFWHM.triangle.append(onOffBoth)
-                    waveformsNoPolFWHM.triangle.append(onOffBoth)
-                    waveformsNoPolFWHM.triangle.append(onOffBoth)
                 elif "burst" in folderName:
-                    waveformsNoPolFWHM.burst.append(onOffBoth)
-                    waveformsNoPolFWHM.burst.append(onOffBoth)
                     waveformsNoPolFWHM.burst.append(onOffBoth)
             else:
                 allOffFWHMNoPol.append(config.FWHMMultiplier * np.std(y_off))
@@ -308,19 +300,11 @@ for folderName in folders:
             if config.dataSetType == 'waveformsAndFrequency':
                 if "sine" in folderName:
                     waveformsFWHM.sine.append(onOffBoth)
-                    waveformsFWHM.sine.append(onOffBoth)
-                    waveformsFWHM.sine.append(onOffBoth)
                 elif "square"  in folderName:
-                    waveformsFWHM.square.append(onOffBoth)
-                    waveformsFWHM.square.append(onOffBoth)
                     waveformsFWHM.square.append(onOffBoth)
                 elif "triangle" in folderName:
                     waveformsFWHM.triangle.append(onOffBoth)
-                    waveformsFWHM.triangle.append(onOffBoth)
-                    waveformsFWHM.triangle.append(onOffBoth)
                 elif "burst" in folderName:
-                    waveformsFWHM.burst.append(onOffBoth)
-                    waveformsFWHM.burst.append(onOffBoth)
                     waveformsFWHM.burst.append(onOffBoth)
             else:
                 allOffFWHMPol.append(config.FWHMMultiplier * np.std(y_off))
@@ -354,13 +338,13 @@ if config.dataSetType == 'waveformsAndFrequency':
             onEventsNoPol = [waveformsNoPolLines.sine[i].on, waveformsNoPolLines.square[i].on, waveformsNoPolLines.burst[i].on, waveformsNoPolLines.triangle[i].on]
             bothEventsNoPol = [waveformsNoPolLines.sine[i].both, waveformsNoPolLines.square[i].both, waveformsNoPolLines.burst[i].both, waveformsNoPolLines.triangle[i].both]
 
-            plotting_helper.showAllGuas(offEvents, labels, 0, "Off Events " + speed, axes, config)
-            plotting_helper.showAllGuas(onEvents, labels, 1, "On Events " + speed, axes, config)
-            plotting_helper.showAllGuas(bothEvents, labels, 2, "Combined Events " + speed, axes, config)
+            plotting_helper.showAllGuas(offEvents, labels, 0, f"Off Events {speed}", axes, config)
+            plotting_helper.showAllGuas(onEvents, labels, 1, f"On Events {speed}", axes, config)
+            plotting_helper.showAllGuas(bothEvents, labels, 2, f"Combined Events {speed}", axes, config)
 
-            plotting_helper.showAllGuas(offEventsNoPol, labelsNoPol, 0, "Off Events " + speed, axes, config)
-            plotting_helper.showAllGuas(onEventsNoPol, labelsNoPol, 1, "On Events " + speed, axes, config)
-            plotting_helper.showAllGuas(bothEventsNoPol, labelsNoPol, 2, "Combined Events " + speed, axes, config)
+            plotting_helper.showAllGuas(offEventsNoPol, labelsNoPol, 0, f"Off Events {speed}", axes, config)
+            plotting_helper.showAllGuas(onEventsNoPol, labelsNoPol, 1, f"On Events {speed}", axes, config)
+            plotting_helper.showAllGuas(bothEventsNoPol, labelsNoPol, 2, f"Combined Events {speed}", axes, config)
 
             if saveFigures:
                 plt.savefig(os.path.join("results", "EventChunkGraphs", f"showAllGuasWaveforms{speed}.png"))
@@ -466,7 +450,7 @@ if config.plotVariance:
                 plt.subplots_adjust(left=.125, bottom=0.1, right=.91, top=.9, wspace=.3, hspace=.4)
 
                 if saveFigures:
-                    plt.savefig(os.path.join("results", "EventChunkGraphs", "variance" + speed + ".png"))
+                    plt.savefig(os.path.join("results", "EventChunkGraphs", f"variance {speed}.png"))
                     plt.close()
                 else:
                     plt.show()
