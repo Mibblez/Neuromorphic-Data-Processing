@@ -81,6 +81,26 @@ class WaveformsLines:
         self.burst = []
         self.triangle = []
 
+    def waveform_off_events_to_list(self, i: int) -> List:
+        return [self.sine[i].off, self.square[i].off, self.burst[i].off, self.triangle[i].off]
+
+    def waveform_on_events_to_list(self, i: int) -> List:
+        return [self.sine[i].on, self.square[i].on, self.burst[i].on, self.triangle[i].on]
+
+    def waveform_both_events_to_list(self, i: int) -> List:
+        return [self.sine[i].both, self.square[i].both, self.burst[i].both, self.triangle[i].both]
+
+    def single_motion_to_list(self, motion_pattern: str, event_type: str) -> List:
+        motion_list = eval(f"self.{motion_pattern}")
+
+        data = []
+
+        for val in motion_list:
+            exec(f"data.append(val.{event_type})")
+
+        return data
+
+
 class WaveformsNumbers:
     sine: List[OnOffBothFloat] = []
     square: List[OnOffBothFloat] = []
@@ -94,7 +114,17 @@ class WaveformsNumbers:
         self.burst = []
         self.triangle = []
 
+    def waveform_off_to_list(self, i: int) -> List:
+        return [self.sine[i].off, self.square[i].off, self.burst[i].off, self.triangle[i].off]
 
+    def waveform_on_to_list(self, i: int) -> List:
+        return [self.sine[i].on, self.square[i].on, self.burst[i].on, self.triangle[i].on]
+
+    def waveform_both_to_list(self, i: int) -> List:
+        return [self.sine[i].both, self.square[i].both, self.burst[i].both, self.triangle[i].both]
+
+
+# Make results directory if it doesn't exist
 if not os.path.exists(os.path.join("results", "EventChunkGraphs")):
     os.makedirs(os.path.join("results", "EventChunkGraphs"))
     os.makedirs(os.path.join("results", "EventChunkGraphs", "Dots"))
@@ -116,7 +146,7 @@ bothLabel = []
 
 saveFigures = True
 
-#variance Arrays
+# Variance Arrays
 allOffVarPol: List[float] = []
 allOnVarPol: List[float] = []
 allBothVarPol: List[float] = []
@@ -126,7 +156,7 @@ allBothVarNoPol: List[float] = []
 polLabels: List[float] = []
 noPolLabels: List[float] = []
 
-#FWHM Arrays
+# FWHM Arrays
 allOffFWHMPol = []
 allOnFWHMPol = []
 allBothFWHMPol = []
@@ -329,14 +359,14 @@ if config.dataSetType == 'waveformsAndFrequency':
             f, axes = plt.subplots(nrows=3, ncols=2, sharex=False, sharey=False)
             f.set_size_inches(10, 15)
 
-            offEvents = [waveforms.sine[i].off, waveforms.square[i].off, waveforms.burst[i].off, waveforms.triangle[i].off]
-            onEvents = [waveforms.sine[i].on, waveforms.square[i].on, waveforms.burst[i].on, waveforms.triangle[i].on]
-            bothEvents = [waveforms.sine[i].both, waveforms.square[i].both, waveforms.burst[i].both, waveforms.triangle[i].both]
+            offEvents = waveforms.waveform_off_events_to_list(i)
+            onEvents = waveforms.waveform_on_events_to_list(i)
+            bothEvents = waveforms.waveform_both_events_to_list(i)
 
             # FIXME: crashes if no unpol data in folder (too bad!)
-            offEventsNoPol = [waveformsNoPolLines.sine[i].off, waveformsNoPolLines.square[i].off, waveformsNoPolLines.burst[i].off, waveformsNoPolLines.triangle[i].off]
-            onEventsNoPol = [waveformsNoPolLines.sine[i].on, waveformsNoPolLines.square[i].on, waveformsNoPolLines.burst[i].on, waveformsNoPolLines.triangle[i].on]
-            bothEventsNoPol = [waveformsNoPolLines.sine[i].both, waveformsNoPolLines.square[i].both, waveformsNoPolLines.burst[i].both, waveformsNoPolLines.triangle[i].both]
+            offEventsNoPol = waveformsNoPolLines.waveform_off_events_to_list(i)
+            onEventsNoPol = waveformsNoPolLines.waveform_on_events_to_list(i)
+            bothEventsNoPol = waveformsNoPolLines.waveform_both_events_to_list(i)
 
             plotting_helper.showAllGuas(offEvents, labels, 0, f"Off Events {speed}", axes, config)
             plotting_helper.showAllGuas(onEvents, labels, 1, f"On Events {speed}", axes, config)
@@ -374,13 +404,13 @@ if config.dataSetType == 'waveformsAndFrequency':
         f, axes = plt.subplots(nrows=3, ncols=2, sharex=False, sharey=False)
         f.set_size_inches(10, 15)
 
-        offEvents = [waveforms.sine[0].off, waveforms.sine[1].off, waveforms.sine[2].off, waveforms.sine[3].off]
-        onEvents = [waveforms.sine[0].on, waveforms.sine[1].on, waveforms.sine[2].on, waveforms.sine[3].on]
-        bothEvents = [waveforms.sine[0].both, waveforms.sine[1].both, waveforms.sine[2].both, waveforms.sine[3].both]
+        offEvents = waveforms.single_motion_to_list("sine", "off")
+        onEvents = waveforms.single_motion_to_list("sine", "on")
+        bothEvents = waveforms.single_motion_to_list("sine", "both")
 
-        offEventsNoPol = [waveformsNoPolLines.sine[0].off, waveformsNoPolLines.sine[1].off, waveformsNoPolLines.sine[2].off, waveformsNoPolLines.sine[3].off]
-        onEventsNoPol = [waveformsNoPolLines.sine[0].on, waveformsNoPolLines.sine[1].on, waveformsNoPolLines.sine[2].on, waveformsNoPolLines.sine[3].on]
-        bothEventsNoPol = [waveformsNoPolLines.sine[0].both, waveformsNoPolLines.sine[1].both, waveformsNoPolLines.sine[2].both, waveformsNoPolLines.sine[3].both]
+        offEventsNoPol = waveformsNoPolLines.single_motion_to_list("sine", "off")
+        onEventsNoPol = waveformsNoPolLines.single_motion_to_list("sine", "on")
+        bothEventsNoPol = waveformsNoPolLines.single_motion_to_list("sine", "both")
 
         plotting_helper.showAllGuas(offEvents, labels, 0, "Off Events " + "Sine", axes, config)
         plotting_helper.showAllGuas(onEvents, labels, 1, "On Events " + "Sine", axes, config)
@@ -417,7 +447,7 @@ else:
     plotting_helper.centerAllGuas(bothGuas, 2, bothLabel, "Both Events", axes, config)
 
     if saveFigures:
-        plt.savefig(os.path.join("results", "EventChunkGraphs", 'CenterGaus.png'))  
+        plt.savefig(os.path.join("results", "EventChunkGraphs", 'CenterGaus.png'))
         plt.close()
     else:
         plt.show()
@@ -431,14 +461,14 @@ if config.plotVariance:
                 figureVar, axesVar = plt.subplots(nrows=3, ncols=2, sharex=False, sharey=False)
                 figureVar.set_size_inches(10, 15)
 
-                offEventsPol: List[float] = [waveformsPolVariance.sine[i].off, waveformsPolVariance.square[i].off, waveformsPolVariance.burst[i].off,waveformsPolVariance.triangle[i].off]
-                onEventsPol: List[float] = [waveformsPolVariance.sine[i].on, waveformsPolVariance.square[i].on, waveformsPolVariance.burst[i].on,waveformsPolVariance.triangle[i].on]
-                bothEventsPol: List[float] = [waveformsPolVariance.sine[i].both, waveformsPolVariance.square[i].both, waveformsPolVariance.burst[i].both,waveformsPolVariance.triangle[i].both]
+                offEventsPol: List[float] = waveformsPolVariance.waveform_off_to_list(i)
+                onEventsPol: List[float] = waveformsPolVariance.waveform_on_to_list(i)
+                bothEventsPol: List[float] = waveformsPolVariance.waveform_both_to_list(i)
 
-                offEventsNoPol: List[float] = [waveformsNoPolVariance.sine[i].off, waveformsNoPolVariance.square[i].off, waveformsNoPolVariance.burst[i].off,waveformsNoPolVariance.triangle[i].off]
-                onEventsNoPol: List[float] = [waveformsNoPolVariance.sine[i].on, waveformsNoPolVariance.square[i].on, waveformsNoPolVariance.burst[i].on,waveformsNoPolVariance.triangle[i].on]
-                bothEventsNoPol: List[float] = [waveformsNoPolVariance.sine[i].both, waveformsNoPolVariance.square[i].both, waveformsNoPolVariance.burst[i].both,waveformsNoPolVariance.triangle[i].both]
-                
+                offEventsNoPol: List[float] = waveformsNoPolVariance.waveform_off_to_list(i)
+                onEventsNoPol: List[float] = waveformsNoPolVariance.waveform_on_to_list(i)
+                bothEventsNoPol: List[float] = waveformsNoPolVariance.waveform_both_to_list(i)
+
                 using_log_values = "Log" if config.logValues else ""
 
                 axesVar = plot_bars(axesVar,
@@ -485,13 +515,13 @@ if config.plotFWHM:
             speeds = ["200mV"]
             for i, speed in enumerate(speeds):
                 labels = ["Sine", "Square", "Burst", "Triangle"]
-                offEventsPol: List[float] = [waveformsFWHM.sine[i].off, waveformsFWHM.square[i].off, waveformsFWHM.burst[i].off, waveformsFWHM.triangle[i].off]
-                onEventsPol: List[float] = [waveformsFWHM.sine[i].on, waveformsFWHM.square[i].on, waveformsFWHM.burst[i].on, waveformsFWHM.triangle[i].on]
-                bothEventsPol: List[float] = [waveformsFWHM.sine[i].both, waveformsFWHM.square[i].both, waveformsFWHM.burst[i].both, waveformsFWHM.triangle[i].both]
+                offEventsPol: List[float] = waveformsFWHM.waveform_off_to_list(i)
+                onEventsPol: List[float] = waveformsFWHM.waveform_on_to_list(i)
+                bothEventsPol: List[float] = waveformsFWHM.waveform_both_to_list(i)
 
-                offEventsNoPol: List[float] = [waveformsNoPolFWHM.sine[i].off, waveformsNoPolFWHM.square[i].off, waveformsNoPolFWHM.burst[i].off, waveformsNoPolFWHM.triangle[i].off]
-                onEventsNoPol: List[float] = [waveformsNoPolFWHM.sine[i].on, waveformsNoPolFWHM.square[i].on, waveformsNoPolFWHM.burst[i].on, waveformsNoPolFWHM.triangle[i].on]
-                bothEventsNoPol: List[float] = [waveformsNoPolFWHM.sine[i].both, waveformsNoPolFWHM.square[i].both, waveformsNoPolFWHM.burst[i].both, waveformsNoPolFWHM.triangle[i].both]
+                offEventsNoPol: List[float] = waveformsNoPolFWHM.waveform_off_to_list(i)
+                onEventsNoPol: List[float] = waveformsNoPolFWHM.waveform_on_to_list(i)
+                bothEventsNoPol: List[float] = waveformsNoPolFWHM.waveform_both_to_list(i)
 
                 axesVar = plot_bars(axesVar,
                                     [offEventsPol, onEventsPol, bothEventsPol, offEventsNoPol, onEventsNoPol, bothEventsNoPol],
