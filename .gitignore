@@ -9,3 +9,6 @@ waveformsAndfrequency/
 *.csv
 results/
 *.npy
+
+# Keep all files in example_plots directory
+!example_plots/*
