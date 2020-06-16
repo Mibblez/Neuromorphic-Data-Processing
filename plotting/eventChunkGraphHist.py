@@ -91,12 +91,11 @@ class WaveformsLines:
         return [self.sine[i].both, self.square[i].both, self.burst[i].both, self.triangle[i].both]
 
     def single_motion_to_list(self, motion_pattern: str, event_type: str) -> List:
-        motion_list = eval(f"self.{motion_pattern}")
-
+        motion_list = getattr(self, motion_pattern)
         data = []
 
         for val in motion_list:
-            exec(f"data.append(val.{event_type})")
+            data.append(getattr(val, event_type))
 
         return data
 
