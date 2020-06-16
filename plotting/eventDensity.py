@@ -28,9 +28,8 @@ with open(csv_filename) as csv_file:
         check_x = abs(x_row - pixel_x)
         check_y = abs(y_row - pixel_y)
 
-        #if x_row == pixel_x and y_row == pixel_y:
         if check_x < area_size and check_y < area_size:
-            pixel_state = row[0] == 'True'
+            pixel_state = (row[0] == 'True')
 
             if (pixel_state != last_pixel_state) or reset_pixel:
                 reset_pixel = False
@@ -56,7 +55,7 @@ for stamp in change_timestamps:
 
 plt.ylim(0, 1.25)
 plt.title('Temporal Resoltion')
-plt.xlabel('Time(mS)') 
+plt.xlabel('Time(mS)')
 plt.show()
 
 if len(time_between) != 0:

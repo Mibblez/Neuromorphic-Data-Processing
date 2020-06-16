@@ -6,6 +6,7 @@ from os.path import isfile, join
 import numpy as np
 import json
 
+#TODO: Return object and not array
 def getData(folderName: str, timeWindow: int, maxSize: int = -1):
     onlyfiles = [f for f in listdir("./data/" + folderName) if isfile(join("./data/" + folderName, f))]
 
