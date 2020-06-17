@@ -91,6 +91,12 @@ class WaveformsLines:
         return [self.sine[i].both, self.square[i].both, self.burst[i].both, self.triangle[i].both]
 
     def single_motion_to_list(self, motion_pattern: str, event_type: str) -> List:
+        if motion_pattern not in ["sine", "square", "burst", "triangle", "dc"]:
+            raise ValueError("Error in single_motion_to_list. Unknown motion pattern")
+
+        if event_type not in ["on", "off", "both"]:
+            raise ValueError("Error in single_motion_to_list. Unknown event type")
+
         motion_list = getattr(self, motion_pattern)
         data = []
 
