@@ -11,4 +11,5 @@ results/
 *.npy
 
 # Keep all files in example_plots directory
-!example_plots/*
+!examples/example_plots/*
+!examples/nn_examples/*
