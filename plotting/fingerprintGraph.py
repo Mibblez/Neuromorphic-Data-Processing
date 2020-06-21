@@ -12,10 +12,10 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 import getPlottingData
 
-plot_xlim = 1.05
-save_fig = False # Save figure if true, else show plot
-
 def plot_event_count(event_counts: list, t: list, line_color: str, plot_title: str):
+    plot_xlim = 1.05
+    save_fig = False # Save figure if true, else show plot
+
     plt.clf()
 
     plt.title(plot_title)
