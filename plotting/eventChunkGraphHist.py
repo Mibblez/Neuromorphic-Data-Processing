@@ -1,6 +1,7 @@
 import os
 import re
 import math
+import glob
 from typing import List
 
 import numpy as np
@@ -9,25 +10,26 @@ import matplotlib
 from natsort import natsorted, ns
 
 import getPlottingData
+from getPlottingData import CsvData
 import plotting_helper
 
-def clean_folder_name(folder_name: str, data_set_type: str) -> str:
-    # TODO: regex in folder_name_changes for deg and min and stuff?
-    folder_name_changes = {"Event Chunks" : "", "nopol" : "NoPolarizer", "no pol" : "NoPolarizer",
-                           "30deg" : "", "30 deg" : "", "15min" : "", "1hz" : ""}
+def clean_file_name(file_name: str, data_set_type: str) -> str:
+    # Regex for name changes
+    file_name_changes = {"Event Chunks" : "", "no ?pol" : "NoPolarizer", "30 ?deg" : "",
+                            "15min" : "", "1hz" : "", "-+" : " ", " +" : " "}
 
-    for occurrence, replacement in folder_name_changes.items():
-        folder_name = folder_name.replace(occurrence, replacement)
+    for occurrence, replacement in file_name_changes.items():
+        file_name = re.sub(occurrence, replacement, file_name)
 
     if data_set_type in ('frequency', 'waveformsAndFrequency'):
-        folder_name = folder_name.replace('foam ', '')
+        file_name = file_name.replace('foam ', '')
     else:
         # Remove frequency from folder name (why?)
-        match = re.search("[0-9]{1,} ?hz", folder_name)
+        match = re.search("[0-9]{1,} ?hz", file_name)
         if match is not None:
-            folder_name = folder_name.replace(match, '')
+            file_name = file_name.replace(match, '')
 
-    return folder_name
+    return file_name
 
 def plot_bars(ax_var: np.ndarray, event_lists: List, labels: List, titles: List, title_extra: str) -> np.ndarray:
     if len(event_lists) != 6 or len(titles) != 6:
@@ -105,7 +107,6 @@ class WaveformsLines:
 
         return data
 
-
 class WaveformsNumbers:
     sine: List[OnOffBothFloat] = []
     square: List[OnOffBothFloat] = []
@@ -127,7 +128,6 @@ class WaveformsNumbers:
 
     def waveform_both_to_list(self, i: int) -> List:
         return [self.sine[i].both, self.square[i].both, self.burst[i].both, self.triangle[i].both]
-
 
 # Make results directory if it doesn't exist
 if not os.path.exists(os.path.join("results", "EventChunkGraphs")):
@@ -178,39 +178,43 @@ waveformsNoPolFWHM = WaveformsNumbers()
 
 config = getPlottingData.parseConfig()
 
-folders = os.listdir(os.path.join('data', config.dataFolder))
-folders = natsorted(folders, alg=ns.IGNORECASE)
+# Get all csv files inside of the data folder
+csv_paths = glob.glob(os.path.join('data', config.dataFolder, '**/*.csv'), recursive=True)
+csv_paths = natsorted(csv_paths, alg=ns.IGNORECASE)
 
-for folderName in folders:
-    y_on, y_off, y_all, fileCount, x = getPlottingData.getData(
-        os.path.join(config.dataFolder, folderName),
-        config.reconstructionWindow,
+for csv_path in csv_paths:
+    d: CsvData = getPlottingData.read_aedat_csv(csv_path, 
+        config.reconstructionWindow, 
         config.maxEventCount)
-
+    
     if config.logValues:
-        onAvg = np.array(y_on).mean()
-        offAvg = np.array(y_off).mean()
-        allAvg = np.array(y_all).mean()
+        onAvg = np.array(d.y_on).mean()
+        offAvg = np.array(d.y_off).mean()
+        allAvg = np.array(d.y_all).mean()
 
-        y_zip = zip(y_on, y_off, y_all)
+        y_zip = zip(d.y_on, d.y_off, d.y_all)
         for i, (on_count, off_count, all_count) in enumerate(y_zip):
             if on_count == 0:
-                y_on[i] = math.log10(onAvg)
+                d.y_on[i] = math.log10(onAvg)
             else:
-                y_on[i] = math.log10(on_count)
+                d.y_on[i] = math.log10(on_count)
 
             if off_count == 0:
-                y_off[i] = math.log10(offAvg)
+                d.y_off[i] = math.log10(offAvg)
             else:
-                y_off[i] = math.log10(off_count)
+                d.y_off[i] = math.log10(off_count)
 
             if all_count == 0:
-                y_all[i] = math.log10(allAvg)
+                d.y_all[i] = math.log10(allAvg)
             else:
-                y_all[i] = math.log10(all_count)
+                d.y_all[i] = math.log10(all_count)
 
-    folderName = clean_folder_name(folderName, config.dataSetType)
-    print(folderName)
+    # Strip path and extension from the csv file. Will be used to name/save figures
+    csv_filename = os.path.basename(csv_path)
+    csv_filename = os.path.splitext(csv_filename)[0]
+
+    csv_filename = clean_file_name(csv_filename, config.dataSetType)
+    print(csv_filename)
 
     f, axes = plt.subplots(nrows=2, ncols=3, sharex=False, sharey=False)
     f.set_size_inches(15, 9.5)
@@ -219,135 +223,135 @@ for folderName in folders:
     lines = OnOffBothLines()
 
     # Off events
-    l = plotting_helper.plot_hist(y_off, axes, 1, 0, 'red', config.logValues)
+    l = plotting_helper.plot_hist(d.y_off, axes, 1, 0, 'red', config.logValues)
     l.remove()
     offGuas.append(l)
     lines.off = l
 
     # On Events
-    l = plotting_helper.plot_hist(y_on, axes, 1, 1, 'green', config.logValues)
+    l = plotting_helper.plot_hist(d.y_on, axes, 1, 1, 'green', config.logValues)
     l.remove()
     onGuas.append(l)
     lines.on = l
 
     # On & Off Events
-    l = plotting_helper.plot_hist(y_all, axes, 1, 2, 'blue', config.logValues)
+    l = plotting_helper.plot_hist(d.y_all, axes, 1, 2, 'blue', config.logValues)
     l.remove()
     bothGuas.append(l)
     lines.both = l
 
     if config.dataSetType == 'waveformsAndFrequency':
-        if 'NoPolarizer' in folderName:
-            if "sine" in folderName:
+        if 'NoPolarizer' in csv_filename:
+            if "sine" in csv_filename:
                 waveformsNoPolLines.sine.append(lines)
-            elif "square"  in folderName:
+            elif "square"  in csv_filename:
                 waveformsNoPolLines.square.append(lines)
-            elif "triangle" in folderName:
+            elif "triangle" in csv_filename:
                 waveformsNoPolLines.triangle.append(lines)
-            elif "burst" in folderName:
+            elif "burst" in csv_filename:
                 waveformsNoPolLines.burst.append(lines)
         else:
-            if "sine" in folderName:
+            if "sine" in csv_filename:
                 waveforms.sine.append(lines)
-            elif "square"  in folderName:
+            elif "square"  in csv_filename:
                 waveforms.square.append(lines)
-            elif "triangle" in folderName:
+            elif "triangle" in csv_filename:
                 waveforms.triangle.append(lines)
-            elif "burst" in folderName:
+            elif "burst" in csv_filename:
                 waveforms.burst.append(lines)
 
-    offLabel.append(folderName + " Off Events")
-    onLabel.append(folderName + " On Events")
-    bothLabel.append(folderName + " All Events")
+    offLabel.append(csv_filename + " Off Events")
+    onLabel.append(csv_filename + " On Events")
+    bothLabel.append(csv_filename + " All Events")
 
     # Format & add data to scatter sub-plots
-    axes[0][0].scatter(x, y_off, c='red', picker=True, s=1)
-    axes[1][0].title.set_text(folderName +" Off Events")
-    axes[0][1].scatter(x, y_on, c='green', picker=True, s=1)
-    axes[1][1].title.set_text(folderName +" On Events")
-    axes[0][2].scatter(x, y_all, c='blue', picker=True, s=1)
+    axes[0][0].scatter(d.time_windows, d.y_off, c='red', picker=True, s=1)
+    axes[1][0].title.set_text(csv_filename +" Off Events")
+    axes[0][1].scatter(d.time_windows, d.y_on, c='green', picker=True, s=1)
+    axes[1][1].title.set_text(csv_filename +" On Events")
+    axes[0][2].scatter(d.time_windows, d.y_all, c='blue', picker=True, s=1)
 
-    plt.title(folderName +" All Events")
+    plt.title(csv_filename +" All Events")
 
-    if 'NoPolarizer' in folderName:
-        noPolLabels.append(folderName.replace("NoPolarizer", ""))
+    if 'NoPolarizer' in csv_filename:
+        noPolLabels.append(csv_filename.replace("NoPolarizer", ""))
     else:
-        polLabels.append(folderName)
+        polLabels.append(csv_filename)
 
     if config.plotVariance:
         onOffBoth = OnOffBothFloat()
-        onOffBoth.off = np.var(y_off)
-        onOffBoth.on = np.var(y_on)
-        onOffBoth.both = np.var(y_all)
+        onOffBoth.off = np.var(d.y_off)
+        onOffBoth.on = np.var(d.y_on)
+        onOffBoth.both = np.var(d.y_all)
 
-        if 'NoPolarizer' in folderName:
+        if 'NoPolarizer' in csv_filename:
             if config.dataSetType == 'waveformsAndFrequency':
-                if "sine" in folderName:
+                if "sine" in csv_filename:
                     waveformsNoPolVariance.sine.append(onOffBoth)
-                elif "square"  in folderName:
+                elif "square"  in csv_filename:
                     waveformsNoPolVariance.square.append(onOffBoth)
-                elif "triangle" in folderName:
+                elif "triangle" in csv_filename:
                     waveformsNoPolVariance.triangle.append(onOffBoth)
-                elif "burst" in folderName:
+                elif "burst" in csv_filename:
                     waveformsNoPolVariance.burst.append(onOffBoth)
             else:
-                allOffVarNoPol.append(np.var(y_off))
-                allOnVarNoPol.append(np.var(y_on))
-                allBothVarNoPol.append(np.var(y_all))
+                allOffVarNoPol.append(np.var(d.y_off))
+                allOnVarNoPol.append(np.var(d.y_on))
+                allBothVarNoPol.append(np.var(d.y_all))
         else:
             if config.dataSetType == 'waveformsAndFrequency':
-                if "sine" in folderName:
+                if "sine" in csv_filename:
                     waveformsPolVariance.sine.append(onOffBoth)
-                elif "square"  in folderName:
+                elif "square"  in csv_filename:
                     waveformsPolVariance.square.append(onOffBoth)
-                elif "triangle" in folderName:
+                elif "triangle" in csv_filename:
                     waveformsPolVariance.triangle.append(onOffBoth)
-                elif "burst" in folderName:
+                elif "burst" in csv_filename:
                     waveformsPolVariance.burst.append(onOffBoth)
             else:
-                allOffVarPol.append(np.var(y_off))
-                allOnVarPol.append(np.var(y_on))
-                allBothVarPol.append(np.var(y_all))
+                allOffVarPol.append(np.var(d.y_off))
+                allOnVarPol.append(np.var(d.y_on))
+                allBothVarPol.append(np.var(d.y_all))
 
     if config.plotFWHM:
         # if FWHMmultiplier is 2.355 it will polt the FWHM
         # if is 1 it will plot the standard deviation
         onOffBoth = OnOffBothFloat()
-        onOffBoth.off = config.FWHMMultiplier * np.std(y_off)
-        onOffBoth.on = config.FWHMMultiplier * np.std(y_on)
-        onOffBoth.both = config.FWHMMultiplier * np.std(y_all)
+        onOffBoth.off = config.FWHMMultiplier * np.std(d.y_off)
+        onOffBoth.on = config.FWHMMultiplier * np.std(d.y_on)
+        onOffBoth.both = config.FWHMMultiplier * np.std(d.y_all)
 
-        if 'NoPolarizer' in folderName:
+        if 'NoPolarizer' in csv_filename:
             if config.dataSetType == 'waveformsAndFrequency':
-                if "sine" in folderName:
+                if "sine" in csv_filename:
                     waveformsNoPolFWHM.sine.append(onOffBoth)
-                elif "square"  in folderName:
+                elif "square"  in csv_filename:
                     waveformsNoPolFWHM.square.append(onOffBoth)
-                elif "triangle" in folderName:
+                elif "triangle" in csv_filename:
                     waveformsNoPolFWHM.triangle.append(onOffBoth)
-                elif "burst" in folderName:
+                elif "burst" in csv_filename:
                     waveformsNoPolFWHM.burst.append(onOffBoth)
             else:
-                allOffFWHMNoPol.append(config.FWHMMultiplier * np.std(y_off))
-                allOnFWHMNoPol.append(config.FWHMMultiplier * np.std(y_on))
-                allBothFWHMNoPol.append(config.FWHMMultiplier * np.std(y_all))
+                allOffFWHMNoPol.append(config.FWHMMultiplier * np.std(d.y_off))
+                allOnFWHMNoPol.append(config.FWHMMultiplier * np.std(d.y_on))
+                allBothFWHMNoPol.append(config.FWHMMultiplier * np.std(d.y_all))
         else:
             if config.dataSetType == 'waveformsAndFrequency':
-                if "sine" in folderName:
+                if "sine" in csv_filename:
                     waveformsFWHM.sine.append(onOffBoth)
-                elif "square"  in folderName:
+                elif "square"  in csv_filename:
                     waveformsFWHM.square.append(onOffBoth)
-                elif "triangle" in folderName:
+                elif "triangle" in csv_filename:
                     waveformsFWHM.triangle.append(onOffBoth)
-                elif "burst" in folderName:
+                elif "burst" in csv_filename:
                     waveformsFWHM.burst.append(onOffBoth)
             else:
-                allOffFWHMPol.append(config.FWHMMultiplier * np.std(y_off))
-                allOnFWHMPol.append(config.FWHMMultiplier * np.std(y_on))
-                allBothFWHMPol.append(config.FWHMMultiplier * np.std(y_all))
+                allOffFWHMPol.append(config.FWHMMultiplier * np.std(d.y_off))
+                allOnFWHMPol.append(config.FWHMMultiplier * np.std(d.y_on))
+                allBothFWHMPol.append(config.FWHMMultiplier * np.std(d.y_all))
 
     if saveFigures:
-        plt.savefig(os.path.join("results", "EventChunkGraphs", "Dots", f"{folderName}Dots.png"))
+        plt.savefig(os.path.join("results", "EventChunkGraphs", "Dots", f"{csv_filename}Dots.png"))
         plt.close()
 
 
