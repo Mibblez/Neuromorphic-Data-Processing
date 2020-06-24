@@ -8,55 +8,118 @@ CSV Format: on/off,x,y,timestamp
 import csv
 from itertools import islice
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import math
+import sys
+import argparse
+import os
 
-# The pixel to examine
-pixel_x = 50
-pixel_y = 50
+file_to_plot = ''
 
-area_size = 4
+def get_args():
+    global file_to_plot
 
-max_plot_points = 25
+    parser = argparse.ArgumentParser()
+    parser.add_argument("aedat_csv_file", help='CSV containing AEDAT data to be plotted', type=str)
+    args = parser.parse_args()
 
-csv_filename = 'plotting/test.csv'
+    file_to_plot = args.aedat_csv_file
 
-activity_timestamps = []  # The times when the pixel changed state
-time_between = []       # The times between the state changes
+    if not os.path.exists(file_to_plot):
+        quit(f'File does not exist: {file_to_plot}')
 
-y_values = []
+def get_activity_area(csv_file, pixel_x: int, pixel_y: int, area_size: int, max_points: int=sys.maxsize, time_limit: float=math.inf):
+    points = []
+    first_timestamp = 0
 
-with open(csv_filename) as csv_file:
-    csv_reader = csv.reader(csv_file, delimiter=',')
+    with open(csv_file, 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        next(reader, None) # Skip header
 
-    for row in islice(csv_reader, 1, None):     # Skip the header
-        x_row = int(row[1])
-        y_row = int(row[2])
+        reader_list = list(reader)
 
-        check_x = abs(x_row - pixel_x)
-        check_y = abs(y_row - pixel_y)
+        # Get the first timestamp from the fourth column of the first entry
+        first_timestamp = int(reader_list[0][3])
 
-        # Check if this event is inside the specified area
-        if check_x < area_size and check_y < area_size:
+        if time_limit != math.inf:
+            time_limit = time_limit * 1000000   # Convert to microseconds
 
-            activity_timestamps.append(int(row[3]))
-            if row[0] == "True":
-                y_values.append(1)
+        for row in reader_list:
+            x_pos = int(row[1])
+            y_pos = 128 - int(row[2])
+
+            timestamp = float(int(row[3]) - first_timestamp)
+            if timestamp > time_limit:
+                return points
+
+            check_x = abs(x_pos - pixel_x)
+            check_y = abs(y_pos - pixel_y)
+
+            # Check if this event is inside the specified area
+            if check_x < area_size and check_y < area_size:
+                if row[0] in ['1', 'True']:
+                    points.append([1, timestamp])
+                else:
+                    points.append([-1, timestamp])
+                
+                if len(points) >= max_points:
+                    return points
+
+    return points
+
+def get_activity_global(csv_file, max_points: int=sys.maxsize, time_limit: float=math.inf):
+    points = []
+    first_timestamp = 0
+
+    with open(csv_file, 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        next(reader, None) # Skip header
+
+        reader_list = list(reader)[:max_points]
+
+        # Get the first timestamp from the fourth column of the first entry
+        first_timestamp = int(reader_list[0][3])
+
+        if time_limit != math.inf:
+            time_limit = time_limit * 1000000   # Convert to microseconds
+
+        for row in reader_list:
+            timestamp = float(int(row[3]) - first_timestamp)
+            if timestamp > time_limit:
+                return points
+
+            if row[0] in ['1', 'True']:
+                points.append([1, timestamp])
             else:
-                y_values.append(-1)
+                points.append([-1, timestamp])
 
+    return points
 
+if __name__ == '__main__':
+    get_args()
 
-# Get the time between timestamps
-for i in range(len(activity_timestamps) - 1):
-    time_between.append(activity_timestamps[i + 1] - activity_timestamps[i])
+    points = get_activity_area(file_to_plot, 35, 35, 4)
+    #points = get_activity_global(file_to_plot, time_limit=0.01)
 
-# Add lines to plot
-for i, stamp in enumerate(activity_timestamps):
-    plt.plot([stamp, stamp], [0, y_values[i]], 'b') # Add to points at the same X value to make vertical lines
+    # Add lines to plot
+    for point in points:
+        timestamp_seconds = point[1] / 1000000  # Convert to seconds
+        plt.plot([timestamp_seconds, timestamp_seconds], [0, point[0]], 'b') # Add to points at the same X value to make vertical lines
 
-plt.ylim(-1.1, 1.1)
-plt.title('Spike Graph')
-plt.xlabel('Time(mS)')
-plt.show()
+    plt.ylim(-1.1, 1.1)
+    plt.title('Spike Graph')
+    plt.xlabel('Time (Seconds)')
 
-if len(time_between) != 0:
-    print(f"Average time between: {round(sum(time_between) / len(time_between), 2)}mS")
+    plt.gcf().set_size_inches((11, 4.5))
+
+    ax = plt.gca() # Get axis
+
+    # Set Y-axis tick spacing
+    ax.yaxis.set_major_locator(mticker.MultipleLocator(1))
+
+    # Increase X and Y tick size
+    ax.tick_params(axis='both', which='major', labelsize=12)
+
+    plt.axhline(0, color='black')
+
+    plt.show()
