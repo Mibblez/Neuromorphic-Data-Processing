@@ -16,12 +16,10 @@ def get_aedat_csv_data(csv_file):
         reader = csv.reader(csvfile, delimiter=',')
         next(reader, None) # Skip header
 
-        reader_list = list(reader)
+        first_row = next(reader, None)
+        first_timestamp = int(first_row[3])
 
-        # Get the first timestamp from the fourth column of the first entry
-        first_timestamp = int(reader_list[0][3])
-
-        for row in reader_list:
+        for row in itertools.chain([first_row], reader):
             polarity = row[0] in ['1', 'True']
             x_pos = int(row[1])
             y_pos = 128 - int(row[2])

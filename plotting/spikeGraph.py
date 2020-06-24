@@ -13,6 +13,7 @@ import math
 import sys
 import argparse
 import os
+import itertools
 
 file_to_plot = ''
 
@@ -36,15 +37,13 @@ def get_activity_area(csv_file, pixel_x: int, pixel_y: int, area_size: int, max_
         reader = csv.reader(csvfile, delimiter=',')
         next(reader, None) # Skip header
 
-        reader_list = list(reader)
-
-        # Get the first timestamp from the fourth column of the first entry
-        first_timestamp = int(reader_list[0][3])
+        first_row = next(reader, None)
+        first_timestamp = int(first_row[3])
 
         if time_limit != math.inf:
             time_limit = time_limit * 1000000   # Convert to microseconds
 
-        for row in reader_list:
+        for row in itertools.chain([first_row], reader):
             x_pos = int(row[1])
             y_pos = 128 - int(row[2])
 
@@ -62,7 +61,7 @@ def get_activity_area(csv_file, pixel_x: int, pixel_y: int, area_size: int, max_
                 else:
                     points.append([-1, timestamp])
                 
-                if len(points) >= max_points:
+                if len(points) == max_points:
                     return points
 
     return points
@@ -75,15 +74,13 @@ def get_activity_global(csv_file, max_points: int=sys.maxsize, time_limit: float
         reader = csv.reader(csvfile, delimiter=',')
         next(reader, None) # Skip header
 
-        reader_list = list(reader)[:max_points]
-
-        # Get the first timestamp from the fourth column of the first entry
-        first_timestamp = int(reader_list[0][3])
+        first_row = next(reader, None)
+        first_timestamp = int(first_row[3])
 
         if time_limit != math.inf:
             time_limit = time_limit * 1000000   # Convert to microseconds
 
-        for row in reader_list:
+        for row in itertools.chain([first_row], reader):
             timestamp = float(int(row[3]) - first_timestamp)
             if timestamp > time_limit:
                 return points
@@ -92,6 +89,9 @@ def get_activity_global(csv_file, max_points: int=sys.maxsize, time_limit: float
                 points.append([1, timestamp])
             else:
                 points.append([-1, timestamp])
+            
+            if len(points) == max_points:
+                    return points
 
     return points
 
