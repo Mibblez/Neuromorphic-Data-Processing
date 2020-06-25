@@ -85,7 +85,12 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
 
     with open(csv_path, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
-        next(reader, None)  # Skip header
+        header = next(reader, None)  # Grab header
+        
+        # Make sure CSV is the correct format
+        for entry in header:
+            if 'count' not in entry.lower():
+                raise ValueError(f"CSV may not be the correct format.\nHeader entries should indicate that the columns contain event counts")
 
         for i, row in enumerate(reader):
             x.append((i-1) * timeWindow * 0.000001)
@@ -103,38 +108,6 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
                 break
 
     return CsvData(csv_path, x, y_on, y_off, y_all)
-
-#TODO: Return object and not array
-def getData(folderName: str, timeWindow: int, maxSize: int = -1):
-    onlyfiles = [f for f in listdir("./data/" + folderName) if isfile(join("./data/" + folderName, f))]
-
-    fileCount = 0
-    x = []
-    y_on= []
-    y_off = []
-    y_all = []
-    for file in onlyfiles:
-        with open('./data/'+folderName+"/" +file, 'r') as csvfile:
-            fileCount +=1
-            reader = csv.reader(csvfile, delimiter=',')
-            next(reader, None)#skip over header
-            for i, row in enumerate(reader):
-                x.append((i-1) *timeWindow*0.000001)
-                #TODO: If timewindow is large this will not work
-                # also machineLearning Get data might need this fix for outliers
-                if int(row[2]) > 8000: # If camera bugs out and registers too many events, add like data
-                    y_all.append(sum(y_all)/len(y_all))
-                    y_off.append(sum(y_off)/len(y_off))
-                    y_on.append(sum(y_on)/len(y_on))
-                else:
-                    y_all.append(int(row[2]))
-                    y_off.append(int(row[1]))
-                    y_on.append(int(row[0]))
-                if i == maxSize:
-                    break
-                
-    N= fileCount
-    return y_on,y_off,y_all,N,x
 
 def getEventChunkData(folderName: str):
     points = []

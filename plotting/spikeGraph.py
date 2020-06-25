@@ -29,6 +29,8 @@ def get_args():
 
     if not os.path.exists(file_to_plot):
         quit(f'File does not exist: {file_to_plot}')
+    elif os.path.isdir(file_to_plot):
+        quit(f"'{file_to_plot}' is a directory. It should be a csv file")
 
 def get_activity_area(csv_file, pixel_x: int, pixel_y: int, area_size: int, max_points: int=sys.maxsize, time_limit: float=math.inf):
     points = []
@@ -116,7 +118,8 @@ if __name__ == '__main__':
 
     plt.ylim(-1.1, 1.1)
 
-    hz = re.search("[0-9]{1,} ?Hz", file_path)
+    # Grab frequency from filename
+    hz = re.search("[0-9]{1,} ?[H|h]z", file_path)
     hz = hz.group()
 
     title = hz

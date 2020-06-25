@@ -10,7 +10,7 @@ N = 1000 # number of data points
 f = 1.15247 # Optional!! Advised not to use
 #data = 3.0*np.sin(f*t+0.001) + 0.5 + np.random.randn(N) # create artificial data with noise
 
-# FIXME: no longer works due to changes in getData
+# FIXME: no longer works due to changes in getData (getData changed to read_aedat_csv)
 on,off,all2, N,x= getPlottingData.getData()
 yhat = savgol_filter(off, 51, 3)
 data = np.array(yhat)

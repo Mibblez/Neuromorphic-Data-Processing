@@ -7,15 +7,38 @@ CSV Format: on,off,both
 """
 
 import os
+import re
+import argparse
 import matplotlib.ticker as mticker
 import matplotlib.pyplot as plt
 from matplotlib.ticker import ScalarFormatter
 import getPlottingData
+from getPlottingData import CsvData
 
-def plot_event_count(event_counts: list, t: list, line_color: str, plot_title: str):
-    plot_xlim = 1.05
-    save_fig = False # Save figure if true, else show plot
+file_to_plot = ''
+x_lim = -1
 
+def get_args():
+    global file_to_plot, x_lim
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("aedat_csv_file", help='CSV containing AEDAT data to be plotted', type=str)
+    parser.add_argument("--plot_xlim", '-x', help='Limit on the X-axis (seconds)', type=float)
+    args = parser.parse_args()
+
+    file_to_plot = args.aedat_csv_file
+
+    if not os.path.exists(file_to_plot):
+        quit(f'File does not exist: {file_to_plot}')
+    elif os.path.isdir(file_to_plot):
+        quit(f"'{file_to_plot}' is a directory. It should be a csv file")
+    
+    x_lim = args.plot_xlim
+
+    if x_lim is not None and x_lim <= 0:
+        quit('The argument --plot_xlim/-x must be greater than 0')
+
+def plot_event_count(event_counts: list, t: list, line_color: str, plot_xlim: float, plot_title: str, save_fig: bool=False):
     plt.clf()
 
     plt.title(plot_title)
@@ -40,7 +63,8 @@ def plot_event_count(event_counts: list, t: list, line_color: str, plot_title: s
     # Plot lines with circles on the points
     plt.plot(t, event_counts, '-o', markersize=4, c=line_color)
 
-    ax.set_xlim([0, plot_xlim])
+    if x_lim != -1:
+        ax.set_xlim([0, plot_xlim])
 
     plt.gcf().set_size_inches((11, 4.5))
 
@@ -49,21 +73,22 @@ def plot_event_count(event_counts: list, t: list, line_color: str, plot_title: s
     else:
         plt.show()
 
-hz = 40
-folder_name = f"no_pol/Front{hz}_Rear0 Event Chunks"
+if __name__ == '__main__':
+    get_args()
 
-config = getPlottingData.parseConfig()
-plot_data = getPlottingData.getData(os.path.join(config.dataFolder, folder_name),
-                                    config.reconstructionWindow, config.maxEventCount)
+    # Grab frequency from filename
+    hz = re.search("[0-9]{1,} ?[H|h]z", os.path.basename(file_to_plot))
+    hz = hz.group()
 
-on_event_counts = plot_data[0]
-off_event_counts = plot_data[1]
-both_event_counts = plot_data[2]
-time = plot_data[4]
+    config = getPlottingData.parseConfig()
 
-plot_event_count(off_event_counts, time, 'r',
-                 f"{hz}hz Not Polarized OFF Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
-plot_event_count(on_event_counts, time, 'g',
-                 f"{hz}hz Not Polarized ON Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
-plot_event_count(both_event_counts, time, 'b',
-                 f"{hz}hz Not Polarized Both Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
+    plot_data: CsvData = getPlottingData.read_aedat_csv(file_to_plot, 
+                                                        config.reconstructionWindow,
+                                                        config.maxEventCount)
+
+    plot_event_count(plot_data.y_off, plot_data.time_windows, 'r', x_lim,
+                    f"{hz} Not Polarized OFF Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
+    plot_event_count(plot_data.y_on, plot_data.time_windows, 'g', x_lim,
+                    f"{hz} Not Polarized ON Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
+    plot_event_count(plot_data.y_all, plot_data.time_windows, 'b',x_lim,
+                    f"{hz} Not Polarized Both Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
