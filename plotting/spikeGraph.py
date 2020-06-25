@@ -14,6 +14,7 @@ import sys
 import argparse
 import os
 import itertools
+import re
 
 file_to_plot = ''
 
@@ -97,17 +98,34 @@ def get_activity_global(csv_file, max_points: int=sys.maxsize, time_limit: float
 
 if __name__ == '__main__':
     get_args()
-
-    points = get_activity_area(file_to_plot, 35, 35, 4)
+    
+    file_path = file_to_plot
+    
+    points = get_activity_area(file_path, 30, 75, 4, time_limit=0.25)
     #points = get_activity_global(file_to_plot, time_limit=0.01)
 
     # Add lines to plot
     for point in points:
         timestamp_seconds = point[1] / 1000000  # Convert to seconds
-        plt.plot([timestamp_seconds, timestamp_seconds], [0, point[0]], 'b') # Add to points at the same X value to make vertical lines
+        color = ''
+        if point[0] == 1:
+            color = 'g'
+        else:
+            color = 'r'
+        plt.plot([timestamp_seconds, timestamp_seconds], [0, point[0]], color) # Add to points at the same X value to make vertical lines
 
     plt.ylim(-1.1, 1.1)
-    plt.title('Spike Graph')
+
+    hz = re.search("[0-9]{1,} ?Hz", file_path)
+    hz = hz.group()
+
+    title = hz
+    if re.search('no ?pol', file_path):
+        title = title + " Unpolarized"
+    else:
+        title = title + " Polarized"
+
+    plt.title(title)
     plt.xlabel('Time (Seconds)')
 
     plt.gcf().set_size_inches((11, 4.5))
@@ -122,4 +140,8 @@ if __name__ == '__main__':
 
     plt.axhline(0, color='black')
 
-    plt.show()
+    # Get file name from path and remove extension
+    file_name = os.path.basename(file_path)
+    file_name = os.path.splitext(file_name)[0]
+
+    plt.savefig(os.path.join(f'spike_Plot-{file_name}.png'), bbox_inches='tight', pad_inches=0)
