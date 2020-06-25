@@ -6,6 +6,10 @@ import matplotlib
 from sklearn.metrics import pairwise_distances_argmin
 import typing
 from typing import Dict, Tuple, Sequence, List
+from numpy import sin, linspace, pi
+from pylab import plot, show, title, xlabel, ylabel, subplot
+from scipy import fft, arange
+
 import getPlottingData
 
 def paddBins(bins2: np.ndarray, paddTimes: int):
@@ -103,7 +107,6 @@ def centerAllGuas(lines: List[matplotlib.lines.Line2D],axesIndex: int, labels: L
     axes[axesIndex][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
     axes[axesIndex][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
 
-
 def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axesIndex: int, title: str, axes: np.ndarray, config: getPlottingData.EventChunkConfig):
 
     labelsCopy = np.copy(labels)
@@ -169,3 +172,18 @@ def showFFT(data, file_count, folders):
     axes[1].set_xlim(2,60)
     axes[1].legend()
     plt.show()
+
+# TODO: make sure this works
+def plotSpectrum(y,Fs): 
+    n = len(y) # length of the signal
+    k = arange(n)
+    T = n/Fs
+    frq = k/T # two sides frequency range
+    frq = frq[range(int(n/2))] # one side frequency range
+
+    Y = fft(y)/n # fft computing and normalization
+    Y = Y[int(range(n/2))]
+
+    plot(frq,abs(Y),'r') # plotting the spectrum
+    xlabel('Freq (Hz)')
+    ylabel('|Y(freq)|')
