@@ -38,7 +38,7 @@ def get_args():
     if x_lim is not None and x_lim <= 0:
         quit('The argument --plot_xlim/-x must be greater than 0')
 
-def plot_event_count(event_counts: list, t: list, line_color: str, plot_xlim: float, plot_title: str, save_fig: bool=False):
+def plot_event_count(event_counts: list, t: list, line_color: str, plot_xlim: float, plot_title: str, save_fig: bool=True):
     plt.clf()
 
     plt.title(plot_title)
@@ -76,9 +76,13 @@ def plot_event_count(event_counts: list, t: list, line_color: str, plot_xlim: fl
 if __name__ == '__main__':
     get_args()
 
-    # Grab frequency from filename
-    hz = re.search("[0-9]{1,} ?[H|h]z", os.path.basename(file_to_plot))
-    hz = hz.group()
+    # Try to grab frequency from filename
+    try:
+        hz = re.search("[0-9]{1,} ?[H|h]z", os.path.basename(file_to_plot))
+        hz = hz.group()
+    except AttributeError:
+        print("WARNING: Could not infer frequency from filename")
+        hz = ""
 
     config = getPlottingData.parseConfig()
 
