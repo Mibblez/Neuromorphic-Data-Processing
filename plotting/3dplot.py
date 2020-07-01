@@ -18,32 +18,6 @@ import getPlottingData
 file_to_plot = ''
 view = None
 
-# TODO: rename and move to getPlottingData?
-# def get_aedat_csv_data(csv_file):
-#     points = []
-#     first_timestamp = 0
-
-#     with open(csv_file, 'r') as csvfile:
-#         reader = csv.reader(csvfile, delimiter=',')
-#         header = next(reader, None) # Grab header
-
-#         # Make sure CSV is the correct format
-#         if header != ['On/Off', 'X', 'Y', 'Timestamp']:
-#             raise ValueError(f"CSV may not be the correct format.\nHeader should be On/Off,X,Y,Timestamp")
-
-#         first_row = next(reader, None)
-#         first_timestamp = int(first_row[3])
-
-#         for row in itertools.chain([first_row], reader):
-#             polarity = row[0] in ['1', 'True']
-#             x_pos = int(row[1])
-#             y_pos = 128 - int(row[2])
-#             timestamp = int(row[3]) - first_timestamp
-
-#             points.append([polarity, x_pos, y_pos, timestamp])
-
-#     return points
-
 def get_args():
     global file_to_plot, view
 
