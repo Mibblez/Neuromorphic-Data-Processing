@@ -5,6 +5,7 @@ from os import listdir
 from os.path import isfile, join
 import numpy as np
 import json
+import itertools
 from typing import List
 
 class EventChunkConfig:
@@ -59,6 +60,7 @@ class EventChunkConfig:
         self.gaussianMinY = 0
         self.gaussianMaxY = 1
 
+# TODO: rename to CsvChunkData
 class CsvData:
     file_name: str
     time_windows: List[int]
@@ -108,6 +110,32 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
                 break
 
     return CsvData(csv_path, x, y_on, y_off, y_all)
+
+# TODO: return an object instead of a list
+def get_spatial_csv_data(csv_file: str):
+    points = []
+    first_timestamp = 0
+
+    with open(csv_file, 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        header = next(reader, None) # Grab header
+
+        # Make sure CSV is the correct format
+        if header != ['On/Off', 'X', 'Y', 'Timestamp']:
+            raise ValueError(f"CSV may not be the correct format.\nHeader should be On/Off,X,Y,Timestamp")
+
+        first_row = next(reader, None)
+        first_timestamp = int(first_row[3])
+
+        for row in itertools.chain([first_row], reader):
+            polarity = row[0] in ['1', 'True']
+            x_pos = int(row[1])
+            y_pos = 128 - int(row[2])
+            timestamp = int(row[3]) - first_timestamp
+
+            points.append([polarity, x_pos, y_pos, timestamp])
+
+    return points
 
 def getEventChunkData(folderName: str):
     points = []

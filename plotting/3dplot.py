@@ -1,3 +1,11 @@
+"""
+3D Plots are a visual display of events over time.
+X/Y Axis: Event Position
+Z Axis: time
+
+CSV Format: On/Off,X,Y,Timestamp
+"""
+
 import argparse
 import os
 import csv
@@ -5,29 +13,36 @@ import itertools
 
 import matplotlib.pyplot as plt
 
+import getPlottingData
+
 file_to_plot = ''
 view = None
 
-def get_aedat_csv_data(csv_file):
-    points = []
-    first_timestamp = 0
+# TODO: rename and move to getPlottingData?
+# def get_aedat_csv_data(csv_file):
+#     points = []
+#     first_timestamp = 0
 
-    with open(csv_file, 'r') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        next(reader, None) # Skip header
+#     with open(csv_file, 'r') as csvfile:
+#         reader = csv.reader(csvfile, delimiter=',')
+#         header = next(reader, None) # Grab header
 
-        first_row = next(reader, None)
-        first_timestamp = int(first_row[3])
+#         # Make sure CSV is the correct format
+#         if header != ['On/Off', 'X', 'Y', 'Timestamp']:
+#             raise ValueError(f"CSV may not be the correct format.\nHeader should be On/Off,X,Y,Timestamp")
 
-        for row in itertools.chain([first_row], reader):
-            polarity = row[0] in ['1', 'True']
-            x_pos = int(row[1])
-            y_pos = 128 - int(row[2])
-            timestamp = int(row[3]) - first_timestamp
+#         first_row = next(reader, None)
+#         first_timestamp = int(first_row[3])
 
-            points.append([polarity, x_pos, y_pos, timestamp])
+#         for row in itertools.chain([first_row], reader):
+#             polarity = row[0] in ['1', 'True']
+#             x_pos = int(row[1])
+#             y_pos = 128 - int(row[2])
+#             timestamp = int(row[3]) - first_timestamp
 
-    return points
+#             points.append([polarity, x_pos, y_pos, timestamp])
+
+#     return points
 
 def get_args():
     global file_to_plot, view
@@ -55,7 +70,7 @@ def get_args():
 
 if __name__ == '__main__':
     get_args()
-    events = get_aedat_csv_data(file_to_plot)
+    events = getPlottingData.get_spatial_csv_data(file_to_plot)
 
     all_x = []
     all_y = []
