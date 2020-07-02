@@ -7,6 +7,7 @@ import numpy as np
 import json
 import itertools
 from typing import List
+import math
 
 class EventChunkConfig:
 
@@ -75,7 +76,7 @@ class CsvData:
         self.y_off = y_off
         self.y_all = y_all
 
-
+# TODO: indicate that this is for chunk CSVs
 def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData:
     x = []
     y_on = []
@@ -112,9 +113,10 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
     return CsvData(csv_path, x, y_on, y_off, y_all)
 
 # TODO: return an object instead of a list
-def get_spatial_csv_data(csv_file: str):
+def get_spatial_csv_data(csv_file: str, time_limit: float = math.inf):
     points = []
     first_timestamp = 0
+    time_limit = time_limit * 1000000 # Convert to microseconds
 
     with open(csv_file, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
@@ -128,10 +130,14 @@ def get_spatial_csv_data(csv_file: str):
         first_timestamp = int(first_row[3])
 
         for row in itertools.chain([first_row], reader):
+            timestamp = int(row[3]) - first_timestamp
+
+            if timestamp > time_limit:
+                return points
+
             polarity = row[0] in ['1', 'True']
             x_pos = int(row[1])
             y_pos = 128 - int(row[2])
-            timestamp = int(row[3]) - first_timestamp
 
             points.append([polarity, x_pos, y_pos, timestamp])
 

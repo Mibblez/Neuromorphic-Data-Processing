@@ -17,14 +17,16 @@ import getPlottingData
 
 file_to_plot = ''
 view = None
+time_limit = None
 
 def get_args():
-    global file_to_plot, view
+    global file_to_plot, view, time_limit
 
     parser = argparse.ArgumentParser()
 
     parser.add_argument("aedat_csv_file", help='CSV containing AEDAT data to be plotted', type=str)
     parser.add_argument('--view_angle', '-v', help='sets plot viewing angle [default, top, side, all]', action='store', type=str)
+    parser.add_argument("--time_limit", '-t', help='Time limit for the Z-axis (seconds)', type=float)
 
     args = parser.parse_args()
 
@@ -40,12 +42,18 @@ def get_args():
         print('usage: 3dplot.py [-h] [--view_angle VIEW_ANGLE] aedat_csv_file')
         print('3dplot.py: error: the following arguments are required: view_angle')
         quit('Use one of the following view angles: [default, top, side, all]')
+    
+    time_limit = args.time_limit
 
 
 if __name__ == '__main__':
     get_args()
-    events = getPlottingData.get_spatial_csv_data(file_to_plot)
 
+    if time_limit is None:
+        events = getPlottingData.get_spatial_csv_data(file_to_plot)
+    else:
+        events = getPlottingData.get_spatial_csv_data(file_to_plot, time_limit)
+    
     all_x = []
     all_y = []
     all_time = []
@@ -65,7 +73,7 @@ if __name__ == '__main__':
     ax = fig.add_subplot(111, projection='3d')
     ax.set_xlabel('X Position')
     ax.set_ylabel('Y Position')
-    ax.set_zlabel('Time (μs)')
+    ax.set_zlabel('Time (Seconds)')
 
     file_name = os.path.basename(os.path.normpath(file_to_plot))    # Get file at end of path
     file_name = os.path.splitext(file_name)[0]                      # Strip off file extension
