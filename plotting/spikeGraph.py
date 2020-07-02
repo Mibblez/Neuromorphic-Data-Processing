@@ -17,12 +17,23 @@ import itertools
 import re
 
 file_to_plot = ''
+time_limit = math.inf
+pixel_x = None
+pixel_y = None
+area_size = None
 
 def get_args():
-    global file_to_plot
+    global file_to_plot, pixel_x, pixel_y, area_size, time_limit
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("aedat_csv_file", help='CSV containing AEDAT data to be plotted', type=str)
+    parser.add_argument("aedat_csv_file", help='CSV containing AEDAT data to be plotted (ON/OFF,x,y,timestamp)', type=str)
+    parser.add_argument("--time_limit", "-t", type=float, help="Time limit for the X-axis (seconds)")
+
+    required_named = parser.add_argument_group("Required named arguments")
+    required_named.add_argument("--pixel_x", "-x", help="X coordinate of the pixel to examine", type=int, required=True)
+    required_named.add_argument("--pixel_y", "-y", help="Y coordinate of the pixel to examine", type=int, required=True)
+    required_named.add_argument("--area_size", "-a", help="Size of area to plot", type=int, required=True)
+
     args = parser.parse_args()
 
     file_to_plot = args.aedat_csv_file
@@ -31,6 +42,13 @@ def get_args():
         quit(f'File does not exist: {file_to_plot}')
     elif os.path.isdir(file_to_plot):
         quit(f"'{file_to_plot}' is a directory. It should be a csv file")
+    
+    if args.time_limit is not None:
+        time_limit = args.time_limit
+    
+    pixel_x = args.pixel_x
+    pixel_y = args.pixel_y
+    area_size = args.area_size
 
 def get_activity_area(csv_file, pixel_x: int, pixel_y: int, area_size: int, max_points: int=sys.maxsize, time_limit: float=math.inf):
     points = []
@@ -100,15 +118,11 @@ def get_activity_global(csv_file, max_points: int=sys.maxsize, time_limit: float
 
 if __name__ == '__main__':
     get_args()
-    
-    file_path = file_to_plot
 
-    pixel_x = 30
-    pixel_y = 75
-    area_size = 4
+    file_path = file_to_plot
     
     # TODO: ensure that the correct csv type was given
-    points = get_activity_area(file_path, pixel_x, pixel_y, area_size, time_limit=0.1)
+    points = get_activity_area(file_path, pixel_x, pixel_y, area_size, time_limit=time_limit)
     #points = get_activity_global(file_to_plot, time_limit=0.01)
 
     # Add lines to plot
