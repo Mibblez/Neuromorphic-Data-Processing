@@ -3,9 +3,10 @@ set -euo pipefail
 
 print_usage() {
     echo -e "usage: $0 [-d csv_directory] [-r]\n" >&2
-    # echo -e "optional arguments:"
-    # echo "  -x        X-Limit for the plot"
-    # echo "  -r        Recursively search through csv_directory"
+    echo -e "required arguments:"
+    echo "  -d        Directory containing csv files to plot"
+    echo -e "optional arguments:"
+    echo "  -r        Recursively search through csv_directory"
     exit 2
 }
 
