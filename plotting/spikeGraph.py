@@ -102,8 +102,13 @@ if __name__ == '__main__':
     get_args()
     
     file_path = file_to_plot
+
+    pixel_x = 30
+    pixel_y = 75
+    area_size = 4
     
-    points = get_activity_area(file_path, 30, 75, 4, time_limit=0.25)
+    # TODO: ensure that the correct csv type was given
+    points = get_activity_area(file_path, pixel_x, pixel_y, area_size, time_limit=0.1)
     #points = get_activity_global(file_to_plot, time_limit=0.01)
 
     # Add lines to plot
@@ -118,15 +123,31 @@ if __name__ == '__main__':
 
     plt.ylim(-1.1, 1.1)
 
-    # Grab frequency from filename
-    hz = re.search("[0-9]{1,} ?[H|h]z", file_path)
-    hz = hz.group()
+    # Get file name from path and remove extension
+    file_name = os.path.basename(file_path)
+    file_name = os.path.splitext(file_name)[0]
 
-    title = hz
-    if re.search('no ?pol', file_path):
-        title = title + " Unpolarized"
+    hz = ""
+    title = ""
+
+    # Try to grab frequency from filename
+    try:
+        hz = re.search("[0-9]{1,} ?[H|h][Z|z]", file_name)
+        hz = hz.group()
+    except AttributeError:
+        hz = ""
+
+    if re.search('no ?pol', file_name, re.IGNORECASE):
+        title = hz + " Unpolarized"
     else:
-        title = title + " Polarized"
+        try:
+            degrees = re.search("[0-9]{1,} ?deg", os.path.basename(file_name), re.IGNORECASE).group()
+            degrees = re.search("[0-9]{1,}", degrees).group()
+            title = f"{hz} Polarized {degrees} Degrees"
+        except AttributeError:
+            if hz == "":
+                print("WARNING: Could not infer polarizer angle or frequency from file name")
+            title = hz + " Polarized"
 
     plt.title(title)
     plt.xlabel('Time (Seconds)')
@@ -143,8 +164,5 @@ if __name__ == '__main__':
 
     plt.axhline(0, color='black')
 
-    # Get file name from path and remove extension
-    file_name = os.path.basename(file_path)
-    file_name = os.path.splitext(file_name)[0]
-
-    plt.savefig(os.path.join(f'spike_Plot-{file_name}.png'), bbox_inches='tight', pad_inches=0)
+    plt.savefig(os.path.join(f'spike_Plot-{file_name}_X-{pixel_x}_Y-{pixel_y}_Area-{area_size}.png'),
+                bbox_inches='tight', pad_inches=0.1)

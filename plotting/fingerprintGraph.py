@@ -55,10 +55,13 @@ def plot_event_count(event_counts: list, t: list, line_color: str, plot_xlim: fl
     ax.yaxis.set_minor_formatter(mticker.NullFormatter())   # Disable minor tick markers
 
     # Set Y-axis tick spacing
-    count_range = max(event_counts) - min(event_counts)
-    major_spacing = round((count_range / 5), -1)
-    ax.yaxis.set_major_locator(mticker.MultipleLocator(major_spacing))
-    ax.yaxis.set_minor_locator(mticker.MultipleLocator(major_spacing / 2))
+    try:
+        count_range = max(event_counts) - min(event_counts)
+        major_spacing = round((count_range / 5), -1)
+        ax.yaxis.set_major_locator(mticker.MultipleLocator(major_spacing))
+        ax.yaxis.set_minor_locator(mticker.MultipleLocator(major_spacing / 2))
+    except ValueError:
+        print("WARNING: Could not set tick spacing. No events present?")
 
     # Plot lines with circles on the points
     plt.plot(t, event_counts, '-o', markersize=4, c=line_color)
@@ -76,13 +79,26 @@ def plot_event_count(event_counts: list, t: list, line_color: str, plot_xlim: fl
 if __name__ == '__main__':
     get_args()
 
+    hz = ""
+    degrees = ""
+
     # Try to grab frequency from filename
     try:
-        hz = re.search("[0-9]{1,} ?[H|h]z", os.path.basename(file_to_plot))
+        hz = re.search("[0-9]{1,} ?[H|h][Z|z]", os.path.basename(file_to_plot))
         hz = hz.group()
     except AttributeError:
-        print("WARNING: Could not infer frequency from filename")
         hz = ""
+    
+    # Try to grab polarizer angle from filename
+    try:
+        degrees = re.search("[0-9]{1,} ?deg", os.path.basename(file_to_plot), re.IGNORECASE).group()
+        degrees = re.search("[0-9]{1,}", degrees).group()
+        degrees = " " + degrees + " Degrees Polarized"
+    except AttributeError:
+        degrees = ""
+    
+    if hz == "" and degrees == "":
+        print("WARNING: Could not infer polarizer angle or frequency from file name")
 
     config = getPlottingData.parseConfig()
 
@@ -91,8 +107,8 @@ if __name__ == '__main__':
                                                         config.maxEventCount)
 
     plot_event_count(plot_data.y_off, plot_data.time_windows, 'r', x_lim,
-                    f"{hz} Not Polarized OFF Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
+                    f"{hz}{degrees} OFF Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
     plot_event_count(plot_data.y_on, plot_data.time_windows, 'g', x_lim,
-                    f"{hz} Not Polarized ON Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
+                    f"{hz}{degrees} ON Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
     plot_event_count(plot_data.y_all, plot_data.time_windows, 'b',x_lim,
-                    f"{hz} Not Polarized Both Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
+                    f"{hz}{degrees} Both Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
