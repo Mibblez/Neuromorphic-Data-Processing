@@ -18,16 +18,18 @@ import re
 
 file_to_plot = ''
 time_limit = math.inf
+manual_title = None
 pixel_x = None
 pixel_y = None
 area_size = None
 
 def get_args():
-    global file_to_plot, pixel_x, pixel_y, area_size, time_limit
+    global file_to_plot, pixel_x, pixel_y, area_size, time_limit, manual_title
 
     parser = argparse.ArgumentParser()
     parser.add_argument("aedat_csv_file", help='CSV containing AEDAT data to be plotted (ON/OFF,x,y,timestamp)', type=str)
     parser.add_argument("--time_limit", "-t", type=float, help="Time limit for the X-axis (seconds)")
+    parser.add_argument("--title", type=str, help="Manually set plot title. Title will be auto-generated if not set")
 
     required_named = parser.add_argument_group("Required named arguments")
     required_named.add_argument("--pixel_x", "-x", help="X coordinate of the pixel to examine", type=int, required=True)
@@ -45,6 +47,9 @@ def get_args():
     
     if args.time_limit is not None:
         time_limit = args.time_limit
+    
+    if args.title is not None:
+        manual_title = args.title
     
     pixel_x = args.pixel_x
     pixel_y = args.pixel_y
@@ -116,6 +121,44 @@ def get_activity_global(csv_file, max_points: int=sys.maxsize, time_limit: float
 
     return points
 
+def auto_generate_title(file_name: str) -> str:
+    hz = ""
+    voltage = ""
+    waveform_type = ""
+    title = ""
+
+    # Try to grab frequency from filename
+    try:
+        hz = re.search("[0-9]{1,} ?[H|h][Z|z]", file_name).group()
+    except AttributeError:
+        hz = ""
+    
+    # Try to grab voltage from filename
+    try:
+        voltage = re.search('(\d+(?:\.\d+)?) ?v', file_name, re.IGNORECASE).group() + " "
+    except AttributeError:
+        voltage = ""
+    
+    # Try to grab waveform type from filename
+    try:
+        waveform_type = re.search('(burst|sine|square|triangle|noise)', file_name, re.IGNORECASE).group() + " "
+    except AttributeError:
+        waveform_type = ""
+
+    if re.search('no ?pol', file_name, re.IGNORECASE):
+        title = f"{waveform_type}{voltage}{hz} Unpolarized"
+    else:
+        try:
+            degrees = re.search("[0-9]{1,} ?deg", os.path.basename(file_name), re.IGNORECASE).group()
+            degrees = re.search("[0-9]{1,}", degrees).group()
+            title = f"{waveform_type}{voltage}{hz} Polarized {degrees} Degrees"
+        except AttributeError:
+            if hz == "":
+                print("WARNING: Could not infer polarizer angle or frequency from file name")
+            title = hz + " Polarized"
+    
+    return title
+
 if __name__ == '__main__':
     get_args()
 
@@ -141,29 +184,12 @@ if __name__ == '__main__':
     file_name = os.path.basename(file_path)
     file_name = os.path.splitext(file_name)[0]
 
-    hz = ""
-    title = ""
-
-    # Try to grab frequency from filename
-    try:
-        hz = re.search("[0-9]{1,} ?[H|h][Z|z]", file_name)
-        hz = hz.group()
-    except AttributeError:
-        hz = ""
-
-    if re.search('no ?pol', file_name, re.IGNORECASE):
-        title = hz + " Unpolarized"
+    if manual_title is None:
+        title = auto_generate_title(file_name)
+        plt.title(title)
     else:
-        try:
-            degrees = re.search("[0-9]{1,} ?deg", os.path.basename(file_name), re.IGNORECASE).group()
-            degrees = re.search("[0-9]{1,}", degrees).group()
-            title = f"{hz} Polarized {degrees} Degrees"
-        except AttributeError:
-            if hz == "":
-                print("WARNING: Could not infer polarizer angle or frequency from file name")
-            title = hz + " Polarized"
+        plt.title(manual_title)
 
-    plt.title(title)
     plt.xlabel('Time (Seconds)')
 
     plt.gcf().set_size_inches((11, 4.5))

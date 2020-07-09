@@ -80,18 +80,34 @@ if __name__ == '__main__':
     get_args()
 
     hz = ""
+    voltage = ""
+    waveform_type = ""
     degrees = ""
+
+    file_name = os.path.basename(file_to_plot)
 
     # Try to grab frequency from filename
     try:
-        hz = re.search("[0-9]{1,} ?[H|h][Z|z]", os.path.basename(file_to_plot))
+        hz = re.search("[0-9]{1,} ?[H|h][Z|z]", file_name)
         hz = hz.group()
     except AttributeError:
         hz = ""
     
+    # Try to grab voltage from filename
+    try:
+        voltage = re.search('(\d+(?:\.\d+)?) ?v', file_name, re.IGNORECASE).group() + " "
+    except AttributeError:
+        voltage = ""
+    
+    # Try to grab waveform type from filename
+    try:
+        waveform_type = re.search('(burst|sine|square|triangle|noise)', file_name, re.IGNORECASE).group() + " "
+    except AttributeError:
+        waveform_type = ""
+    
     # Try to grab polarizer angle from filename
     try:
-        degrees = re.search("[0-9]{1,} ?deg", os.path.basename(file_to_plot), re.IGNORECASE).group()
+        degrees = re.search("[0-9]{1,} ?deg", file_name, re.IGNORECASE).group()
         degrees = re.search("[0-9]{1,}", degrees).group()
         degrees = " " + degrees + " Degrees Polarized"
     except AttributeError:
@@ -107,8 +123,8 @@ if __name__ == '__main__':
                                                         config.maxEventCount)
 
     plot_event_count(plot_data.y_off, plot_data.time_windows, 'r', x_lim,
-                    f"{hz}{degrees} OFF Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
+                    f"{waveform_type}{voltage}{hz}{degrees} OFF Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
     plot_event_count(plot_data.y_on, plot_data.time_windows, 'g', x_lim,
-                    f"{hz}{degrees} ON Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
+                    f"{waveform_type}{voltage}{hz}{degrees} ON Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
     plot_event_count(plot_data.y_all, plot_data.time_windows, 'b',x_lim,
-                    f"{hz}{degrees} Both Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
+                    f"{waveform_type}{voltage}{hz}{degrees} All Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")
