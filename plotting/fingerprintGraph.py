@@ -16,7 +16,7 @@ import getPlottingData
 from getPlottingData import CsvData
 
 file_to_plot = ''
-x_lim = -1
+x_lim = None
 
 def get_args():
     global file_to_plot, x_lim
@@ -60,16 +60,17 @@ def plot_event_count(event_counts: list, t: list, line_color: str, plot_xlim: fl
         major_spacing = round((count_range / 5), -1)
         ax.yaxis.set_major_locator(mticker.MultipleLocator(major_spacing))
         ax.yaxis.set_minor_locator(mticker.MultipleLocator(major_spacing / 2))
+        # ax.set_ylim([max(event_counts), min(event_counts)])
     except ValueError:
         print("WARNING: Could not set tick spacing. No events present?")
 
     # Plot lines with circles on the points
     plt.plot(t, event_counts, '-o', markersize=4, c=line_color)
 
-    if x_lim != -1:
+    if x_lim is not None:
         ax.set_xlim([0, plot_xlim])
 
-    plt.gcf().set_size_inches((11, 4.5))
+    plt.gcf().set_size_inches((20, 5))
 
     if save_fig:
         plt.savefig(os.path.join(f'{plot_title}.png'))
@@ -107,6 +108,7 @@ if __name__ == '__main__':
     
     # Try to grab polarizer angle from filename
     try:
+        # TODO: what if the file is specified as polarized but no angle is given?
         degrees = re.search("[0-9]{1,} ?deg", file_name, re.IGNORECASE).group()
         degrees = re.search("[0-9]{1,}", degrees).group()
         degrees = " " + degrees + " Degrees Polarized"
@@ -118,9 +120,13 @@ if __name__ == '__main__':
 
     config = getPlottingData.parseConfig()
 
+    max_csv_entries = -1
+    if x_lim is not None:
+        max_csv_entries = int((x_lim * 1000000) / config.reconstructionWindow)
+
     plot_data: CsvData = getPlottingData.read_aedat_csv(file_to_plot, 
                                                         config.reconstructionWindow,
-                                                        config.maxEventCount)
+                                                        max_csv_entries)
 
     plot_event_count(plot_data.y_off, plot_data.time_windows, 'r', x_lim,
                     f"{waveform_type}{voltage}{hz}{degrees} OFF Events Fingerprint ({config.reconstructionWindow}μs Reconstruction Window)")

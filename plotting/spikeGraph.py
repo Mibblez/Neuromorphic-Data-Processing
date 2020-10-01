@@ -192,7 +192,7 @@ if __name__ == '__main__':
 
     plt.xlabel('Time (Seconds)')
 
-    plt.gcf().set_size_inches((11, 4.5))
+    plt.gcf().set_size_inches((25, 5))
 
     ax = plt.gca() # Get axis
 
