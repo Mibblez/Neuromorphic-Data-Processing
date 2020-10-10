@@ -2,15 +2,17 @@
 
 import sys
 import cv2
+import numpy as np
+import os
 import argparse
 
-arg_path: str = ''
-blur_amount: int = 0
-otsu_min_threshold: int = 125
+path_arg: str = ''
+blur_amount_arg: int = 0
+otsu_min_threshold_arg: int = 125
 
 
 def get_args():
-    global arg_path, blur_amount, otsu_min_threshold
+    global path_arg, blur_amount_arg, otsu_min_threshold_arg
 
     parser = argparse.ArgumentParser()
     parser.add_argument("image_path",
@@ -22,25 +24,23 @@ def get_args():
 
     args = parser.parse_args()
 
-    blur_amount = args.blur_amount
-    if (blur_amount % 2) == 0:
+    blur_amount_arg = args.blur_amount
+    if (blur_amount_arg % 2) == 0:
         sys.exit("Error: arg '--blur_amount' must be odd.")
-    elif blur_amount <= 0:
+    elif blur_amount_arg <= 0:
         sys.exit("Error: arg '--blur_amount' cannot be less than zero")
 
-    if otsu_min_threshold is not None:
-        otsu_min_threshold = args.otsu_threshold
-    elif (otsu_min_threshold < 0) or (otsu_min_threshold > 255):
+    if args.otsu_min_threshold is not None:
+        otsu_min_threshold_arg = args.otsu_threshold
+
+    if (otsu_min_threshold_arg < 0) or (otsu_min_threshold_arg > 255):
         sys.exit("Error: arg '--otsu_threshold' must be between 0 and 255")
 
-    arg_path = args.image_path
+    path_arg = args.image_path
 
 
-if __name__ == '__main__':
-    get_args()
-
-    # Read image and convert to grayscale
-    img = cv2.imread(arg_path)
+def otsu_and_blur(img: np.ndarray, blur_amount: int, otsu_min_threshold: int) -> np.ndarray:
+    # Convert image to grayscale
     img_bw = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # apply guassian blur on src image
@@ -49,4 +49,18 @@ if __name__ == '__main__':
     # applying Otsu thresholding as an extra flag in binary thresholding
     ret, threshold_image = cv2.threshold(img_blur, otsu_min_threshold, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    cv2.imwrite("output_otsu_blur.png", threshold_image)
+    return threshold_image
+
+
+if __name__ == '__main__':
+    get_args()
+
+    normal_image = cv2.imread(path_arg)
+
+    otsu_image = otsu_and_blur(normal_image, blur_amount_arg, otsu_min_threshold_arg)
+
+    # Grab filename from path
+    file_name = os.path.basename(os.path.normpath(path_arg))
+    file_name = os.path.splitext(file_name)[0]
+
+    cv2.imwrite(f"{file_name}_blur.png", otsu_image)

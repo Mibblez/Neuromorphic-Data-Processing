@@ -45,6 +45,26 @@ def entropy(signal):
     return ent
 
 
+def get_entropy_image(img: np.ndarray, convert_to_gray=True) -> np.ndarray:
+    if convert_to_gray:
+        gray_image = rgb2gray(img)
+
+    N = 5
+    S = gray_image.shape
+    E = np.array(gray_image)
+
+    for row in range(S[0]):
+        for col in range(S[1]):
+            Lx = np.max([0, col-N])
+            Ux = np.min([S[1], col+N])
+            Ly = np.max([0, row-N])
+            Uy = np.min([S[0], row+N])
+            region = gray_image[Ly:Uy, Lx:Ux].flatten()
+            E[row, col] = entropy(region)
+
+    return E
+
+
 if __name__ == "__main__":
     args = get_args()
 
@@ -55,21 +75,12 @@ if __name__ == "__main__":
 
     for image_path in os.listdir(args.imagePath):
         image_full_path = os.path.join(args.imagePath, image_path)
+
         # Image must be read as RGB because rgb2gray produces an error with grayscale
         image = np.array(Image.open(image_full_path).convert('RGB'))
-        gray = rgb2gray(image)
 
-        N = 5
-        S = gray.shape
-        E = np.array(gray)
-        for row in range(S[0]):
-            for col in range(S[1]):
-                Lx = np.max([0, col-N])
-                Ux = np.min([S[1], col+N])
-                Ly = np.max([0, row-N])
-                Uy = np.min([S[0], row+N])
-                region = gray[Ly:Uy, Lx:Ux].flatten()
-                E[row, col] = entropy(region)
+        E = get_entropy_image(image)
+
         entropy_sum = E.sum()
 
         entropy_dict[image_path] = entropy_sum
