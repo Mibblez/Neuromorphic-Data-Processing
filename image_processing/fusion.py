@@ -1,6 +1,10 @@
 import argparse
+import os
+import sys
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
+import matplotlib
 
 import mean_shift_segmentation
 import otsu
@@ -19,32 +23,74 @@ def get_args():
 
     args = parser.parse_args()
 
-    path_arg = args.image_path
+    if os.path.exists(args.image_path):
+        path_arg = args.image_path
+    else:
+        sys.exit(f"ERROR: path '{args.image_path}' does not exist")
+
+
+def generate_fusion_plot(original: np.ndarray, result: np.ndarray, otsu: np.ndarray, mss: np.ndarray, entropy: np.ndarray):
+    plot_title = os.path.basename(os.path.normpath(path_arg))
+    plot_title = os.path.splitext(plot_title)[0]
+
+    matplotlib.use("TkAgg")     # Use TkAgg rendering backend for matplotlib
+    f, axes = plt.subplots(nrows=2, ncols=3, sharex=False, sharey=False)
+    f.set_size_inches(10, 5)
+    f.suptitle(plot_title, fontsize=16)
+
+    plt.gray()      # Set default colormap to grayscale
+    plt.tight_layout()
+
+    axes[0, 0].imshow(original)
+    axes[0, 0].set_title('Orignal')
+    axes[0, 0].axis('off')
+
+    axes[0, 1].imshow(result)
+    axes[0, 1].set_title('Fusion Image')
+    axes[0, 1].axis('off')
+
+    axes[0, 2].remove()
+
+    axes[1, 0].imshow(otsu)
+    axes[1, 0].set_title('Gaussian Blur Otsu')
+    axes[1, 0].axis('off')
+
+    axes[1, 1].imshow(mss)
+    axes[1, 1].set_title('Mean Shift')
+    axes[1, 1].axis('off')
+
+    axes[1, 2].imshow(entropy)
+    axes[1, 2].set_title('Entropy')
+    axes[1, 2].axis('off')
+
+    if True:
+        plt.savefig(f"{plot_title}_fusion.png")
+        plt.close()
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':
+    get_args()
+
     otsu_threshold: int = 255
     mss_threshold: int = 100
     entropy_threshold: float = 0.7
 
-    path_arg = "image_processing/whel.png"
-    result_canvas = cv2.imread(path_arg)
+    result_image = cv2.imread(path_arg)
     original_image = cv2.imread(path_arg)
 
-    otsu_image = otsu.otsu_and_blur(result_canvas, blur_amount_arg, otsu_min_threshold_arg)
-    mms_image = mean_shift_segmentation.mss(result_canvas, False, 5)
-    entropy_image = local_entropy.get_entropy_image(result_canvas)
+    # Perform different types of image processing
+    otsu_image = otsu.otsu_and_blur(result_image, blur_amount_arg, otsu_min_threshold_arg)
+    mss_image = cv2.cvtColor(mean_shift_segmentation.mss(result_image, False, 5), cv2.COLOR_RGB2GRAY)
+    entropy_image = local_entropy.get_entropy_image(result_image)
 
-    for (i, row) in enumerate(result_canvas):
+    # Iterate over the processed images. Place white pixels where the images match and black pixels elsewhere
+    for (i, row) in enumerate(result_image):
         for (j, pix) in enumerate(row):
-            if(otsu_image[i][j] == otsu_threshold and mms_image[i][j][0] > mss_threshold and entropy_image[i][j] > entropy_threshold):
-                result_canvas[i][j] = np.array([255, 255, 255])
+            if(otsu_image[i][j] == otsu_threshold) and (mss_image[i][j] > mss_threshold) and (entropy_image[i][j] > entropy_threshold):
+                result_image[i][j] = np.array([255, 255, 255])
             else:
-                result_canvas[i][j] = np.array([0, 0, 0])
+                result_image[i][j] = np.array([0, 0, 0])
 
-    cv2.imshow('Original', original_image)
-    cv2.imshow('MSS', mms_image)
-    cv2.imshow('Otsu', otsu_image)
-    cv2.imshow('Entropy Image', entropy_image)
-    cv2.imshow('Result', result_canvas)
-    cv2.waitKey(0)
+    generate_fusion_plot(original_image, result_image, otsu_image, mss_image, entropy_image)
