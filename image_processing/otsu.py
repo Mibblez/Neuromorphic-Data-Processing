@@ -19,10 +19,19 @@ def get_args():
                         help='Directory containing images to be processed or a path to an image to be processed', type=str)
     parser.add_argument("--blur_amount", "-b",
                         help='The amount the image will be gaussian blurred. (Must be an odd number) ', type=int, required=True)
-    parser.add_argument("--otsu_threshold",
-                        "-t", help='The minimum threshold for the otsu algorithm.', type=int)
+    parser.add_argument("--otsu_threshold", "-t",
+                        help='The minimum threshold for the otsu algorithm.', type=int)
 
     args = parser.parse_args()
+
+    # Check if image path exists and is an image file type
+    if os.path.exists(args.image_path):
+        if not os.path.splitext(args.image_path)[1] in ['.png', '.jpeg', '.jpg']:
+            sys.exit(f"ERROR: '{args.image_path}' is not an image.")
+        else:
+            path_arg = args.image_path
+    else:
+        sys.exit(f"ERROR: '{args.image_path}' does not exist")
 
     blur_amount_arg = args.blur_amount
     if (blur_amount_arg % 2) == 0:
@@ -35,8 +44,6 @@ def get_args():
 
     if (otsu_min_threshold_arg < 0) or (otsu_min_threshold_arg > 255):
         sys.exit("Error: arg '--otsu_threshold' must be between 0 and 255")
-
-    path_arg = args.image_path
 
 
 def otsu_and_blur(img: np.ndarray, blur_amount: int, otsu_min_threshold: int) -> np.ndarray:
