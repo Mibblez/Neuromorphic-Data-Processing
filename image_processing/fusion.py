@@ -10,6 +10,8 @@ import mean_shift_segmentation
 import otsu
 import local_entropy
 
+import wavelet_decomposition
+
 path_arg: str
 blur_amount_arg: int = 11
 otsu_min_threshold_arg: int = 125
@@ -18,14 +20,23 @@ otsu_min_threshold_arg: int = 125
 def get_args():
     global path_arg, blur_amount_arg, otsu_min_threshold_arg
     parser = argparse.ArgumentParser()
-    parser.add_argument("image_path",
-                        help='Directory containing images to be processed or a path to an image to be processed', type=str)
-    parser.add_argument("--blur_amount", "-b",
-                        help='The amount the image will be gaussian blurred. (Must be an odd number) ', type=int)
-    parser.add_argument("--otsu_threshold", "-t",
-                        help='The minimum threshold for the otsu algorithm.', type=int)
+
+    subparsers = parser.add_subparsers(help='Subcommands', dest='subcommand')
+
+    o_mss_le = subparsers.add_parser('o_mss_le', help='Subcommand for otsu/mean shift segmentation/ local entropy fusion')
+    o_mss_le.add_argument("image_path",
+                          help='Directory containing images to be processed or a path to an image to be processed', type=str)
+    o_mss_le.add_argument("--blur_amount", "-b",
+                          help='The amount the image will be gaussian blurred. (Must be an odd number) ', type=int)
+    o_mss_le.add_argument("--otsu_threshold", "-t",
+                          help='The minimum threshold for the otsu algorithm.', type=int)
+
+    wavelet_parser = subparsers.add_parser('wavelet', help='Subcommand for wavelet decomposition fusion')
+    wavelet_parser.add_argument("image_path",
+                                help='Directory containing images to be processed or a path to an image to be processed', type=str)
 
     args = parser.parse_args()
+    subcommand = args.subcommand
 
     # Check if image path exists and is an image file type
     if os.path.exists(args.image_path):
@@ -36,29 +47,64 @@ def get_args():
     else:
         sys.exit(f"ERROR: '{args.image_path}' does not exist")
 
-    # Ensure that the blur amount arg is valid
-    if args.blur_amount is not None:
-        blur_amount_arg = args.blur_amount
-        if (blur_amount_arg % 2) == 0:
-            sys.exit("Error: arg '--blur_amount' must be odd.")
-        elif blur_amount_arg <= 0:
-            sys.exit("Error: arg '--blur_amount' cannot be less than zero")
+    if subcommand == 'o_mss_le':
+        # Ensure that the blur amount arg is valid
+        if args.blur_amount is not None:
+            blur_amount_arg = args.blur_amount
+            if (blur_amount_arg % 2) == 0:
+                sys.exit("Error: arg '--blur_amount' must be odd.")
+            elif blur_amount_arg <= 0:
+                sys.exit("Error: arg '--blur_amount' cannot be less than zero")
 
-    if args.otsu_threshold is not None:
-        if args.otsu_threshold <= 255 and args.otsu_threshold >= 0:
-            otsu_min_threshold_arg = args.otsu_threshold
-        else:
-            sys.exit("ERROR: Otsu Threshold must be set between 255 and 0.")
+        if args.otsu_threshold is not None:
+            if args.otsu_threshold <= 255 and args.otsu_threshold >= 0:
+                otsu_min_threshold_arg = args.otsu_threshold
+            else:
+                sys.exit("ERROR: Otsu Threshold must be set between 255 and 0.")
+
+        process_subcommand_o_mss_le()
+    elif subcommand == 'wavelet':
+        process_subcommand_wavelet()
+
+
+def process_subcommand_o_mss_le():
+    otsu_fusion_threshold: int = 255
+    mss_fusion_threshold: int = 100
+    entropy_fusion_threshold: float = 0.7
+
+    result_image = cv2.imread(path_arg)
+    original_image = cv2.imread(path_arg)
+
+    # Perform different types of image processing
+    otsu_image = otsu.otsu_and_blur(result_image, blur_amount_arg, otsu_min_threshold_arg)
+    mss_image = cv2.cvtColor(mean_shift_segmentation.mss(result_image, False, 5), cv2.COLOR_RGB2GRAY)
+    entropy_image = local_entropy.get_entropy_image(result_image)
+
+    # Iterate over the processed images. Place white pixels where the images match and black pixels elsewhere
+    for (i, row) in enumerate(result_image):
+        for (j, pix) in enumerate(row):
+            if(otsu_image[i][j] == otsu_fusion_threshold) and (mss_image[i][j] > mss_fusion_threshold) and (entropy_image[i][j] > entropy_fusion_threshold):
+                result_image[i][j] = np.array([255, 255, 255])
+            else:
+                result_image[i][j] = np.array([0, 0, 0])
+
+    generate_fusion_plot(original_image, result_image, otsu_image, mss_image, entropy_image)
+
+
+def process_subcommand_wavelet():
+    original_image = cv2.imread(path_arg)
+
+    LL, LH, HL, HH = wavelet_decomposition.wavelet_decomposition(original_image)
 
 
 def generate_fusion_plot(original: np.ndarray, result: np.ndarray, otsu: np.ndarray, mss: np.ndarray, entropy: np.ndarray):
-    plot_title = os.path.basename(os.path.normpath(path_arg))
-    plot_title = os.path.splitext(plot_title)[0]
+    image_name: str = os.path.basename(os.path.normpath(path_arg))
+    image_name = os.path.splitext(image_name)[0]
 
     matplotlib.use("TkAgg")     # Use TkAgg rendering backend for matplotlib
     f, axes = plt.subplots(nrows=2, ncols=3, sharex=False, sharey=False)
     f.set_size_inches(10, 5)
-    f.suptitle(plot_title, fontsize=16)
+    f.suptitle(image_name, fontsize=16)
 
     plt.gray()      # Set default colormap to grayscale
     plt.tight_layout()
@@ -86,7 +132,8 @@ def generate_fusion_plot(original: np.ndarray, result: np.ndarray, otsu: np.ndar
     axes[1, 2].axis('off')
 
     if True:
-        plt.savefig(f"{plot_title}_fusion.png")
+        save_name: str = f"{image_name}-blur_{blur_amount_arg}-otsu_threhsold_{otsu_min_threshold_arg}-fusion"
+        plt.savefig(f"{save_name}.png")
         plt.close()
     else:
         plt.show()
@@ -94,25 +141,3 @@ def generate_fusion_plot(original: np.ndarray, result: np.ndarray, otsu: np.ndar
 
 if __name__ == '__main__':
     get_args()
-
-    otsu_fusion_threshold: int = 255
-    mss_fusion_threshold: int = 100
-    entropy_fusion_threshold: float = 0.7
-
-    result_image = cv2.imread(path_arg)
-    original_image = cv2.imread(path_arg)
-
-    # Perform different types of image processing
-    otsu_image = otsu.otsu_and_blur(result_image, blur_amount_arg, otsu_min_threshold_arg)
-    mss_image = cv2.cvtColor(mean_shift_segmentation.mss(result_image, False, 5), cv2.COLOR_RGB2GRAY)
-    entropy_image = local_entropy.get_entropy_image(result_image)
-
-    # Iterate over the processed images. Place white pixels where the images match and black pixels elsewhere
-    for (i, row) in enumerate(result_image):
-        for (j, pix) in enumerate(row):
-            if(otsu_image[i][j] == otsu_fusion_threshold) and (mss_image[i][j] > mss_fusion_threshold) and (entropy_image[i][j] > entropy_fusion_threshold):
-                result_image[i][j] = np.array([255, 255, 255])
-            else:
-                result_image[i][j] = np.array([0, 0, 0])
-
-    generate_fusion_plot(original_image, result_image, otsu_image, mss_image, entropy_image)
