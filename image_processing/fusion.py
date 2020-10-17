@@ -5,11 +5,11 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import matplotlib
+import pywt
 
 import mean_shift_segmentation
 import otsu
 import local_entropy
-
 import wavelet_decomposition
 
 path_arg: str
@@ -93,15 +93,37 @@ def process_subcommand_o_mss_le():
 
 def process_subcommand_wavelet():
     original_image = cv2.imread(path_arg)
+    result_image = np.copy(original_image)
 
-    LL, LH, HL, HH = wavelet_decomposition.wavelet_decomposition(original_image)
+
+    mss_image = cv2.cvtColor(mean_shift_segmentation.mss(result_image, False, 5), cv2.COLOR_RGB2GRAY)
+    LL, LH, HL, HH = wavelet_decomposition.wavelet_decomposition(cv2.cvtColor(original_image, cv2.COLOR_RGB2GRAY), "db1")
+
+    print(LL.shape)
+
+    # Resize decomposed images to orignal size
+    LL = cv2.resize(LL, (128, 128), interpolation=cv2.INTER_NEAREST)
+    LH = cv2.resize(LH, (128, 128), interpolation=cv2.INTER_NEAREST)
+    HL = cv2.resize(HL, (128, 128), interpolation=cv2.INTER_NEAREST)
+    HH = cv2.resize(HH, (128, 128), interpolation=cv2.INTER_NEAREST)
+
+
+    plt.imshow(LL, interpolation="nearest", cmap=plt.cm.gray)
+    plt.show()
+
+    sys.exit()
+
+
+    # Iterate over the processed images. Place white pixels where the images match and black pixels elsewhere
+    for (i, row) in enumerate(result_image):
+        for (j, pix) in enumerate(row):
+            pass
 
 
 def generate_fusion_plot(original: np.ndarray, result: np.ndarray, otsu: np.ndarray, mss: np.ndarray, entropy: np.ndarray):
     image_name: str = os.path.basename(os.path.normpath(path_arg))
     image_name = os.path.splitext(image_name)[0]
 
-    matplotlib.use("TkAgg")     # Use TkAgg rendering backend for matplotlib
     f, axes = plt.subplots(nrows=2, ncols=3, sharex=False, sharey=False)
     f.set_size_inches(10, 5)
     f.suptitle(image_name, fontsize=16)
@@ -140,4 +162,7 @@ def generate_fusion_plot(original: np.ndarray, result: np.ndarray, otsu: np.ndar
 
 
 if __name__ == '__main__':
-    get_args()
+    matplotlib.use("TkAgg")     # Use TkAgg rendering backend for matplotlib
+    #get_args()
+    path_arg = "image_processing/whel.png"
+    process_subcommand_wavelet()
