@@ -7,7 +7,7 @@ import pywt
 import pywt.data
 
 
-def wavelet_decomposition(img: np.ndarray, wavelet_type: str = 'db3'):
+def wavelet_decomposition(img: np.ndarray, wavelet_type: str = 'db4'):
     coeffs2 = pywt.dwt2(img, wavelet_type)
     LL, (LH, HL, HH) = coeffs2
 
@@ -21,6 +21,7 @@ if __name__ == '__main__':
     original = cv2.cvtColor(original, cv2.COLOR_RGB2GRAY)
 
     LL, LH, HL, HH = wavelet_decomposition(original)
+    print(LL.shape)
 
     # Wavelet transform of image, and plot approximation and details
     titles = ['Approximation', ' Horizontal detail',
@@ -28,6 +29,7 @@ if __name__ == '__main__':
 
     fig = plt.figure(figsize=(12, 3))
     for i, a in enumerate([LL, LH, HL, HH]):
+        print(a.shape)
         ax = fig.add_subplot(1, 4, i + 1)
         ax.imshow(a, interpolation="nearest", cmap=plt.cm.gray)
         ax.set_title(titles[i], fontsize=10)
