@@ -1,6 +1,7 @@
 import argparse
 import os
 import sys
+import math
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -88,18 +89,66 @@ def process_subcommand_o_mss_le():
             else:
                 result_image[i][j] = np.array([0, 0, 0])
 
-    generate_fusion_plot(original_image, result_image, otsu_image, mss_image, entropy_image)
+    fig_title: str = os.path.splitext(os.path.basename(os.path.normpath(path_arg)))[0]
+    save_name: str = f"{fig_title}-blur_{blur_amount_arg}-otsu_threhsold_{otsu_min_threshold_arg}-fusion"
+    create_fusion_plot(fig_title, save_name,
+                       [original_image, result_image, [], otsu_image, mss_image, entropy_image],
+                       ['Orignal', 'Fusion Image', '', 'Gaussian Blur Otsu', 'Mean Shift', 'Entropy'])
+
+
+def wavelet_combine(original, mss, decomp, low_thresh, high_thresh, mss_thresh) -> np.ndarray:
+    result_image = np.copy(original)
+    for (i, row) in enumerate(result_image):
+        for (j, pix) in enumerate(row):
+            if(mss[i][j] > mss_thresh) and (decomp[i][j] > high_thresh or decomp[i][j] < low_thresh):
+                result_image[i][j] = np.array([255, 255, 255])
+            else:
+                result_image[i][j] = np.array([0, 0, 0])
+    return result_image
+
+
+def create_fusion_plot(fig_title: str, save_name: str, images: list, titles: list):
+    if len(images) != len(titles):
+        raise Exception("images list and titles list bust be of the same length")
+
+    num_images: int = len(images)
+    plot_rows: int = 2
+    plot_columns: int = math.ceil(float(num_images) / float(plot_rows))
+
+    f, axes = plt.subplots(nrows=plot_rows, ncols=plot_columns, sharex=False, sharey=False)
+    f.set_size_inches(10, 5)
+    f.suptitle(fig_title, fontsize=16)
+
+    plt.gray()      # Set default colormap to grayscale
+    plt.tight_layout()
+
+    for i in range(plot_rows):
+        for j in range(plot_columns):
+            image: np.ndarray = images.pop(0)
+            title: str = titles.pop(0)
+
+            if title == '' or (image.size == 0):
+                axes[i, j].remove()
+            else:
+                axes[i, j].imshow(image)
+                axes[i, j].set_title(title)
+                axes[i, j].axis('off')
+
+    plt.savefig(save_name)
+    plt.close
 
 
 def process_subcommand_wavelet():
+    mss_fusion_threshold: int = 100
+    wavelet_threshold_low: int = -100
+    wavelet_threshold_high: int = 100
+    wavelet_type: str = "db1"
+
     original_image = cv2.imread(path_arg)
     result_image = np.copy(original_image)
 
-
     mss_image = cv2.cvtColor(mean_shift_segmentation.mss(result_image, False, 5), cv2.COLOR_RGB2GRAY)
-    LL, LH, HL, HH = wavelet_decomposition.wavelet_decomposition(cv2.cvtColor(original_image, cv2.COLOR_RGB2GRAY), "db1")
-
-    print(LL.shape)
+    LL, LH, HL, HH = wavelet_decomposition.wavelet_decomposition(cv2.cvtColor(original_image, cv2.COLOR_RGB2GRAY), wavelet_type)
 
     # Resize decomposed images to orignal size
     LL = cv2.resize(LL, (128, 128), interpolation=cv2.INTER_NEAREST)
@@ -107,62 +156,20 @@ def process_subcommand_wavelet():
     HL = cv2.resize(HL, (128, 128), interpolation=cv2.INTER_NEAREST)
     HH = cv2.resize(HH, (128, 128), interpolation=cv2.INTER_NEAREST)
 
-
-    plt.imshow(LL, interpolation="nearest", cmap=plt.cm.gray)
-    plt.show()
-
-    sys.exit()
-
-
     # Iterate over the processed images. Place white pixels where the images match and black pixels elsewhere
-    for (i, row) in enumerate(result_image):
-        for (j, pix) in enumerate(row):
-            pass
+    HH_result = wavelet_combine(original_image, mss_image, HH, wavelet_threshold_low, wavelet_threshold_high, mss_fusion_threshold)
+    LH_result = wavelet_combine(original_image, mss_image, LH, wavelet_threshold_low, wavelet_threshold_high, mss_fusion_threshold)
+    HL_result = wavelet_combine(original_image, mss_image, HL, wavelet_threshold_low, wavelet_threshold_high, mss_fusion_threshold)
 
-
-def generate_fusion_plot(original: np.ndarray, result: np.ndarray, otsu: np.ndarray, mss: np.ndarray, entropy: np.ndarray):
     image_name: str = os.path.basename(os.path.normpath(path_arg))
     image_name = os.path.splitext(image_name)[0]
+    save_name = f"{image_name}_wavelet_fusion_{wavelet_type}"
 
-    f, axes = plt.subplots(nrows=2, ncols=3, sharex=False, sharey=False)
-    f.set_size_inches(10, 5)
-    f.suptitle(image_name, fontsize=16)
-
-    plt.gray()      # Set default colormap to grayscale
-    plt.tight_layout()
-
-    axes[0, 0].imshow(original)
-    axes[0, 0].set_title('Orignal')
-    axes[0, 0].axis('off')
-
-    axes[0, 1].imshow(result)
-    axes[0, 1].set_title('Fusion Image')
-    axes[0, 1].axis('off')
-
-    axes[0, 2].remove()
-
-    axes[1, 0].imshow(otsu)
-    axes[1, 0].set_title('Gaussian Blur Otsu')
-    axes[1, 0].axis('off')
-
-    axes[1, 1].imshow(mss)
-    axes[1, 1].set_title('Mean Shift')
-    axes[1, 1].axis('off')
-
-    axes[1, 2].imshow(entropy)
-    axes[1, 2].set_title('Entropy')
-    axes[1, 2].axis('off')
-
-    if True:
-        save_name: str = f"{image_name}-blur_{blur_amount_arg}-otsu_threhsold_{otsu_min_threshold_arg}-fusion"
-        plt.savefig(f"{save_name}.png")
-        plt.close()
-    else:
-        plt.show()
+    create_fusion_plot(image_name, save_name,
+                       [original_image, mss_image, HH, HH_result, LH, LH_result, HL, HL_result],
+                       ['Orignal', 'Mean Shift', 'HH', 'HH_result', 'LH', 'LH_result', 'HL', 'HL_result'])
 
 
 if __name__ == '__main__':
     matplotlib.use("TkAgg")     # Use TkAgg rendering backend for matplotlib
-    #get_args()
-    path_arg = "image_processing/whel.png"
-    process_subcommand_wavelet()
+    get_args()
