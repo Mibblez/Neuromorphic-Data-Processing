@@ -1,18 +1,23 @@
 import numpy as np
-from numpy.lib.function_base import diff
 from scipy import stats
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 import matplotlib
 from sklearn.metrics import pairwise_distances_argmin
-import typing
-from typing import Dict, Tuple, Sequence, List
-from numpy import sin, linspace, pi
-from pylab import plot, show, title, xlabel, ylabel, subplot
+from typing import Tuple, List
+from pylab import plot, xlabel, ylabel
 from scipy import fft, arange
 import re
 
 import getPlottingData
+
+def clean_line_title(label: str) -> str:
+    line_title_changes = {" ?(Off|On|All) Events": "", " ?[0-9]+(_| )?m[vV]": ""}
+
+    for occurrence, replacement in line_title_changes.items():
+        label = re.sub(occurrence, replacement, label)
+
+    return label
 
 def paddBins(bins2: np.ndarray, paddTimes: int):
 
@@ -39,11 +44,11 @@ def plot_hist(data: list, axes, plot_major: int, plot_minor: int, plot_color: st
     if log_values:
         accuracy = 0.00002
     while y[0] < accuracy:
-        y = np.delete(y,0)
-        x = np.delete(x,0)
+        y = np.delete(y, 0)
+        x = np.delete(x, 0)
     while y[len(y)-1] < accuracy:
-        y = np.delete(y,len(y)-1)
-        x = np.delete(x,len(x)-1)
+        y = np.delete(y, len(y)-1)
+        x = np.delete(x, len(x)-1)
 
     l = axes[plot_major][plot_minor].plot(x, y, linewidth=2)
     
@@ -76,123 +81,109 @@ def plotKmeans(data,axes, row, columnIndex,numberOfCenters):
     axes[row][columnIndex].scatter(pts[:, 0], pts[:, 1], c=labels, s=10, cmap='viridis')
     axes[row][columnIndex].scatter(centers[:, 0], centers[:, 1], c='red')
 
-def centerAllGuas(lines: List[matplotlib.lines.Line2D],axesIndex: int, labels: List[str], title: str, axes: np.ndarray, config: getPlottingData.EventChunkConfig):
+def centerAllGuas(lines: List[matplotlib.lines.Line2D], axes_index: int, labels: List[str], title: str, axes: np.ndarray, config: getPlottingData.EventChunkConfig):
+    labels_copy = np.copy(labels)
 
-    labelsCopy = np.copy(labels)
+    max_height_pol = 0  # Get the largest y value in all the polarized lines
+    max_height_nopol = 0  # Get the largest y value in all the non-polarized lines
 
-    max_height_pol = 0      # Get the largest y value in all the polarized lines
-    max_height_nopol = 0    # Get the largest y value in all the non-polarized lines
+    # TODO: see if getting raw y_data (get_ydata(1)) is useful
 
-    # TODO: do regex like in eventChunkGraphHist
-    rgx = re.compile('[0-9]+mV')
-
-    for i,line in enumerate(lines):
-        if "NoPolarizer" in labelsCopy[i]:
-            if np.max(line._y) > max_height_nopol:
-                max_height_nopol = np.max(line._y)
+    for i, line in enumerate(lines):
+        if "NoPolarizer" in labels_copy[i]:
+            if np.max(line.get_ydata(0)) > max_height_nopol:
+                max_height_nopol = np.max(line.get_ydata(0))
         else:
-            if np.max(line._y) > max_height_pol:
-                max_height_pol = np.max(line._y)
+            if np.max(line.get_ydata(0)) > max_height_pol:
+                max_height_pol = np.max(line.get_ydata(0))
 
-
-    for i,line in enumerate(lines):
-        max_y = np.max(line._y) 
-        index = np.where(line._y == max_y)
-        offset = line._x[index[0][0]]
+    for i, line in enumerate(lines):
+        max_y = np.max(line.get_ydata(0))
+        index = np.where(line.get_ydata(0) == max_y)
+        offset = line.get_xdata()[index[0][0]]
         row = 0
 
         if False:
             # TODO: fine control for automatic centering not working
-            if line._y[index[0][0] - 1] > offset:
-                diff_low = line._x[index[0][0] - 1] - offset
+            if line.get_ydata(0)[index[0][0] - 1] > offset:
+                diff_low = line.get_xdata()[index[0][0] - 1] - offset
             else:
-                diff_low = offset - line._x[index[0][0] -1] 
-            
-            if line._y[index[0][0] + 1] > offset:
-                diff_high = line._x[index[0][0] -1] + offset
+                diff_low = offset - line.get_xdata()[index[0][0] - 1]
+
+            if line.get_ydata(0)[index[0][0] + 1] > offset:
+                diff_high = line.get_xdata()[index[0][0] - 1] + offset
             else:
-                diff_high = offset - line._x[index[0][0] + 1] 
-            
+                diff_high = offset - line.get_xdata()[index[0][0] + 1]
+
             if diff_high > diff_low:
                 offset = offset + (offset - diff_high) / 2
             else:
                 offset = offset - (offset - diff_low) / 2
-        else:
+        elif True:
             # FIXME: manual shifting for now
-            if "NoPolarizer" in labelsCopy[i]:
-                if "burst" in labelsCopy[i]:
+            if "NoPolarizer" in labels_copy[i]:
+                if "burst" in labels_copy[i]:
                     offset = offset + 1.0
-                elif "sine" in labelsCopy[i]:
+                elif "sine" in labels_copy[i]:
                     offset = offset - 2.0
             else:
-                if "triangle" in labelsCopy[i]:
+                if "triangle" in labels_copy[i]:
                     offset = offset + 0.7
-                elif "burst" in labelsCopy[i]:
+                elif "burst" in labels_copy[i]:
                     offset = offset + 0.5
-                    
-        for j in range(len(line._x)):
-            line._x[j] = line._x[j] - offset
 
-        found_matches = re.findall(rgx, labelsCopy[i])
-        for match in found_matches:
-            labelsCopy[i] = labelsCopy[i].replace(match, "")
+        for j in range(len(line.get_xdata())):
+            line.get_xdata()[j] = line.get_xdata()[j] - offset
 
-        labelsCopy[i] =labelsCopy[i].replace(" Off Events","")
-        labelsCopy[i] =labelsCopy[i].replace(" On Events","")
-        labelsCopy[i] =labelsCopy[i].replace(" All Events","")
-        labelsCopy[i] =labelsCopy[i].replace("  "," ")
+        labels_copy[i] = clean_line_title(labels_copy[i])
 
-        if "NoPolarizer" in labelsCopy[i]:
+        if "NoPolarizer" in labels_copy[i]:
             row = 1
-            labelsCopy[i] = labelsCopy[i].replace(" NoPolarizer","")
-            axes[axesIndex][row].plot(line._x,line._y/max_height_nopol, label=labelsCopy[i].capitalize())
+            labels_copy[i] = labels_copy[i].replace(" NoPolarizer", "")
+            axes[axes_index][row].plot(line.get_xdata(), line.get_ydata(0) / max_height_nopol,
+                                       label=labels_copy[i].capitalize())
         else:
-            axes[axesIndex][row].plot(line._x,line._y/max_height_pol, label=labelsCopy[i].capitalize())
-            
-        
-        
-    axes[axesIndex][1].title.set_text("Non-Polarized "+title)
-    axes[axesIndex][0].title.set_text("Polarized " +title)
-    axes[axesIndex][0].legend(loc=1, prop={'size':11})
-    axes[axesIndex][1].legend(loc=1, prop={'size': 11})
+            axes[axes_index][row].plot(line.get_xdata(), line.get_ydata(0) / max_height_pol,
+                                       label=labels_copy[i].capitalize())
 
-    axes[axesIndex][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
-    axes[axesIndex][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
+    axes[axes_index][1].title.set_text("Non-Polarized " + title)
+    axes[axes_index][0].title.set_text("Polarized " + title)
+    axes[axes_index][0].legend(loc=1, prop={'size': 11})
+    axes[axes_index][1].legend(loc=1, prop={'size': 11})
 
-def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axesIndex: int, title: str, axes: np.ndarray, config: getPlottingData.EventChunkConfig):
+    axes[axes_index][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
+    axes[axes_index][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
 
-    labelsCopy = np.copy(labels)
+def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axes_index: int, title: str, axes: np.ndarray, config: getPlottingData.EventChunkConfig):
+    labels_copy = np.copy(labels)
     max_height = 0
 
     for line in lines:
-        if np.max(line._y) > max_height:
-            max_height = np.max(line._y)
+        if np.max(line.get_ydata(0)) > max_height:
+            max_height = np.max(line.get_ydata(0))
 
     for i, line in enumerate(lines):
-        shiftX = line._x[0]
-        for j, x in enumerate(line._x):
-            line._x[j] = x - shiftX
-        shiftY = line._y[0]
-        for j, y in enumerate(line._y):
-            line._y[j] = y - shiftY
+        shift_x = line.get_xdata()[0]
+        for j, x in enumerate(line.get_xdata()):
+            line.get_xdata()[j] = x - shift_x
+        shift_y = line.get_ydata(0)[0]
+        for j, y in enumerate(line.get_ydata()):
+            line.get_ydata(0)[j] = y - shift_y
         row = 0
-        if "NoPolarizer" in labelsCopy[i]:
-            labelsCopy[i] = labelsCopy[i].replace(" NoPolarizer","")
+        if "NoPolarizer" in labels_copy[i]:
+            labels_copy[i] = labels_copy[i].replace(" NoPolarizer", "")
             row = 1
-        
-        labelsCopy[i] =labelsCopy[i].replace(" Off Events","")
-        labelsCopy[i] =labelsCopy[i].replace(" On Events","")
-        labelsCopy[i] =labelsCopy[i].replace(" All Events","")
-        labelsCopy[i] =labelsCopy[i].replace("  "," ")
-        axes[axesIndex][row].plot(line._x,line._y/max_height, label=labelsCopy[i])
 
-    axes[axesIndex][1].title.set_text("Non-Polarized "+title)
-    axes[axesIndex][0].title.set_text("Polarized " +title)
-    axes[axesIndex][0].legend(loc=1, prop={'size':11})
-    axes[axesIndex][1].legend(loc=1, prop={'size': 11})
+        labels_copy[i] = clean_line_title(labels_copy[i])
+        axes[axes_index][row].plot(line.get_xdata(), line.get_ydata(0) / max_height, label=labels_copy[i])
 
-    axes[axesIndex][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
-    axes[axesIndex][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
+    axes[axes_index][1].title.set_text("Non-Polarized " + title)
+    axes[axes_index][0].title.set_text("Polarized " + title)
+    axes[axes_index][0].legend(loc=1, prop={'size': 11})
+    axes[axes_index][1].legend(loc=1, prop={'size': 11})
+
+    axes[axes_index][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
+    axes[axes_index][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
 
 def showFFT(data, file_count, folders):
     fftX = np.linspace(0.0, 1.0/(2.0*(1.0 / 800.0)), file_count/2)

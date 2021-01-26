@@ -15,8 +15,8 @@ import plotting_helper
 
 def clean_file_name(file_name: str, data_set_type: str) -> str:
     # Regex for name changes
-    file_name_changes = {"Event Chunks" : "", "no ?pol" : "NoPolarizer", "30 ?deg" : "",
-                            "15min" : "", "1hz" : "", "-+" : " ", " +" : " "}
+    file_name_changes = {"Event Chunks": "", "no ?pol": "NoPolarizer", "30 ?deg": "",
+                         "15min": "", "1hz": "", "-+": " ", " +": " "}
 
     for occurrence, replacement in file_name_changes.items():
         file_name = re.sub(occurrence, replacement, file_name)
@@ -25,9 +25,9 @@ def clean_file_name(file_name: str, data_set_type: str) -> str:
         file_name = file_name.replace('foam ', '')
     else:
         # Remove frequency from folder name (why?)
-        match = re.search("[0-9]{1,} ?hz", file_name)
+        match = re.search("[0-9]+ ?[hH]z", file_name)
         if match is not None:
-            file_name = file_name.replace(match, '')
+            file_name = file_name.replace(match[0], '')
 
     return file_name
 
@@ -244,7 +244,7 @@ for csv_path in csv_paths:
         if 'NoPolarizer' in csv_filename:
             if "sine" in csv_filename:
                 waveformsNoPolLines.sine.append(lines)
-            elif "square"  in csv_filename:
+            elif "square" in csv_filename:
                 waveformsNoPolLines.square.append(lines)
             elif "triangle" in csv_filename:
                 waveformsNoPolLines.triangle.append(lines)
