@@ -1,15 +1,25 @@
-data/
-imageData/
 __pycache__
-eventChunkData/
 logs
+venv/
+
+# Image files
 *.png
+*.tif
+imageData/
+
+# Data files
+*.npy
+*.csv
+*.zip
 waveforms/
 waveformsAndfrequency/
-*.csv
 results/
-*.npy
+eventChunkData/
+data/
 
-# Keep all files in example_plots directory
+# Pycharm .idea folder
+.idea/
+
+# Keep all files in example_plots and nn_examples directories
 !examples/example_plots/*
 !examples/nn_examples/*
