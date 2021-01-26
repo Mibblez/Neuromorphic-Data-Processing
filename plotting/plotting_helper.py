@@ -1,4 +1,5 @@
 import numpy as np
+from numpy.lib.function_base import diff
 from scipy import stats
 from scipy.stats import norm
 import matplotlib.pyplot as plt
@@ -9,6 +10,7 @@ from typing import Dict, Tuple, Sequence, List
 from numpy import sin, linspace, pi
 from pylab import plot, show, title, xlabel, ylabel, subplot
 from scipy import fft, arange
+import re
 
 import getPlottingData
 
@@ -28,7 +30,7 @@ def plot_hist(data: list, axes, plot_major: int, plot_minor: int, plot_color: st
     """
     Plots only the hist.
     """
-    y, x, _ = axes[plot_major][plot_minor].hist(data, bins=400, color=plot_color, edgecolor=plot_color, linewidth=1.5, density=True)
+    y, x, _ = axes[plot_major][plot_minor].hist(data, bins=100, color=plot_color, edgecolor=plot_color, linewidth=1.5, density=True)
     x = paddBins(x, 100)
     
     (mu, sigma) = norm.fit(data)
@@ -78,27 +80,77 @@ def centerAllGuas(lines: List[matplotlib.lines.Line2D],axesIndex: int, labels: L
 
     labelsCopy = np.copy(labels)
 
-    maxHeight = 0#Get the largest y value in all the lines
-    for line in lines:
-        if np.max(line._y) > maxHeight:
-            maxHeight = np.max(line._y)
+    max_height_pol = 0      # Get the largest y value in all the polarized lines
+    max_height_nopol = 0    # Get the largest y value in all the non-polarized lines
+
+    # TODO: do regex like in eventChunkGraphHist
+    rgx = re.compile('[0-9]+mV')
+
+    for i,line in enumerate(lines):
+        if "NoPolarizer" in labelsCopy[i]:
+            if np.max(line._y) > max_height_nopol:
+                max_height_nopol = np.max(line._y)
+        else:
+            if np.max(line._y) > max_height_pol:
+                max_height_pol = np.max(line._y)
 
 
     for i,line in enumerate(lines):
         max_y = np.max(line._y) 
         index = np.where(line._y == max_y)
         offset = line._x[index[0][0]]
-        for j in range(len(line._x)):
-            line._x[j] = line._x[j]- offset
         row = 0
-        if "NoPolarizer" in labelsCopy[i]:
-            row = 1
-            labelsCopy[i] = labelsCopy[i].replace(" NoPolarizer","")
+
+        if False:
+            # TODO: fine control for automatic centering not working
+            if line._y[index[0][0] - 1] > offset:
+                diff_low = line._x[index[0][0] - 1] - offset
+            else:
+                diff_low = offset - line._x[index[0][0] -1] 
+            
+            if line._y[index[0][0] + 1] > offset:
+                diff_high = line._x[index[0][0] -1] + offset
+            else:
+                diff_high = offset - line._x[index[0][0] + 1] 
+            
+            if diff_high > diff_low:
+                offset = offset + (offset - diff_high) / 2
+            else:
+                offset = offset - (offset - diff_low) / 2
+        else:
+            # FIXME: manual shifting for now
+            if "NoPolarizer" in labelsCopy[i]:
+                if "burst" in labelsCopy[i]:
+                    offset = offset + 1.0
+                elif "sine" in labelsCopy[i]:
+                    offset = offset - 2.0
+            else:
+                if "triangle" in labelsCopy[i]:
+                    offset = offset + 0.7
+                elif "burst" in labelsCopy[i]:
+                    offset = offset + 0.5
+                    
+        for j in range(len(line._x)):
+            line._x[j] = line._x[j] - offset
+
+        found_matches = re.findall(rgx, labelsCopy[i])
+        for match in found_matches:
+            labelsCopy[i] = labelsCopy[i].replace(match, "")
+
         labelsCopy[i] =labelsCopy[i].replace(" Off Events","")
         labelsCopy[i] =labelsCopy[i].replace(" On Events","")
         labelsCopy[i] =labelsCopy[i].replace(" All Events","")
         labelsCopy[i] =labelsCopy[i].replace("  "," ")
-        axes[axesIndex][row].plot(line._x,line._y/maxHeight, label=labelsCopy[i])
+
+        if "NoPolarizer" in labelsCopy[i]:
+            row = 1
+            labelsCopy[i] = labelsCopy[i].replace(" NoPolarizer","")
+            axes[axesIndex][row].plot(line._x,line._y/max_height_nopol, label=labelsCopy[i].capitalize())
+        else:
+            axes[axesIndex][row].plot(line._x,line._y/max_height_pol, label=labelsCopy[i].capitalize())
+            
+        
+        
     axes[axesIndex][1].title.set_text("Non-Polarized "+title)
     axes[axesIndex][0].title.set_text("Polarized " +title)
     axes[axesIndex][0].legend(loc=1, prop={'size':11})
