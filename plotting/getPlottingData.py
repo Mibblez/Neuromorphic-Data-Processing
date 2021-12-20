@@ -156,8 +156,8 @@ def getEventChunkData(folderName: str):
             
         return points       
 
-def parseConfig(location: str = 'config.json') -> EventChunkConfig:
-    config_json = json.loads(open(os.path.join("plotting",location)).read())
+def parseConfig(location: str = 'plotting/config.json') -> EventChunkConfig:
+    config_json = json.loads(open(location).read())
     config = EventChunkConfig()
     for i,key in  enumerate(config_json.keys()):
         setattr(config, key, config_json[key]) #assign all properties in json to config object
