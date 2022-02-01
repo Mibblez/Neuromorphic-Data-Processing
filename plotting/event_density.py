@@ -111,7 +111,7 @@ if __name__ == "__main__":
     degrees = re.search("[0-9]{1,} ?deg", csv_filename, re.IGNORECASE)
     if degrees:
         degrees = re.search("[0-9]{1,}", degrees.group()).group()
-        degrees = "_" + degrees + " Degrees Polarized"
+        degrees = "_" + degrees + "DegreesPolarized"
     else:
         degrees = ""
 
