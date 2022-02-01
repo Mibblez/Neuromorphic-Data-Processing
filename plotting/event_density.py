@@ -3,6 +3,8 @@ from itertools import islice
 import matplotlib.pyplot as plt
 import argparse
 import re
+import os
+
 
 pixel_x = None
 pixel_y = None
@@ -11,6 +13,7 @@ area_size = None
 max_plot_points = float("inf")
 
 csv_filename = None
+
 
 def get_args():
     global pixel_x, pixel_y, area_size, max_plot_points, csv_filename
@@ -26,37 +29,20 @@ def get_args():
     args = parser.parse_args()
     csv_filename = args.aedat_csv_file
 
+    if not os.path.exists(csv_filename):
+        quit(f"the file you have passed, {csv_filename}, does not exist")
     pixel_x = args.pixel_x
-    if(pixel_x < 0):
+    if pixel_x < 0:
         quit("pixel_x coordinate was negative, it should be a positive integer")
-    
     pixel_y = args.pixel_y
-    if(pixel_y < 0):
+    if pixel_y < 0:
         quit("pixel_y coordinate was negative, it should be positive integer")
-
     area_size = args.area_size
-    if(area_size < 0):
-        quit("area_size was negative, it should be positive integer")
-    
-    if(args.max_plot_points is not None and args.max_plot_points > 0):
+    if area_size < 0:
+        quit("area_size was negative, it should be positive integer")   
+    if args.max_plot_points is not None and args.max_plot_points > 0:
         max_plot_points = args.max_plot_points
         print(max_plot_points)
-
-    
-    
-
-# FIXME: ▼▼▼▼▼▼ change all these variables to command line args
-# The pixel to examine
-
-
-# pixel_x = 115
-# pixel_y = 45
-
-# area_size = 10
-# max_plot_points = 25
-
-# csv_filename = '5Hz_pol.csv'
-# FIXME: ▲▲▲▲▲▲ change all these variables to command line args
 
 
 if __name__ == "__main__":
@@ -115,17 +101,17 @@ if __name__ == "__main__":
     hz = hz.group() if hz else ""
 
     voltage = re.search('(\d+(?:\.\d+)?) ?v', csv_filename, re.IGNORECASE)
-    voltage = voltage.group() + " " if voltage else ""
+    voltage = voltage.group() + "_" if voltage else ""
 
     waveform_type = re.search('(burst|sine|square|triangle|noise)', csv_filename, re.IGNORECASE)
-    waveform_type = waveform_type.group() + " " if waveform_type else ""
+    waveform_type = waveform_type.group() + "_" if waveform_type else ""
 
     # TODO: what if the file is specified as polarized but no angle is given?
 
     degrees = re.search("[0-9]{1,} ?deg", csv_filename, re.IGNORECASE)
     if degrees:
         degrees = re.search("[0-9]{1,}", degrees.group()).group()
-        degrees = " " + degrees + " Degrees Polarized"
+        degrees = "_" + degrees + " Degrees Polarized"
     else:
         degrees = ""
 
