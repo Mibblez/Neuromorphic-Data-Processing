@@ -1,4 +1,3 @@
-import imp
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter, AutoMinorLocator
 import argparse
