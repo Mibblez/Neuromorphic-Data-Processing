@@ -39,10 +39,9 @@ def get_args():
         quit("pixel_y coordinate was negative, it should be positive integer")
     area_size = args.area_size
     if area_size < 0:
-        quit("area_size was negative, it should be positive integer")   
+        quit("area_size was negative, it should be positive integer")
     if args.max_plot_points is not None and args.max_plot_points > 0:
         max_plot_points = args.max_plot_points
-        print(max_plot_points)
 
 
 if __name__ == "__main__":
