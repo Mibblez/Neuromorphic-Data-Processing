@@ -13,6 +13,7 @@ import getPlottingData
 from getPlottingData import CsvData
 import plotting_helper
 
+
 def clean_file_name(file_name: str, data_set_type: str) -> str:
     # Regex for name changes
     file_name_changes = {"Event Chunks": "", "no ?pol": "NoPolarizer", "30 ?deg": "",
@@ -30,6 +31,7 @@ def clean_file_name(file_name: str, data_set_type: str) -> str:
             file_name = file_name.replace(match[0], '')
 
     return file_name
+
 
 def plot_bars(ax_var: np.ndarray, event_lists: List, labels: List, titles: List, title_extra: str) -> np.ndarray:
     if len(event_lists) != 6 or len(titles) != 6:
@@ -60,15 +62,18 @@ def plot_bars(ax_var: np.ndarray, event_lists: List, labels: List, titles: List,
 
     return ax_var
 
+
 class OnOffBothLines:
     on: matplotlib.lines.Line2D = None
     off: matplotlib.lines.Line2D = None
     both: matplotlib.lines.Line2D = None
 
+
 class OnOffBothFloat:
     on: float = None
     off: float = None
     both: float = None
+
 
 class WaveformsLines:
     sine: List[OnOffBothLines] = []
@@ -107,6 +112,7 @@ class WaveformsLines:
 
         return data
 
+
 class WaveformsNumbers:
     sine: List[OnOffBothFloat] = []
     square: List[OnOffBothFloat] = []
@@ -128,6 +134,7 @@ class WaveformsNumbers:
 
     def waveform_both_to_list(self, i: int) -> List:
         return [self.sine[i].both, self.square[i].both, self.burst[i].both, self.triangle[i].both]
+
 
 # Make results directory if it doesn't exist
 if not os.path.exists(os.path.join("results", "EventChunkGraphs")):
@@ -183,10 +190,10 @@ csv_paths = glob.glob(os.path.join('data', config.dataFolder, '**/*.csv'), recur
 csv_paths = natsorted(csv_paths, alg=ns.IGNORECASE)
 
 for csv_path in csv_paths:
-    d: CsvData = getPlottingData.read_aedat_csv(csv_path, 
-        config.reconstructionWindow, 
+    d: CsvData = getPlottingData.read_aedat_csv(csv_path,
+        config.reconstructionWindow,
         config.maxEventCount)
-    
+
     if config.logValues:
         onAvg = np.array(d.y_on).mean()
         offAvg = np.array(d.y_off).mean()
@@ -223,22 +230,22 @@ for csv_path in csv_paths:
     lines = OnOffBothLines()
 
     # Off events
-    l = plotting_helper.plot_hist(d.y_off, axes, 1, 0, 'red', config.logValues)
-    l.remove()
-    offGuas.append(l)
-    lines.off = l
+    current_line = plotting_helper.plot_hist(d.y_off, axes, 1, 0, 'red', config.logValues)
+    current_line.remove()
+    offGuas.append(current_line)
+    lines.off = current_line
 
     # On Events
-    l = plotting_helper.plot_hist(d.y_on, axes, 1, 1, 'green', config.logValues)
-    l.remove()
-    onGuas.append(l)
-    lines.on = l
+    current_line = plotting_helper.plot_hist(d.y_on, axes, 1, 1, 'green', config.logValues)
+    current_line.remove()
+    onGuas.append(current_line)
+    lines.on = current_line
 
     # On & Off Events
-    l = plotting_helper.plot_hist(d.y_all, axes, 1, 2, 'blue', config.logValues)
-    l.remove()
-    bothGuas.append(l)
-    lines.both = l
+    current_line = plotting_helper.plot_hist(d.y_all, axes, 1, 2, 'blue', config.logValues)
+    current_line.remove()
+    bothGuas.append(current_line)
+    lines.both = current_line
 
     if config.dataSetType == 'waveformsAndFrequency':
         if 'NoPolarizer' in csv_filename:
@@ -253,7 +260,7 @@ for csv_path in csv_paths:
         else:
             if "sine" in csv_filename:
                 waveforms.sine.append(lines)
-            elif "square"  in csv_filename:
+            elif "square" in csv_filename:
                 waveforms.square.append(lines)
             elif "triangle" in csv_filename:
                 waveforms.triangle.append(lines)
@@ -266,12 +273,12 @@ for csv_path in csv_paths:
 
     # Format & add data to scatter sub-plots
     axes[0][0].scatter(d.time_windows, d.y_off, c='red', picker=True, s=1)
-    axes[1][0].title.set_text(csv_filename +" Off Events")
+    axes[1][0].title.set_text(csv_filename + " Off Events")
     axes[0][1].scatter(d.time_windows, d.y_on, c='green', picker=True, s=1)
-    axes[1][1].title.set_text(csv_filename +" On Events")
+    axes[1][1].title.set_text(csv_filename + " On Events")
     axes[0][2].scatter(d.time_windows, d.y_all, c='blue', picker=True, s=1)
 
-    plt.title(csv_filename +" All Events")
+    plt.title(csv_filename + " All Events")
 
     if 'NoPolarizer' in csv_filename:
         noPolLabels.append(csv_filename.replace("NoPolarizer", ""))
@@ -288,7 +295,7 @@ for csv_path in csv_paths:
             if config.dataSetType == 'waveformsAndFrequency':
                 if "sine" in csv_filename:
                     waveformsNoPolVariance.sine.append(onOffBoth)
-                elif "square"  in csv_filename:
+                elif "square" in csv_filename:
                     waveformsNoPolVariance.square.append(onOffBoth)
                 elif "triangle" in csv_filename:
                     waveformsNoPolVariance.triangle.append(onOffBoth)
@@ -302,7 +309,7 @@ for csv_path in csv_paths:
             if config.dataSetType == 'waveformsAndFrequency':
                 if "sine" in csv_filename:
                     waveformsPolVariance.sine.append(onOffBoth)
-                elif "square"  in csv_filename:
+                elif "square" in csv_filename:
                     waveformsPolVariance.square.append(onOffBoth)
                 elif "triangle" in csv_filename:
                     waveformsPolVariance.triangle.append(onOffBoth)
@@ -325,7 +332,7 @@ for csv_path in csv_paths:
             if config.dataSetType == 'waveformsAndFrequency':
                 if "sine" in csv_filename:
                     waveformsNoPolFWHM.sine.append(onOffBoth)
-                elif "square"  in csv_filename:
+                elif "square" in csv_filename:
                     waveformsNoPolFWHM.square.append(onOffBoth)
                 elif "triangle" in csv_filename:
                     waveformsNoPolFWHM.triangle.append(onOffBoth)
@@ -339,7 +346,7 @@ for csv_path in csv_paths:
             if config.dataSetType == 'waveformsAndFrequency':
                 if "sine" in csv_filename:
                     waveformsFWHM.sine.append(onOffBoth)
-                elif "square"  in csv_filename:
+                elif "square" in csv_filename:
                     waveformsFWHM.square.append(onOffBoth)
                 elif "triangle" in csv_filename:
                     waveformsFWHM.triangle.append(onOffBoth)
@@ -428,7 +435,7 @@ if config.dataSetType == 'waveformsAndFrequency':
         plotting_helper.showAllGuas(offEventsNoPol, labelsNoPol, 0, "Off Events " + "Sine", axes, config)
         plotting_helper.showAllGuas(onEventsNoPol, labelsNoPol, 1, "On Events " + "Sine", axes, config)
         plotting_helper.showAllGuas(bothEventsNoPol, labelsNoPol, 2, "Combined Events " + "Sine", axes, config)
-        
+
         if saveFigures:
             plt.savefig(os.path.join("results", "EventChunkGraphs", 'showAllGuasFrequencySine.png'))
             plt.close()
