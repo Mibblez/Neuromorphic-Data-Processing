@@ -46,20 +46,24 @@ class EventChunkConfig:
 
     gaussianMaxY:float
 
-    def __init__(self):
-        self.graphType = 'hist'
-        self.dataFolder =''
-        self.saveFigures = False
-        self.plotVariance = False
-        self.FWHMMultiplier = 2.355
-        self.logValues = False
-        self.plotFWHM = False
-        self.dataSetType ='waveformsAndFrequency'
-        self.plotConstant = 'waveforms'
-        self.maxEventCount = -1
-        self.reconstructionWindow = 500
-        self.gaussianMinY = 0
-        self.gaussianMaxY = 1
+    def __init__(self, graph_type='hist', data_folder='', save_figures=False, plot_variance=False,
+                 fwhm_multiplier=2.355, log_values=False, plot_fwhm=False,
+                 data_set_type='waveformsAndFrequency', plot_constant='waveforms', max_event_count=-1,
+                 reconstruction_window=500, gaussian_min_y=0, gaussian_max_y=1
+                 ):
+        self.graphType = graph_type
+        self.dataFolder = data_folder
+        self.saveFigures = save_figures
+        self.plotVariance = plot_variance
+        self.FWHMMultiplier = fwhm_multiplier
+        self.logValues = log_values
+        self.plotFWHM = plot_fwhm
+        self.dataSetType = data_set_type
+        self.plotConstant = plot_constant
+        self.maxEventCount = max_event_count
+        self.reconstructionWindow = reconstruction_window
+        self.gaussianMinY = gaussian_min_y
+        self.gaussianMaxY = gaussian_max_y
 
 # TODO: rename to CsvChunkData
 class CsvData:
@@ -156,9 +160,14 @@ def getEventChunkData(folderName: str):
             
         return points       
 
-def parseConfig(location: str = 'plotting/config.json') -> EventChunkConfig:
+def parseConfig(location: str = 'plotting/config.json', data_folder=None) -> EventChunkConfig:
     config_json = json.loads(open(location).read())
     config = EventChunkConfig()
     for i,key in  enumerate(config_json.keys()):
         setattr(config, key, config_json[key]) #assign all properties in json to config object
+
+    # HACK
+    if data_folder:
+        setattr(config, "dataFolder", data_folder)
+
     return config

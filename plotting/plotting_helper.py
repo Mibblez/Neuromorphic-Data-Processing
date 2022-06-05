@@ -11,6 +11,27 @@ import re
 
 import getPlottingData
 
+
+class FloatRangeArg(object):
+    def __init__(self, min, max):
+        self.min = min
+        self.max = max
+
+    def __eq__(self, other):
+        return self.min <= other <= self.max
+
+    # Define to make argparse's error message more readable when an out of range value is provided
+    def __repr__(self) -> str:
+        return f"{self.min}-{self.max}"
+
+    # Define to avoid having to wrap the class in a list when providing to choices
+    def __getitem__(self, index):
+        if index == 0:
+            return self
+        else:
+            raise IndexError()
+
+
 def clean_line_title(label: str) -> str:
     line_title_changes = {" ?(Off|On|All) Events": "", " ?[0-9]+(_| )?m[vV]": ""}
 
@@ -19,25 +40,27 @@ def clean_line_title(label: str) -> str:
 
     return label
 
+
 def paddBins(bins2: np.ndarray, paddTimes: int):
 
     # pad left & right
     difference = bins2[1] - bins2[0]
     for i in range(paddTimes):
-        bins2= np.insert(bins2,0,bins2[0] -(difference*(i+1)))
-    
+        bins2 = np.insert(bins2, 0, bins2[0] - (difference*(i+1)))
+
     for i in range(paddTimes):
-        bins2= np.append(bins2,bins2[len(bins2)-1]+difference*(i+1) )
+        bins2 = np.append(bins2, bins2[len(bins2)-1]+difference*(i+1))
 
     return bins2
 
-def plot_hist(data: list, axes, plot_major: int, plot_minor: int, plot_color: str, log_values: bool)->matplotlib.lines.Line2D:
+
+def plot_hist(data: list, axes, plot_major: int, plot_minor: int, plot_color: str, log_values: bool) -> matplotlib.lines.Line2D:
     """
     Plots only the hist.
     """
     y, x, _ = axes[plot_major][plot_minor].hist(data, bins=100, color=plot_color, edgecolor=plot_color, linewidth=1.5, density=True)
     x = paddBins(x, 100)
-    
+
     (mu, sigma) = norm.fit(data)
     y = stats.norm.pdf(x, mu, sigma)
     accuracy = 0.002
@@ -51,35 +74,38 @@ def plot_hist(data: list, axes, plot_major: int, plot_minor: int, plot_color: st
         x = np.delete(x, len(x)-1)
 
     l = axes[plot_major][plot_minor].plot(x, y, linewidth=2)
-    
+
     return l[0]
 
-def find_clusters(X: list, n_clusters: int, rseed: int=2) -> Tuple[list, np.ndarray]:
+
+def find_clusters(X: list, n_clusters: int, rseed: int = 2) -> Tuple[list, np.ndarray]:
     # 1. Randomly choose clusters
     rng = np.random.RandomState(rseed)
     i = rng.permutation(X.shape[0])[:n_clusters]
     centers = X[i]
-    
+
     while True:
         # 2a. Assign labels based on closest center
         labels = pairwise_distances_argmin(X, centers)
-        
+
         # 2b. Find new centers from means of points
         new_centers = np.array([X[labels == i].mean(0)
                                 for i in range(n_clusters)])
-        
+
         # 2c. Check for convergence
         if np.all(centers == new_centers):
             break
         centers = new_centers
-    
+
     return centers, labels
 
-def plotKmeans(data,axes, row, columnIndex,numberOfCenters):
+
+def plotKmeans(data, axes, row, columnIndex, numberOfCenters):
     pts = np.asarray(data)
-    centers, labels = find_clusters(pts,numberOfCenters)
+    centers, labels = find_clusters(pts, numberOfCenters)
     axes[row][columnIndex].scatter(pts[:, 0], pts[:, 1], c=labels, s=10, cmap='viridis')
     axes[row][columnIndex].scatter(centers[:, 0], centers[:, 1], c='red')
+
 
 def centerAllGuas(lines: List[matplotlib.lines.Line2D], axes_index: int, labels: List[str], title: str, axes: np.ndarray, config: getPlottingData.EventChunkConfig):
     labels_copy = np.copy(labels)
@@ -154,6 +180,7 @@ def centerAllGuas(lines: List[matplotlib.lines.Line2D], axes_index: int, labels:
     axes[axes_index][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
     axes[axes_index][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
 
+
 def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axes_index: int, title: str, axes: np.ndarray, config: getPlottingData.EventChunkConfig):
     labels_copy = np.copy(labels)
     max_height = 0
@@ -185,16 +212,17 @@ def showAllGuas(lines: List[matplotlib.lines.Line2D], labels: List[str], axes_in
     axes[axes_index][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
     axes[axes_index][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
 
+
 def showFFT(data, file_count, folders):
     fftX = np.linspace(0.0, 1.0/(2.0*(1.0 / 800.0)), file_count/2)
 
-    polLabels =[]
+    polLabels = []
     polFreq = []
     noPolLabels = []
     noPolFreq = []
 
     for i, y in enumerate(data):
-        if("no pol" in folders[i] ):
+        if("no pol" in folders[i]):
             noPolLabels.append(folders[i])
             noPolFreq.append(y)
         else:
@@ -206,27 +234,28 @@ def showFFT(data, file_count, folders):
     for i, y in enumerate(polFreq):
         axes[0].plot(fftX, 2.0/file_count * np.abs(y[:file_count//2]), label=polLabels[i].replace('Event Chunks', ''))
 
-    axes[0].set_xlim(2,60)
+    axes[0].set_xlim(2, 60)
     axes[0].legend()
 
     for i, y in enumerate(noPolFreq):
         axes[1].plot(fftX, 2.0/file_count * np.abs(y[:file_count//2]), label=noPolLabels[i].replace('Event Chunks', ''))
 
-    axes[1].set_xlim(2,60)
+    axes[1].set_xlim(2, 60)
     axes[1].legend()
     plt.show()
 
+
 # TODO: make sure this works
-def plotSpectrum(y,Fs): 
-    n = len(y) # length of the signal
+def plotSpectrum(y, Fs):
+    n = len(y)  # length of the signal
     k = arange(n)
     T = n/Fs
-    frq = k/T # two sides frequency range
-    frq = frq[range(int(n/2))] # one side frequency range
+    frq = k/T  # two sides frequency range
+    frq = frq[range(int(n/2))]  # one side frequency range
 
-    Y = fft(y)/n # fft computing and normalization
+    Y = fft(y)/n  # fft computing and normalization
     Y = Y[int(range(n/2))]
 
-    plot(frq,abs(Y),'r') # plotting the spectrum
+    plot(frq, abs(Y), 'r')  # plotting the spectrum
     xlabel('Freq (Hz)')
     ylabel('|Y(freq)|')
