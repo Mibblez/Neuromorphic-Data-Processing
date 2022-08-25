@@ -6,7 +6,6 @@ X Axis: Time
 CSV Format: on/off,x,y,timestamp
 """
 import csv
-from itertools import islice
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 import math
@@ -15,6 +14,7 @@ import argparse
 import os
 import itertools
 import re
+from plotting_helper import check_aedat_csv_format
 
 file_to_plot = ''
 time_limit = math.inf
@@ -22,6 +22,7 @@ manual_title = None
 pixel_x = None
 pixel_y = None
 area_size = None
+
 
 def get_args():
     global file_to_plot, pixel_x, pixel_y, area_size, time_limit, manual_title
@@ -44,34 +45,49 @@ def get_args():
         quit(f'File does not exist: {file_to_plot}')
     elif os.path.isdir(file_to_plot):
         quit(f"'{file_to_plot}' is a directory. It should be a csv file")
-    
+
     if args.time_limit is not None:
         time_limit = args.time_limit
-    
+
     if args.title is not None:
         manual_title = args.title
-    
+
     pixel_x = args.pixel_x
     pixel_y = args.pixel_y
     area_size = args.area_size
 
-def get_activity_area(csv_file, pixel_x: int, pixel_y: int, area_size: int, max_points: int=sys.maxsize, time_limit: float=math.inf):
+
+def get_activity_area(csv_file, pixel_x: int, pixel_y: int, area_size: int, max_points: int = sys.maxsize,
+                      time_limit: float = math.inf):
     points = []
     first_timestamp = 0
 
     with open(csv_file, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
-        next(reader, None) # Skip header
+
+        header = next(reader, None)  # Grab the header
+
+        # Strip whitespace from header if there is any
+        header = [x.strip(' ') for x in header]
+
+        if not check_aedat_csv_format(header, ['On/Off', 'X', 'Y', 'Timestamp']):
+            quit(f'File {csv_file} is not of the correct format.\n'
+                 'A csv containing X, Y, and Timestamp columns is required.')
+
+        polarity_index = header.index('On/Off')
+        x_index = header.index('X')
+        y_index = header.index('Y')
+        timestamp_index = header.index('Timestamp')
 
         first_row = next(reader, None)
-        first_timestamp = int(first_row[3])
+        first_timestamp = int(first_row[timestamp_index])
 
         if time_limit != math.inf:
             time_limit = time_limit * 1000000   # Convert to microseconds
 
         for row in itertools.chain([first_row], reader):
-            x_pos = int(row[1])
-            y_pos = 128 - int(row[2])
+            x_pos = int(row[x_index])
+            y_pos = 128 - int(row[y_index])
 
             timestamp = float(int(row[3]) - first_timestamp)
             if timestamp > time_limit:
@@ -82,23 +98,24 @@ def get_activity_area(csv_file, pixel_x: int, pixel_y: int, area_size: int, max_
 
             # Check if this event is inside the specified area
             if check_x < area_size and check_y < area_size:
-                if row[0] in ['1', 'True']:
+                if row[polarity_index] in ['1', 'True']:
                     points.append([1, timestamp])
                 else:
                     points.append([-1, timestamp])
-                
+
                 if len(points) == max_points:
                     return points
 
     return points
 
-def get_activity_global(csv_file, max_points: int=sys.maxsize, time_limit: float=math.inf):
+
+def get_activity_global(csv_file, max_points: int = sys.maxsize, time_limit: float = math.inf):
     points = []
     first_timestamp = 0
 
     with open(csv_file, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
-        next(reader, None) # Skip header
+        next(reader, None)  # Skip header
 
         first_row = next(reader, None)
         first_timestamp = int(first_row[3])
@@ -115,11 +132,12 @@ def get_activity_global(csv_file, max_points: int=sys.maxsize, time_limit: float
                 points.append([1, timestamp])
             else:
                 points.append([-1, timestamp])
-            
+
             if len(points) == max_points:
-                    return points
+                return points
 
     return points
+
 
 def auto_generate_title(file_name: str) -> str:
     hz = ""
@@ -132,13 +150,13 @@ def auto_generate_title(file_name: str) -> str:
         hz = re.search("[0-9]{1,} ?[H|h][Z|z]", file_name).group()
     except AttributeError:
         hz = ""
-    
+
     # Try to grab voltage from filename
     try:
         voltage = re.search('(\d+(?:\.\d+)?) ?v', file_name, re.IGNORECASE).group() + " "
     except AttributeError:
         voltage = ""
-    
+
     # Try to grab waveform type from filename
     try:
         waveform_type = re.search('(burst|sine|square|triangle|noise)', file_name, re.IGNORECASE).group() + " "
@@ -156,15 +174,15 @@ def auto_generate_title(file_name: str) -> str:
             if hz == "":
                 print("WARNING: Could not infer polarizer angle or frequency from file name")
             title = hz + " Polarized"
-    
+
     return title
+
 
 if __name__ == '__main__':
     get_args()
 
     file_path = file_to_plot
-    
-    # TODO: ensure that the correct csv type was given
+
     points = get_activity_area(file_path, pixel_x, pixel_y, area_size, time_limit=time_limit)
     #points = get_activity_global(file_to_plot, time_limit=0.01)
 
@@ -176,7 +194,9 @@ if __name__ == '__main__':
             color = 'g'
         else:
             color = 'r'
-        plt.plot([timestamp_seconds, timestamp_seconds], [0, point[0]], color) # Add to points at the same X value to make vertical lines
+
+        # Add to points at the same X value to make vertical lines
+        plt.plot([timestamp_seconds, timestamp_seconds], [0, point[0]], color)
 
     plt.ylim(-1.1, 1.1)
 
@@ -194,7 +214,8 @@ if __name__ == '__main__':
 
     plt.gcf().set_size_inches((25, 5))
 
-    ax = plt.gca() # Get axis
+    # Get axis
+    ax = plt.gca()
 
     # Set Y-axis tick spacing
     ax.yaxis.set_major_locator(mticker.MultipleLocator(1))

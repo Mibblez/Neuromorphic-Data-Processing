@@ -32,6 +32,10 @@ class FloatRangeArg(object):
             raise IndexError()
 
 
+def check_aedat_csv_format(csv_header: list, required_data: list) -> bool:
+    return set(required_data).issubset(set(csv_header))
+
+
 def clean_line_title(label: str) -> str:
     line_title_changes = {" ?(Off|On|All) Events": "", " ?[0-9]+(_| )?m[vV]": ""}
 
