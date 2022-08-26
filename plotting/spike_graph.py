@@ -15,6 +15,7 @@ import os
 import itertools
 import re
 from plotting_helper import check_aedat_csv_format
+from plotting_helper import FileNameRegex
 
 file_to_plot = ''
 time_limit = math.inf
@@ -140,40 +141,15 @@ def get_activity_global(csv_file, max_points: int = sys.maxsize, time_limit: flo
 
 
 def auto_generate_title(file_name: str) -> str:
-    hz = ""
-    voltage = ""
-    waveform_type = ""
-    title = ""
-
-    # Try to grab frequency from filename
-    try:
-        hz = re.search("[0-9]{1,} ?[H|h][Z|z]", file_name).group()
-    except AttributeError:
-        hz = ""
-
-    # Try to grab voltage from filename
-    try:
-        voltage = re.search('(\d+(?:\.\d+)?) ?v', file_name, re.IGNORECASE).group() + " "
-    except AttributeError:
-        voltage = ""
-
-    # Try to grab waveform type from filename
-    try:
-        waveform_type = re.search('(burst|sine|square|triangle|noise)', file_name, re.IGNORECASE).group() + " "
-    except AttributeError:
-        waveform_type = ""
+    hz = FileNameRegex.parse_frequency(file_name, " ")
+    voltage = FileNameRegex.parse_voltage(file_name, " ")
+    waveform_type = FileNameRegex.parse_waveform(file_name, " ")
 
     if re.search('no ?pol', file_name, re.IGNORECASE):
-        title = f"{waveform_type}{voltage}{hz} Unpolarized"
+        title = f"{waveform_type}{voltage}{hz}Unpolarized"
     else:
-        try:
-            degrees = re.search("[0-9]{1,} ?deg", os.path.basename(file_name), re.IGNORECASE).group()
-            degrees = re.search("[0-9]{1,}", degrees).group()
-            title = f"{waveform_type}{voltage}{hz} Polarized {degrees} Degrees"
-        except AttributeError:
-            if hz == "":
-                print("WARNING: Could not infer polarizer angle or frequency from file name")
-            title = hz + " Polarized"
+        degrees = FileNameRegex.parse_degrees(file_name, " Degrees Polarized")
+        title = f"{waveform_type}{voltage}{hz}{degrees}"
 
     return title
 
