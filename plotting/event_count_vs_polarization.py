@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter, AutoMinorLocator
 import argparse
-import re
 import os
+from plotting_helper import FileNameRegex
 from natsort import natsorted
 import pandas as pd
 import tqdm
@@ -44,14 +44,12 @@ if __name__ == "__main__":
         if not os.path.isdir(os.path.join(csv_folder, current_folder)):
             continue
 
-        hz = re.search("[0-9]{1,} ?[H|h][Z|z]", current_folder)
+        hz = FileNameRegex.parse_frequency(current_folder)
 
-        if not hz:
+        if hz == "":
             if debug_info:
                 print(f"Could not parse frequency for folder '{current_folder}', skipping...")
             continue
-
-        hz = hz.group()
 
         # Update progress bar if it is being used
         if type(pbar) == tqdm.std.tqdm:
@@ -67,15 +65,15 @@ if __name__ == "__main__":
                 continue
 
             full_csv_path = os.path.join(csv_folder, current_folder, csv_filename)
-            # print(full_csv_path)
 
-            degrees = re.search("[0-9]{1,} ?deg", csv_filename, re.IGNORECASE)
-            if degrees:
-                degrees = int(re.search("[0-9]{1,}", degrees.group()).group())
-            else:
+            degrees = FileNameRegex.parse_degrees(csv_filename)
+
+            if degrees == "":
                 if debug_info:
                     print(f"Could not parse polarization angle for file '{full_csv_path}', skipping...")
                 continue
+
+            degrees = int(degrees)
 
             df = pd.read_csv(full_csv_path, header=0, usecols=['Timestamp'])
 

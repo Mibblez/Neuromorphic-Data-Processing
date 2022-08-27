@@ -1,8 +1,8 @@
 import csv
 from itertools import islice
 import matplotlib.pyplot as plt
+from plotting_helper import FileNameRegex
 import argparse
-import re
 import os
 
 
@@ -96,28 +96,17 @@ if __name__ == "__main__":
     plt.title('Temporal Resoltion')
     plt.xlabel('Time(mS)')
 
-    hz = re.search("[0-9]{1,} ?[H|h][Z|z]", csv_filename)
-    hz = hz.group() if hz else ""
-
-    voltage = re.search('(\d+(?:\.\d+)?) ?v', csv_filename, re.IGNORECASE)
-    voltage = voltage.group() + "_" if voltage else ""
-
-    waveform_type = re.search('(burst|sine|square|triangle|noise)', csv_filename, re.IGNORECASE)
-    waveform_type = waveform_type.group() + "_" if waveform_type else ""
+    hz = FileNameRegex.parse_frequency(csv_filename, "_")
+    voltage = FileNameRegex.parse_voltage(csv_filename, "_")
+    waveform_type = FileNameRegex.parse_waveform(csv_filename, "_")
+    degrees = FileNameRegex.parse_degrees(csv_filename, "_DegreesPolarized")
 
     # TODO: what if the file is specified as polarized but no angle is given?
-
-    degrees = re.search("[0-9]{1,} ?deg", csv_filename, re.IGNORECASE)
-    if degrees:
-        degrees = re.search("[0-9]{1,}", degrees.group()).group()
-        degrees = "_" + degrees + "DegreesPolarized"
-    else:
-        degrees = ""
 
     if hz == "" and degrees == "":
         print("WARNING: Could not infer polarizer angle or frequency from file name")
 
-    plt.savefig(f"{waveform_type}{voltage}{hz}{degrees}_event_density.png")
+    plt.savefig(f"{hz}{voltage}{waveform_type}{degrees}_event_density.png")
 
     if len(time_between) != 0:
         print(f"Average time between: {round(sum(time_between) / len(time_between), 2)}mS")

@@ -103,8 +103,6 @@ if __name__ == '__main__':
     waveform_type = FileNameRegex.parse_waveform(file_name, " ")
     degrees = FileNameRegex.parse_degrees(file_name, " Degrees Polarized")
 
-    # TODO: what if the file is specified as polarized but no angle is given?
-
     if hz == "" and degrees == "":
         print("WARNING: Could not infer polarizer angle or frequency from file name")
 

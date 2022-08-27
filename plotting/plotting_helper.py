@@ -22,7 +22,7 @@ class FileNameRegex():
         return voltage.group() + append_if_found if voltage else ""
 
     def parse_waveform(input_str: str, append_if_found: str = "") -> str:
-        waveform = re.search("(burst|sine|square|triangle|noise)", input_str)
+        waveform = re.search("(burst|sine|square|triangle|noise)", input_str, re.IGNORECASE)
         return waveform.group() + append_if_found if waveform else ""
 
     def parse_degrees(input_str: str, append_if_found: str = "") -> str:
