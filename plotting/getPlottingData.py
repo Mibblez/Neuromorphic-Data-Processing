@@ -7,6 +7,7 @@ import numpy as np
 import json
 import itertools
 from typing import List
+import sys
 import math
 
 class EventChunkConfig:
@@ -65,6 +66,7 @@ class EventChunkConfig:
         self.gaussianMinY = gaussian_min_y
         self.gaussianMaxY = gaussian_max_y
 
+
 # TODO: rename to CsvChunkData
 class CsvData:
     file_name: str
@@ -79,6 +81,21 @@ class CsvData:
         self.y_on = y_on
         self.y_off = y_off
         self.y_all = y_all
+
+
+class SpatialCsvData():
+    def __init__(self):
+        self.polarities: List[bool] = []
+        self.x_positions: List[int] = []
+        self.y_positions: List[int] = []
+        self.timestamps: List[int] = []
+
+    def append_row(self, polarity: bool, x: int, y: int, timestamp: int):
+        self.polarities.append(polarity)
+        self.x_positions.append(x)
+        self.y_positions.append(y)
+        self.timestamps.append(timestamp)
+
 
 # TODO: indicate that this is for chunk CSVs
 def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData:
@@ -116,19 +133,22 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
 
     return CsvData(csv_path, x, y_on, y_off, y_all)
 
-# TODO: return an object instead of a list
-def get_spatial_csv_data(csv_file: str, time_limit: float = math.inf):
-    points = []
+
+def get_spatial_csv_data(csv_file: str, time_limit: int = sys.maxsize) -> SpatialCsvData:
     first_timestamp = 0
-    time_limit = time_limit * 1000000 # Convert to microseconds
+    if time_limit != sys.maxsize:
+        time_limit = int(time_limit * 1000000)  # Convert to microseconds
+
+    spatial_csv_data = SpatialCsvData()
 
     with open(csv_file, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
-        header = next(reader, None) # Grab header
+        header = next(reader, None)  # Grab header
 
         # Make sure CSV is the correct format
         if header != ['On/Off', 'X', 'Y', 'Timestamp']:
-            raise ValueError(f"CSV may not be the correct format.\nHeader should be On/Off,X,Y,Timestamp")
+            raise ValueError("CSV may not be the correct format.\n"
+                             "Header should be On/Off,X,Y,Timestamp")
 
         first_row = next(reader, None)
         first_timestamp = int(first_row[3])
@@ -137,15 +157,16 @@ def get_spatial_csv_data(csv_file: str, time_limit: float = math.inf):
             timestamp = int(row[3]) - first_timestamp
 
             if timestamp > time_limit:
-                return points
+                break
 
             polarity = row[0] in ['1', 'True']
             x_pos = int(row[1])
             y_pos = 128 - int(row[2])
 
-            points.append([polarity, x_pos, y_pos, timestamp])
+            spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
 
-    return points
+    return spatial_csv_data
+
 
 def getEventChunkData(folderName: str):
     points = []
