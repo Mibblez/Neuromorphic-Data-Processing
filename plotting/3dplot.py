@@ -50,14 +50,9 @@ if __name__ == '__main__':
     get_args()
 
     if time_limit is None:
-        events = getPlottingData.get_spatial_csv_data(file_to_plot)
+        events = getPlottingData.SpatialCsvData.from_csv(file_to_plot, False, True)
     else:
-        events = getPlottingData.get_spatial_csv_data(file_to_plot, time_limit)
-
-    colors = []
-
-    for polarity in events.polarities:
-        colors.append('g' if polarity else 'r')
+        events = getPlottingData.SpatialCsvData.from_csv(file_to_plot, False, True, time_limit)
 
     fig = plt.figure()
     fig.set_size_inches(12, 10)
@@ -70,20 +65,20 @@ if __name__ == '__main__':
     file_name = os.path.splitext(file_name)[0]                      # Strip off file extension
 
     if view in ['default', 'all']:
-        ax.scatter(events.x_positions, events.y_positions, events.timestamps, c=colors,
+        ax.scatter(events.x_positions, events.y_positions, events.timestamps, c=events.polarities_color,
                    marker='.', s=4, depthshade=False)
 
         fig.savefig(os.path.join(f'3D_Plot-{file_name}-default.png'), bbox_inches='tight', pad_inches=0)
 
     if view in ['side', 'all']:
-        ax.scatter(events.x_positions, events.y_positions, events.timestamps, c=colors,
+        ax.scatter(events.x_positions, events.y_positions, events.timestamps, c=events.polarities_color,
                    marker='H', s=4, depthshade=False)
         ax.view_init(azim=0, elev=8)
 
         fig.savefig(os.path.join(f'3D_Plot-{file_name}-side.png'), bbox_inches='tight', pad_inches=0)
 
     if view in ['top', 'all']:
-        ax.scatter(events.x_positions, events.y_positions, events.timestamps, c=colors,
+        ax.scatter(events.x_positions, events.y_positions, events.timestamps, c=events.polarities_color,
                    marker='H', s=4, depthshade=False)
         ax.set_zticklabels([])
         ax.view_init(azim=-90, elev=87)

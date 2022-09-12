@@ -9,6 +9,7 @@ import itertools
 from typing import List
 import sys
 import math
+from types import FunctionType
 
 class EventChunkConfig:
 
@@ -84,17 +85,68 @@ class CsvData:
 
 
 class SpatialCsvData():
-    def __init__(self):
+    def __init__(self, polarity_as_bool: bool, polarity_as_color: bool):
         self.polarities: List[bool] = []
+        self.polarities_color: List[str] = []
         self.x_positions: List[int] = []
         self.y_positions: List[int] = []
         self.timestamps: List[int] = []
 
+        self.__polarity_storage_callbacks: List[FunctionType] = []
+
+        if polarity_as_color:
+            self.__polarity_storage_callbacks.append(self.__store_polarity_color)
+
+        if polarity_as_bool:
+            self.__polarity_storage_callbacks.append(self.__store_polarity_bool)
+
+    def __store_polarity_bool(self, timestamp):
+        self.polarities.append(timestamp)
+
+    def __store_polarity_color(self, timestamp):
+        self.polarities_color.append('g' if timestamp == 1 else 'r')
+
+    def from_csv(csv_file: str, polarity_as_bool: bool, polarity_as_color: bool,
+                 time_limit: int = sys.maxsize):
+        first_timestamp = 0
+        if time_limit != sys.maxsize:
+            time_limit = int(time_limit * 1000000)  # Convert to microseconds
+
+        spatial_csv_data = SpatialCsvData(polarity_as_bool, polarity_as_color)
+
+        with open(csv_file, 'r') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            header = next(reader, None)  # Grab header
+
+            # Make sure CSV is the correct format
+            if header != ['On/Off', 'X', 'Y', 'Timestamp']:
+                raise ValueError("CSV may not be the correct format.\n"
+                                 "Header should be On/Off,X,Y,Timestamp")
+
+            first_row = next(reader, None)
+            first_timestamp = int(first_row[3])
+
+            for row in itertools.chain([first_row], reader):
+                timestamp = int(row[3]) - first_timestamp
+
+                if timestamp > time_limit:
+                    break
+
+                polarity = row[0] in ['1', 'True']
+                x_pos = int(row[1])
+                y_pos = 128 - int(row[2])
+
+                spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
+
+        return spatial_csv_data
+
     def append_row(self, polarity: bool, x: int, y: int, timestamp: int):
-        self.polarities.append(polarity)
         self.x_positions.append(x)
         self.y_positions.append(y)
         self.timestamps.append(timestamp)
+
+        for polarity_func in self.__polarity_storage_callbacks:
+            polarity_func(polarity)
 
 
 # TODO: indicate that this is for chunk CSVs
@@ -132,40 +184,6 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
                 break
 
     return CsvData(csv_path, x, y_on, y_off, y_all)
-
-
-def get_spatial_csv_data(csv_file: str, time_limit: int = sys.maxsize) -> SpatialCsvData:
-    first_timestamp = 0
-    if time_limit != sys.maxsize:
-        time_limit = int(time_limit * 1000000)  # Convert to microseconds
-
-    spatial_csv_data = SpatialCsvData()
-
-    with open(csv_file, 'r') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-        header = next(reader, None)  # Grab header
-
-        # Make sure CSV is the correct format
-        if header != ['On/Off', 'X', 'Y', 'Timestamp']:
-            raise ValueError("CSV may not be the correct format.\n"
-                             "Header should be On/Off,X,Y,Timestamp")
-
-        first_row = next(reader, None)
-        first_timestamp = int(first_row[3])
-
-        for row in itertools.chain([first_row], reader):
-            timestamp = int(row[3]) - first_timestamp
-
-            if timestamp > time_limit:
-                break
-
-            polarity = row[0] in ['1', 'True']
-            x_pos = int(row[1])
-            y_pos = 128 - int(row[2])
-
-            spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
-
-    return spatial_csv_data
 
 
 def getEventChunkData(folderName: str):
