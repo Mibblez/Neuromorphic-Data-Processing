@@ -34,6 +34,20 @@ class FileNameRegex():
         else:
             return ""
 
+    def parse_slots(input_str: str, append_if_found: str = "") -> str:
+        slots = re.search("[0-9]{1,}sl", input_str, re.IGNORECASE)
+        return slots.group() + append_if_found if slots else ""
+
+    def parse_threshold(input_str: str, append_if_found: str = "") -> str:
+        threshold = re.search("m?[0-9]{1,}t(hreshold)?", input_str, re.IGNORECASE)
+
+        if threshold:
+            threshold = re.search("m?[0-9]{1,}", threshold.group()).group()
+            threshold = threshold.replace("m", "-")
+            return threshold + append_if_found
+        else:
+            return ""
+
 
 class FloatRangeArg(object):
     def __init__(self, min, max):
