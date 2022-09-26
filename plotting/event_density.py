@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from plotting_helper import FileNameRegex
 import argparse
 import os
+import sys
 
 
 pixel_x = None
@@ -14,9 +15,11 @@ max_plot_points = float("inf")
 
 csv_filename = None
 
+save_directory = ''
+
 
 def get_args():
-    global pixel_x, pixel_y, area_size, max_plot_points, csv_filename
+    global pixel_x, pixel_y, area_size, max_plot_points, csv_filename, save_directory
 
     parser = argparse.ArgumentParser()
     parser.add_argument("aedat_csv_file", help="CSV with AEDAT data to plot", type=str)
@@ -25,8 +28,16 @@ def get_args():
     parser.add_argument("--pixel_y", "-y", help="y coordinate of desired pixel", type=int, required=True)
     parser.add_argument("--area_size", "-a", help="size of box around pixel to observe", type=int, required=True)
     parser.add_argument("--max_plot_points", "-m", help="max number of points to plot", type=int)
+    parser.add_argument("--save_directory", '-d', help="Save file to directory", type=str)
 
     args = parser.parse_args()
+
+    if args.save_directory is not None:
+        if not os.path.exists(args.save_directory):
+            sys.exit(f'Error: Specified path "{args.save_directory}" does not exist')
+        else:
+            save_directory = args.save_directory
+
     csv_filename = args.aedat_csv_file
 
     if not os.path.exists(csv_filename):
@@ -106,7 +117,7 @@ if __name__ == "__main__":
     if hz == "" and degrees == "":
         print("WARNING: Could not infer polarizer angle or frequency from file name")
 
-    plt.savefig(f"{hz}{voltage}{waveform_type}{degrees}_event_density.png")
+    plt.savefig(os.path.join(save_directory, f"{hz}{voltage}{waveform_type}{degrees}_event_density.png"))
 
     if len(time_between) != 0:
         print(f"Average time between: {round(sum(time_between) / len(time_between), 2)}mS")

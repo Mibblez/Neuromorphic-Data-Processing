@@ -23,15 +23,18 @@ manual_title = None
 pixel_x = None
 pixel_y = None
 area_size = None
+save_directory = ''
 
 
 def get_args():
-    global file_to_plot, pixel_x, pixel_y, area_size, time_limit, manual_title, use_global_area
+    global file_to_plot, pixel_x, pixel_y, area_size, time_limit, manual_title, use_global_area, save_directory
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("aedat_csv_file", help='CSV containing AEDAT data to be plotted (ON/OFF,x,y,timestamp)', type=str)
+    parser.add_argument("aedat_csv_file",
+                        help='CSV containing AEDAT data to be plotted (ON/OFF,x,y,timestamp)', type=str)
     parser.add_argument("--time_limit", "-t", type=float, help="Time limit for the X-axis (seconds)")
     parser.add_argument("--title", type=str, help="Manually set plot title. Title will be auto-generated if not set")
+    parser.add_argument("--save_directory", '-d', help="Save file to directory", type=str)
 
     local_area_args = parser.add_argument_group("Local area arguments")
     local_area_args.add_argument("--pixel_x", "-x", help="X coordinate of the pixel to examine", type=int)
@@ -42,6 +45,12 @@ def get_args():
     global_area_args.add_argument("--global_area", "-g", action="store_true")
 
     args = parser.parse_args()
+
+    if args.save_directory is not None:
+        if not os.path.exists(args.save_directory):
+            sys.exit(f'Error: Specified path "{args.save_directory}" does not exist')
+        else:
+            save_directory = args.save_directory
 
     file_to_plot = args.aedat_csv_file
 
@@ -58,8 +67,9 @@ def get_args():
     if (args.pixel_x or args.pixel_y or args.area_size):
         if args.global_area:
             sys.exit(f"{sys.argv[0]}: error: Global area arguments conflict with Local area arguments")
-        elif not(args.pixel_x and args.pixel_y and args.area_size):
-            sys.exit(f"{sys.argv[0]}: error: pixel_x, pixel_y, and area_size must all be set when using Local area arguments")
+        elif not (args.pixel_x and args.pixel_y and args.area_size):
+            sys.exit(f"{sys.argv[0]}: error: pixel_x, pixel_y, and area_size "
+                     "must all be set when using Local area arguments")
 
     pixel_x = args.pixel_x
     pixel_y = args.pixel_y
@@ -82,7 +92,7 @@ def get_activity_area(csv_file, pixel_x: int, pixel_y: int, area_size: int, max_
 
         if not check_aedat_csv_format(header, ['On/Off', 'X', 'Y', 'Timestamp']):
             sys.exit(f'File {csv_file} is not of the correct format.\n'
-                 'A csv containing X, Y, and Timestamp columns is required.')
+                     'A csv containing X, Y, and Timestamp columns is required.')
 
         polarity_index = header.index('On/Off')
         x_index = header.index('X')
@@ -184,4 +194,7 @@ if __name__ == '__main__':
     else:
         plot_file_name = f'spike_Plot-{file_name}_X-{pixel_x}_Y-{pixel_y}_Area-{area_size}.png'
 
-    plt.savefig(plot_file_name, bbox_inches='tight', pad_inches=0.1)
+    plt.savefig(
+        os.path.join(save_directory, plot_file_name),
+        bbox_inches='tight',
+        pad_inches=0.1)

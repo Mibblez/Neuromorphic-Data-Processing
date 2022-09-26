@@ -7,6 +7,7 @@ CSV Format: on,off,both
 """
 
 import os
+import sys
 import argparse
 import matplotlib.ticker as mticker
 import matplotlib.pyplot as plt
@@ -18,17 +19,25 @@ from plotting_helper import FileNameRegex
 file_to_plot = ''
 x_lim = None
 reconstruction_window = 0
+save_directory = ''
 
 
 def get_args():
-    global file_to_plot, x_lim, reconstruction_window
+    global file_to_plot, x_lim, reconstruction_window, save_directory
 
     parser = argparse.ArgumentParser()
     parser.add_argument("aedat_csv_file", help='CSV containing AEDAT data to be plotted', type=str)
     parser.add_argument("reconstruction_window",
                         help="Reconstruction window used to generate file: int or path to config file", type=str)
     parser.add_argument("--plot_xlim", '-x', help='Limit on the X-axis (seconds)', type=float)
+    parser.add_argument("--save_directory", '-d', help="Save file to directory", type=str)
     args = parser.parse_args()
+
+    if args.save_directory is not None:
+        if not os.path.exists(args.save_directory):
+            sys.exit(f'Error: Specified path "{args.save_directory}" does not exist')
+        else:
+            save_directory = args.save_directory
 
     file_to_plot = args.aedat_csv_file
 
@@ -46,7 +55,7 @@ def get_args():
         reconstruction_window = int(args.reconstruction_window)
 
     else:
-        if(args.reconstruction_window.lstrip('-').isdigit()):
+        if (args.reconstruction_window.lstrip('-').isdigit()):
             quit("The argument reconstruction window must be greater than 0")
 
         if os.path.exists(args.reconstruction_window) and args.reconstruction_window.endswith(".json"):
@@ -90,7 +99,7 @@ def plot_event_count(event_counts: list, t: list, line_color: str, plot_xlim: fl
 
     plt.gcf().set_size_inches((20, 5))
 
-    plt.savefig(os.path.join(f'{plot_title.replace(" ", "_")}.png'))
+    plt.savefig(os.path.join(save_directory, f'{plot_title.replace(" ", "_")}.png'))
 
 
 if __name__ == '__main__':
@@ -113,8 +122,11 @@ if __name__ == '__main__':
                                                         max_csv_entries)
 
     plot_event_count(plot_data.y_off, plot_data.time_windows, 'r', x_lim,
-                     f"{waveform_type}{voltage}{hz}{degrees} OFF Events Fingerprint ({reconstruction_window}μs Reconstruction Window)")
+                     f"{waveform_type}{voltage}{hz}{degrees}"
+                     f" OFF Events Fingerprint ({reconstruction_window}μs Reconstruction Window)")
     plot_event_count(plot_data.y_on, plot_data.time_windows, 'g', x_lim,
-                     f"{waveform_type}{voltage}{hz}{degrees} ON Events Fingerprint ({reconstruction_window}μs Reconstruction Window)")
+                     f"{waveform_type}{voltage}{hz}{degrees}"
+                     f"ON Events Fingerprint ({reconstruction_window}μs Reconstruction Window)")
     plot_event_count(plot_data.y_all, plot_data.time_windows, 'b', x_lim,
-                     f"{waveform_type}{voltage}{hz}{degrees} All Events Fingerprint ({reconstruction_window}μs Reconstruction Window)")
+                     f"{waveform_type}{voltage}{hz}{degrees}"
+                     f"All Events Fingerprint ({reconstruction_window}μs Reconstruction Window)")
