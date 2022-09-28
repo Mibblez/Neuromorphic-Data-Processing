@@ -103,5 +103,5 @@ FILES_ARRAY=($(echo $FILES_STRING | tr " " "\n"))
 
 for file_path in "${FILES_ARRAY[@]}"; do
   echo $file_path
-  python plotting/spikeGraph.py $file_path -x=$PIXEL_X -y=$PIXEL_Y -a=$AREA_SIZE $TIME_LIMIT
+  python src/plotting/spikeGraph.py $file_path -x=$PIXEL_X -y=$PIXEL_Y -a=$AREA_SIZE $TIME_LIMIT
 done

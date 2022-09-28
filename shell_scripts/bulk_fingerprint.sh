@@ -68,9 +68,9 @@ FILES_ARRAY=($(echo $FILES_STRING | tr " " "\n"))
 for file_path in "${FILES_ARRAY[@]}"; do
   if [ ! -z "${X_LIM+set}" ]; then
     echo $file_path
-    python plotting/fingerprintGraph.py $file_path -x $X_LIM
+    python src/plotting/fingerprintGraph.py $file_path -x $X_LIM
   else
     echo $file_path
-    python plotting/fingerprintGraph.py $file_path
+    python src/plotting/fingerprintGraph.py $file_path
   fi
 done

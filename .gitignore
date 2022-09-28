@@ -8,6 +8,12 @@ venv/
 *.tif
 imageData/
 
+# pytest files
+.coverage
+
+# Tox files
+.tox
+
 # Data files
 *.npy
 *.csv
@@ -21,6 +27,24 @@ data/
 # Pycharm .idea folder
 .idea/
 
+# Distribution / packaging
+bin/
+build/
+develop-eggs/
+dist/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
 # Keep all files in example_plots and nn_examples directories
 !examples/example_plots/*
 !examples/nn_examples/*
+
+# files needed for testing
+!tests/test_data/*

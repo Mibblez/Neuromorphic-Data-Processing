@@ -78,9 +78,9 @@ FILES_ARRAY=($(echo $FILES_STRING | tr " " "\n"))
 for file_path in "${FILES_ARRAY[@]}"; do
   if [ ! -z "${TIME_LIMIT+set}" ]; then
     echo $file_path
-    python plotting/3dplot.py $file_path -v $VIEW_ANGLE -t=$TIME_LIMIT
+    python src/plotting/3dplot.py $file_path -v $VIEW_ANGLE -t=$TIME_LIMIT
   else
     echo $file_path
-    python plotting/3dplot.py $file_path -v $VIEW_ANGLE
+    python src/plotting/3dplot.py $file_path -v $VIEW_ANGLE
   fi
 done
