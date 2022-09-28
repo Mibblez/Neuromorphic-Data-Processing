@@ -7,7 +7,7 @@ AEDAT files must first be acquired from a DVS and converted to CSV with one of t
 
 ##  Setup
 
-This projest requires some scripts to be installed as a package. Run the following command at the root of the repo to do so.
+This project requires some scripts to be installed as a package. Run the following command at the root of the repo to do so.
 ```
 pip install -e .
 ```
