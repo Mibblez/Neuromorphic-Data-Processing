@@ -5,6 +5,13 @@ Python scripts for plotting and performing machine learning on neuromorphic data
 
 AEDAT files must first be acquired from a DVS and converted to CSV with one of two conversion programs: [AEDAT File Reader](https://github.com/MartinNowak96/AEDAT-File-Reader) or [AEDAT File Reader Rs](https://github.com/Mibblez/aedat-file-reader-rs). The former is a GUI based UWP program and the latter is a headless Rust version.
 
+##  Setup
+
+This projest requires some scripts to be installed as a package. Run the following command at the root of the repo to do so.
+```
+pip install -e .
+```
+
 ## Plotting
 
 Some example plots are shown below. Additional examples can be found in the [example_plots](examples/example_plots) directory.
