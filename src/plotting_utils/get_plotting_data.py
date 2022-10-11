@@ -6,50 +6,62 @@ import json
 import itertools
 from typing import Callable, List
 import sys
+from enum import Enum
 
 
 class EventChunkConfig:
 
     graphType: str
-    '''hist, wavelets, kmeans, smooth buts lets be honest. its just hist '''
+    """hist, wavelets, kmeans, smooth buts lets be honest. its just hist """
 
     saveFigures: bool
-    ''' Saves the figures if set to True, Shows the figures if False '''
+    """ Saves the figures if set to True, Shows the figures if False """
 
     dataFolder: str
-    '''The folder where the data is'''
+    """The folder where the data is"""
     plotVariance: bool
-    '''If true will calculate the variance values '''
+    """If true will calculate the variance values """
     plotFWHM: bool
-    '''If true will calculate the FWHM '''
+    """If true will calculate the FWHM """
 
     FWHMMultiplier: float
-    ''' Used to change FHWM(2.355) to standard deviation(1)'''
+    """ Used to change FHWM(2.355) to standard deviation(1)"""
 
     logValues: bool
-    '''Logs all the values if true '''
+    """Logs all the values if true """
 
     dataSetType: str
-    ''' waveforms, frequency, waveformsAndFrequency, or backgrounds'''
+    """ waveforms, frequency, waveformsAndFrequency, or backgrounds"""
 
     plotConstant: str
-    ''' The variable that is constant on the graph '''
+    """ The variable that is constant on the graph """
 
     maxEventCount: int
-    ''' The max event count to read from the file '''
+    """ The max event count to read from the file """
 
     reconstructionWindow: int
-    ''' The settings used to generate the csv files'''
+    """ The settings used to generate the csv files"""
 
     gaussianMinY: float
 
     gaussianMaxY: float
 
-    def __init__(self, graph_type='hist', data_folder='', save_figures=False, plot_variance=False,
-                 fwhm_multiplier=2.355, log_values=False, plot_fwhm=False,
-                 data_set_type='waveformsAndFrequency', plot_constant='waveforms', max_event_count=-1,
-                 reconstruction_window=500, gaussian_min_y=0, gaussian_max_y=1
-                 ):
+    def __init__(
+        self,
+        graph_type="hist",
+        data_folder="",
+        save_figures=False,
+        plot_variance=False,
+        fwhm_multiplier=2.355,
+        log_values=False,
+        plot_fwhm=False,
+        data_set_type="waveformsAndFrequency",
+        plot_constant="waveforms",
+        max_event_count=-1,
+        reconstruction_window=500,
+        gaussian_min_y=0,
+        gaussian_max_y=1,
+    ):
         self.graphType = graph_type
         self.dataFolder = data_folder
         self.saveFigures = save_figures
@@ -81,7 +93,13 @@ class CsvData:
         self.y_all = y_all
 
 
-class SpatialCsvData():
+class DataStorage(Enum):
+    BOOL = 1
+    COLOR = 2
+    BOOL_AND_COLOR = 3
+
+
+class SpatialCsvData:
     def __init__(self, polarity_as_bool: bool, polarity_as_color: bool):
         self.polarities: List[bool] = []
         self.polarities_color: List[str] = []
@@ -101,25 +119,26 @@ class SpatialCsvData():
         self.polarities.append(polarity)
 
     def __store_polarity_color(self, polarity: bool):
-        self.polarities_color.append('g' if polarity == 1 else 'r')
+        self.polarities_color.append("g" if polarity == 1 else "r")
 
     @staticmethod
-    def from_csv(csv_file: str, polarity_as_bool: bool, polarity_as_color: bool,
-                 time_limit: int = sys.maxsize):
+    def from_csv(csv_file: str, data_storage: DataStorage, time_limit: int = sys.maxsize):
         first_timestamp = 0
         if time_limit != sys.maxsize:
             time_limit = int(time_limit * 1000000)  # Convert to microseconds
 
+        polarity_as_bool = data_storage in [DataStorage.BOOL, DataStorage.BOOL_AND_COLOR]
+        polarity_as_color = data_storage in [DataStorage.COLOR, DataStorage.BOOL_AND_COLOR]
+
         spatial_csv_data = SpatialCsvData(polarity_as_bool, polarity_as_color)
 
-        with open(csv_file, 'r') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
+        with open(csv_file, "r") as csvfile:
+            reader = csv.reader(csvfile, delimiter=",")
             header = next(reader, None)  # Grab header
 
             # Make sure CSV is the correct format
-            if header != ['On/Off', 'X', 'Y', 'Timestamp']:
-                raise ValueError("CSV may not be the correct format.\n"
-                                 "Header should be On/Off,X,Y,Timestamp")
+            if header != ["On/Off", "X", "Y", "Timestamp"]:
+                raise ValueError("CSV may not be the correct format.\n" "Header should be On/Off,X,Y,Timestamp")
 
             first_row = next(reader, None)
 
@@ -134,7 +153,7 @@ class SpatialCsvData():
                 if timestamp > time_limit:
                     break
 
-                polarity = row[0] in ['1', 'True']
+                polarity = row[0] in ["1", "True"]
                 x_pos = int(row[1])
                 y_pos = 128 - int(row[2])
 
@@ -161,8 +180,8 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
     if not os.path.exists(csv_path):
         raise FileNotFoundError(f"CSV file could not be found: {csv_path}")
 
-    with open(csv_path, 'r') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
+    with open(csv_path, "r") as csvfile:
+        reader = csv.reader(csvfile, delimiter=",")
         header = next(reader, None)  # Grab header
 
         if header is None:
@@ -170,18 +189,20 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
 
         # Make sure CSV is the correct format
         for entry in header:
-            if 'count' not in entry.lower():
-                raise ValueError("CSV may not be the correct format.\n"
-                                 "Header entries should indicate that the columns contain event counts")
+            if "count" not in entry.lower():
+                raise ValueError(
+                    "CSV may not be the correct format.\n"
+                    "Header entries should indicate that the columns contain event counts"
+                )
 
         for i, row in enumerate(reader):
-            x.append((i-1) * timeWindow * 0.000001)
+            x.append((i - 1) * timeWindow * 0.000001)
             # TODO: If timewindow is large this will not work
             # also machineLearning Get data might need this fix for outliers
             if int(row[2]) > 8000:  # If camera bugs out and registers too many events, use like data instead
-                y_on.append(sum(y_on)//len(y_on))
-                y_off.append(sum(y_off)//len(y_off))
-                y_all.append(sum(y_all)//len(y_all))
+                y_on.append(sum(y_on) // len(y_on))
+                y_off.append(sum(y_off) // len(y_off))
+                y_all.append(sum(y_all) // len(y_all))
             else:
                 y_on.append(int(row[0]))
                 y_off.append(int(row[1]))
@@ -195,20 +216,21 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
 def getEventChunkData(folderName: str):
     points = []
     onlyfiles = [
-        f for f in listdir("./eventChunkData/" + folderName) if isfile(join("./eventChunkData/" + folderName, f))]
+        f for f in listdir("./eventChunkData/" + folderName) if isfile(join("./eventChunkData/" + folderName, f))
+    ]
 
     for file in onlyfiles:
-        with open('./eventChunkData/'+folderName+"/" + file, 'r') as csvfile:
+        with open("./eventChunkData/" + folderName + "/" + file, "r") as csvfile:
 
-            reader = csv.reader(csvfile, delimiter=',')
+            reader = csv.reader(csvfile, delimiter=",")
             for i, row in enumerate(reader):
                 if i != 0:
-                    points.append([int(row[1]), 128-int(row[2])])
+                    points.append([int(row[1]), 128 - int(row[2])])
 
         return points
 
 
-def parseConfig(location: str = 'plotting/config.json', data_folder=None) -> EventChunkConfig:
+def parseConfig(location: str = "plotting/config.json", data_folder=None) -> EventChunkConfig:
     config_json = json.loads(open(location).read())
     config = EventChunkConfig()
     for i, key in enumerate(config_json.keys()):

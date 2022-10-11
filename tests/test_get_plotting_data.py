@@ -1,10 +1,11 @@
 # import pytest
 from plotting_utils import get_plotting_data
+from plotting_utils.get_plotting_data import DataStorage
 
 
 def test_spatial_csv_bool_no_color():
     spatial_csv_data = get_plotting_data.SpatialCsvData.from_csv(
-        "tests/test_data/OnOff-X-Y-Timestamp.csv", True, False)
+        "tests/test_data/OnOff-X-Y-Timestamp.csv", DataStorage.BOOL)
 
     assert spatial_csv_data.polarities == [True, False, False, True, True, True, True, True, False, False]
     assert spatial_csv_data.x_positions == [82, 17, 86, 69, 78, 94, 45, 45, 91, 86]
@@ -15,7 +16,7 @@ def test_spatial_csv_bool_no_color():
 
 def test_spatial_csv_no_bool_color():
     spatial_csv_data = get_plotting_data.SpatialCsvData.from_csv(
-        "tests/test_data/OnOff-X-Y-Timestamp.csv", False, True)
+        "tests/test_data/OnOff-X-Y-Timestamp.csv", DataStorage.COLOR)
 
     assert spatial_csv_data.polarities == []
     assert spatial_csv_data.x_positions == [82, 17, 86, 69, 78, 94, 45, 45, 91, 86]
@@ -26,7 +27,7 @@ def test_spatial_csv_no_bool_color():
 
 def test_spatial_csv_bool_color():
     spatial_csv_data = get_plotting_data.SpatialCsvData.from_csv(
-        "tests/test_data/OnOff-X-Y-Timestamp.csv", True, True)
+        "tests/test_data/OnOff-X-Y-Timestamp.csv", DataStorage.BOOL_AND_COLOR)
 
     assert spatial_csv_data.polarities == [True, False, False, True, True, True, True, True, False, False]
     assert spatial_csv_data.x_positions == [82, 17, 86, 69, 78, 94, 45, 45, 91, 86]

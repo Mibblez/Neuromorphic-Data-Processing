@@ -14,10 +14,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import plotting_utils.get_plotting_data as get_plotting_data
+from plotting_utils.get_plotting_data import DataStorage
 
 file_to_plot = ""
-view = None
-time_limit = None
+view = ""
+time_limit = -1
 save_directory = ""
 
 
@@ -30,7 +31,9 @@ def get_args():
     parser.add_argument(
         "--view_angle", "-v", help="sets plot viewing angle [default, top, side, all]", action="store", type=str
     )
-    parser.add_argument("--time_limit", "-t", help="Time limit for the Z-axis (seconds)", type=float)
+    parser.add_argument(
+        "--time_limit", "-t", help="Time limit for the Z-axis (seconds)", type=float, default=sys.maxsize
+    )
     parser.add_argument("--save_directory", "-d", help="Save file to directory", type=str)
 
     args = parser.parse_args()
@@ -43,16 +46,14 @@ def get_args():
 
     file_to_plot = args.aedat_csv_file
 
-    viewing_angles = ["default", "top", "side", "all"]
-
     if args.view_angle is not None:
         view = args.view_angle.lower()
-        if view not in viewing_angles:
-            quit("Invalid view. Use one of the following: [default, top, side, all]")
+        if view not in ("default", "top", "side", "all"):
+            sys.exit("Invalid view. Use one of the following: [default, top, side, all]")
     else:
         print("usage: 3dplot.py [-h] [--view_angle VIEW_ANGLE] aedat_csv_file")
         print("3dplot.py: error: the following arguments are required: view_angle")
-        quit("Use one of the following view angles: [default, top, side, all]")
+        sys.exit("Use one of the following view angles: [default, top, side, all]")
 
     time_limit = args.time_limit
 
@@ -61,10 +62,7 @@ if __name__ == "__main__":
     get_args()
     matplotlib.use("Qt5Agg")
 
-    if time_limit is None:
-        events = get_plotting_data.SpatialCsvData.from_csv(file_to_plot, False, True)
-    else:
-        events = get_plotting_data.SpatialCsvData.from_csv(file_to_plot, False, True, time_limit)
+    events = get_plotting_data.SpatialCsvData.from_csv(file_to_plot, DataStorage.COLOR, time_limit)
 
     fig = plt.figure()
     fig.set_size_inches(12, 10)
