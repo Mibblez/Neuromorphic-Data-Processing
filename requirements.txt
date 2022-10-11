@@ -9,3 +9,4 @@ scikit_learn==1.1.2
 scipy==1.9.1
 tensorflow==2.10.0
 tqdm==4.64.1
+PyQt5==5.15.7
