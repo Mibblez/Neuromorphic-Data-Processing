@@ -34,3 +34,13 @@ def test_spatial_csv_bool_color():
     assert spatial_csv_data.y_positions == [78, 71, 37, 104, 75, 30, 12, 12, 32, 84]
     assert spatial_csv_data.timestamps == [0, 4, 6, 8, 9, 9, 10, 11, 17, 19]
     assert spatial_csv_data.polarities_color == ['g', 'r', 'r', 'g', 'g', 'g', 'g', 'g', 'r', 'r']
+
+
+# TODO implement me (OnOff-X-Y.csv)
+def test_incorrect_format():
+    pass
+
+
+# TODO implement me (OnOff-X-Y-Timestamp-NODATA.csv)
+def test_empty_csv():
+    pass
