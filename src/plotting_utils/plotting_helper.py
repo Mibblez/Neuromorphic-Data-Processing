@@ -33,6 +33,16 @@ class FloatRangeArg(object):
 
 
 def check_aedat_csv_format(csv_header: List[str], required_data: List[str]) -> bool:
+    """Checks that a provided CSV header containes the required data
+
+    Args:
+        csv_header (List[str]): Header read from a CSV
+        required_data (List[str]): Entries that must be present in the provided header
+
+    Returns:
+        bool: Returns true if required_data is a subset of csv_header
+              Returns false otherwise
+    """
     return set(required_data).issubset(set(csv_header))
 
 
@@ -45,17 +55,17 @@ def clean_line_title(label: str) -> str:
     return label
 
 
-def paddBins(bins2: np.ndarray, paddTimes: int):
+def paddBins(hist_bins: np.ndarray, pad_bins: int):
 
     # pad left & right
-    difference = bins2[1] - bins2[0]
-    for i in range(paddTimes):
-        bins2 = np.insert(bins2, 0, bins2[0] - (difference * (i + 1)))
+    difference = hist_bins[1] - hist_bins[0]
+    for i in range(pad_bins):
+        hist_bins = np.insert(hist_bins, 0, hist_bins[0] - (difference * (i + 1)))
 
-    for i in range(paddTimes):
-        bins2 = np.append(bins2, bins2[len(bins2) - 1] + difference * (i + 1))
+    for i in range(pad_bins):
+        hist_bins = np.append(hist_bins, hist_bins[len(hist_bins) - 1] + difference * (i + 1))
 
-    return bins2
+    return hist_bins
 
 
 def plot_hist(
