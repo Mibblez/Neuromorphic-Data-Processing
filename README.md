@@ -7,9 +7,22 @@ AEDAT files must first be acquired from a DVS and converted to CSV with one of t
 
 ##  Setup
 
-This project requires some scripts to be installed as a package. Run the following command at the root of the repo to do so.
+It is recommended to create a fresh virtual environment for this project.
 ```
+python -m venv ./venv
+```
+
+Once the virtual environment is active, install the packages inside of requirements.txt and the plotting_utils local module.  
+
+```
+pip install -r requirements.txt
 pip install -e .
+```
+
+Optionally, if you wish to run tests or perform other development related tasks, install the packages inside of requirements_dev.txt.
+
+```
+pip install -r requirements_dev.txt
 ```
 
 ## Plotting
