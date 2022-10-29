@@ -97,6 +97,7 @@ class DataStorage(Enum):
     BOOL = 1
     COLOR = 2
     BOOL_AND_COLOR = 3
+    NONE = 4
 
 
 class SpatialCsvData:
@@ -211,23 +212,6 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
                 break
 
     return CsvData(csv_path, x, y_on, y_off, y_all)
-
-
-def getEventChunkData(folderName: str):
-    points = []
-    onlyfiles = [
-        f for f in listdir("./eventChunkData/" + folderName) if isfile(join("./eventChunkData/" + folderName, f))
-    ]
-
-    for file in onlyfiles:
-        with open("./eventChunkData/" + folderName + "/" + file, "r") as csvfile:
-
-            reader = csv.reader(csvfile, delimiter=",")
-            for i, row in enumerate(reader):
-                if i != 0:
-                    points.append([int(row[1]), 128 - int(row[2])])
-
-        return points
 
 
 def parseConfig(location: str = "plotting/config.json", data_folder=None) -> EventChunkConfig:
