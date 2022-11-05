@@ -4,7 +4,7 @@ from tensorflow import keras
 import sklearn.model_selection as sk
 import numpy as np
 import matplotlib.pyplot as plt
-import getData
+import get_data
 import time
 from tensorflow.keras.callbacks import TensorBoard
 import os
@@ -16,7 +16,7 @@ frameCount = 1000
 timeFrame = "500"
 num_epochs = 250
 
-inputData, outputData = getData.getMachineLearningData(frameCount, "waveforms")
+inputData, outputData = get_data.getMachineLearningData(frameCount, "waveforms")
 print(f"Input Shape: {inputData.shape}")
 
 trainInput, testInput, trainOutput, testOutput = sk.train_test_split(
@@ -63,7 +63,7 @@ model = keras.Sequential(
 )
 
 model.compile(
-    optimizer=tf.optimizers.Adamax(lr=0.001),
+    optimizer=tf.optimizers.Adamax(learning_rate=0.001),
     loss="sparse_categorical_crossentropy",  # outputs multiple values, use binary_crossentropy for 1 or 0 output
     metrics=["accuracy"],
 )

@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 import getData
+import get_data
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
 import saveWaveformsAndFreqResult
@@ -18,10 +19,13 @@ def trainAndSave(model, frame_count, num_epochs, learning_rate):
     # ) = getData.getMachineLearningDataWaveformsAndFrequency(frameCount)
 
     # Object test
-    wf_data = getData.WaveAndFreqData(frame_count, "waveformsAndFrequency")
+    # wf_data = getData.WaveAndFreqData(frame_count, "waveformsAndFrequency")
+    print("Preparing data...")
+    wf_data = get_data.WaveAndFreqData(frame_count, "data")
+    print("Data preparation complete")
 
     model.compile(
-        optimizer=tf.optimizers.Adamax(lr=learning_rate),
+        optimizer=tf.optimizers.Adamax(learning_rate=learning_rate),
         loss="sparse_categorical_crossentropy",  # outputs multiple values, use binary_crossentropy for 1 or 0 output
         metrics=["accuracy"],
     )
