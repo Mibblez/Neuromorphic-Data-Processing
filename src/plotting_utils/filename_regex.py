@@ -25,7 +25,7 @@ def parse_voltage(input_str: str, append_if_found: str = "") -> str:
 
 
 def parse_waveform(input_str: str, append_if_found: str = "") -> str:
-    waveform = re.search("(burst|sine|square|triangle|noise)", input_str, re.IGNORECASE)
+    waveform = re.search("(burst|sine|square|triangle|noise|dc)", input_str, re.IGNORECASE)
     return waveform.group() + append_if_found if waveform else ""
 
 

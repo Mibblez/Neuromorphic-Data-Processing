@@ -43,7 +43,7 @@ def check_aedat_csv_format(csv_header: List[str], required_data: List[str]) -> b
         bool: Returns true if required_data is a subset of csv_header
               Returns false otherwise
     """
-    return set(required_data).issubset(set(csv_header))
+    return set(required_data).issubset(set([x.strip() for x in csv_header]))
 
 
 def clean_line_title(label: str) -> str:
