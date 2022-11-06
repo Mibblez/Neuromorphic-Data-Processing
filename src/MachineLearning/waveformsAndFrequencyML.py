@@ -1,6 +1,5 @@
 import tensorflow as tf
 from tensorflow import keras
-import getData
 import get_data
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input
