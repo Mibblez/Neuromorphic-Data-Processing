@@ -121,7 +121,7 @@ class SpatialCsvData:
         self.polarities_color.append("g" if polarity == 1 else "r")
 
     @staticmethod
-    def from_csv(csv_file: str, data_storage: DataStorage, time_limit: int = sys.maxsize):
+    def from_csv(csv_file: str, data_storage: DataStorage, time_limit: int = sys.maxsize, skip_rows: int = 0):
         first_timestamp = 0
         if time_limit != sys.maxsize:
             time_limit = int(time_limit * 1000000)  # Convert to microseconds
@@ -138,6 +138,9 @@ class SpatialCsvData:
             # Make sure CSV is the correct format
             if header != ["On/Off", "X", "Y", "Timestamp"]:
                 raise ValueError("CSV may not be the correct format.\n" "Header should be On/Off,X,Y,Timestamp")
+
+            # Skip N rows as specified by skip_rows
+            [next(reader, None) for _ in range(skip_rows)]
 
             first_row = next(reader, None)
 

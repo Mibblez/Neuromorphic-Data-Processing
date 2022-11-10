@@ -14,10 +14,11 @@ file_to_plot = ""
 num_clusters = 6
 max_time = -1
 save_directory = ""
+skip_rows = 0
 
 
 def get_args():
-    global file_to_plot, num_clusters, max_time, save_directory
+    global file_to_plot, num_clusters, max_time, save_directory, skip_rows
 
     parser = argparse.ArgumentParser()
 
@@ -25,6 +26,7 @@ def get_args():
     parser.add_argument(
         "--num_clusters", "-c", help="Sets number of clusters, defaulted to 6", action="store", type=int
     )
+    parser.add_argument("--skip_rows", "-s", help="Skips N rows of the input CSV", action="store", type=int)
     parser.add_argument("--max_time", "-t", help="Max time in microseconds", type=float)
     parser.add_argument("--save_directory", "-d", help="Save file to directory", type=str)
 
@@ -35,6 +37,13 @@ def get_args():
             sys.exit(f'Error: Specified path "{args.save_directory}" does not exist')
         else:
             save_directory = args.save_directory
+
+    if args.skip_rows is not None:
+        if args.skip_rows <= 0:
+            parser.print_help()
+            sys.exit("Error: --skip_rows must be passed a value greater than 0")
+        else:
+            skip_rows = args.skip_rows
 
     if args.num_clusters is not None:
         if args.num_clusters <= 1:
@@ -60,7 +69,7 @@ if __name__ == "__main__":
     get_args()
     matplotlib.use("Qt5Agg")
 
-    data = get_plotting_data.SpatialCsvData.from_csv(file_to_plot, DataStorage.NONE, max_time)
+    data = get_plotting_data.SpatialCsvData.from_csv(file_to_plot, DataStorage.NONE, max_time, skip_rows)
 
     # Transform X and Y positions into the correct format for this plot -> [[X,Y], [X,Y], ...]
     plot_points = np.asarray(list(zip(data.x_positions, data.y_positions)))
@@ -76,6 +85,4 @@ if __name__ == "__main__":
     file_name = os.path.basename(os.path.normpath(file_to_plot))  # Get file at end of path
     file_name = os.path.splitext(file_name)[0]  # Strip off file extension
 
-    plt.savefig(
-        os.path.join(save_directory, f"SpectralClustering-{file_name}.png"), bbox_inches="tight", pad_inches=0
-    )
+    plt.savefig(os.path.join(save_directory, f"SpectralClustering-{file_name}.png"), bbox_inches="tight", pad_inches=0)
