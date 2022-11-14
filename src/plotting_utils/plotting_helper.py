@@ -1,12 +1,8 @@
 import numpy as np
 from scipy import stats
 from scipy.stats import norm
-import matplotlib.pyplot as plt
 import matplotlib
-from sklearn.metrics import pairwise_distances_argmin
-from typing import Tuple, List
-from pylab import plot, xlabel, ylabel
-from scipy import fft, arange
+from typing import List
 import re
 
 import plotting_utils.get_plotting_data as get_plotting_data
@@ -56,7 +52,6 @@ def clean_line_title(label: str) -> str:
 
 
 def paddBins(hist_bins: np.ndarray, pad_bins: int):
-
     # pad left & right
     difference = hist_bins[1] - hist_bins[0]
     for i in range(pad_bins):
@@ -215,55 +210,3 @@ def showAllGuas(
 
     axes[axes_index][0].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
     axes[axes_index][1].set_ylim(config.gaussianMinY, config.gaussianMaxY + 0.05)
-
-
-def showFFT(data, file_count, folders):
-    fftX = np.linspace(0.0, 1.0 / (2.0 * (1.0 / 800.0)), file_count / 2)
-
-    polLabels = []
-    polFreq = []
-    noPolLabels = []
-    noPolFreq = []
-
-    for i, y in enumerate(data):
-        if "no pol" in folders[i]:
-            noPolLabels.append(folders[i])
-            noPolFreq.append(y)
-        else:
-            polLabels.append(folders[i])
-            polFreq.append(y)
-
-        _, axes = plt.subplots(nrows=1, ncols=2, sharex=True, sharey=True)
-
-    for i, y in enumerate(polFreq):
-        axes[0].plot(
-            fftX, 2.0 / file_count * np.abs(y[: file_count // 2]), label=polLabels[i].replace("Event Chunks", "")
-        )
-
-    axes[0].set_xlim(2, 60)
-    axes[0].legend()
-
-    for i, y in enumerate(noPolFreq):
-        axes[1].plot(
-            fftX, 2.0 / file_count * np.abs(y[: file_count // 2]), label=noPolLabels[i].replace("Event Chunks", "")
-        )
-
-    axes[1].set_xlim(2, 60)
-    axes[1].legend()
-    plt.show()
-
-
-# TODO: make sure this works
-def plotSpectrum(y, Fs):
-    n = len(y)  # length of the signal
-    k = arange(n)
-    T = n / Fs
-    frq = k / T  # two sides frequency range
-    frq = frq[range(n // 2)]  # one side frequency range
-
-    Y = fft(y) / n  # fft computing and normalization
-    Y = Y[range(n // 2)]
-
-    plot(frq, abs(Y), "r")  # plotting the spectrum
-    xlabel("Freq (Hz)")
-    ylabel("|Y(freq)|")
