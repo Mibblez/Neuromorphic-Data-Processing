@@ -94,34 +94,6 @@ def plot_hist(
     return axes[plot_major][plot_minor].plot(x, y, linewidth=2)[0]
 
 
-def find_clusters(X: np.ndarray, n_clusters: int, rseed: int = 2) -> Tuple[np.ndarray, np.ndarray]:
-    # 1. Randomly choose clusters
-    rng = np.random.RandomState(rseed)
-    i = rng.permutation(X.shape[0])[:n_clusters]
-    centers = X[i]
-
-    while True:
-        # 2a. Assign labels based on closest center
-        labels = pairwise_distances_argmin(X, centers)
-
-        # 2b. Find new centers from means of points
-        new_centers = np.array([X[labels == i].mean(0) for i in range(n_clusters)])
-
-        # 2c. Check for convergence
-        if np.all(centers == new_centers):
-            break
-        centers = new_centers
-
-    return centers, labels
-
-
-def plotKmeans(data, axes, row: int, columnIndex: int, numberOfCenters: int):
-    pts = np.asarray(data)
-    centers, labels = find_clusters(pts, numberOfCenters)
-    axes[row][columnIndex].scatter(pts[:, 0], pts[:, 1], c=labels, s=10, cmap="viridis")
-    axes[row][columnIndex].scatter(centers[:, 0], centers[:, 1], c="red")
-
-
 def centerAllGuas(
     lines: List[matplotlib.lines.Line2D],
     axes_index: int,
