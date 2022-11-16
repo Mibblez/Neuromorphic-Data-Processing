@@ -176,13 +176,16 @@ class SpatialCsvData:
 
             first_timestamp = int(first_row[3])
 
+            # Determine if polarity is stored as True/False or 1/-1
+            polarity_true = "True" if first_row[0] in ("True", "False") else "1"
+
             for row in itertools.chain([first_row], reader):
                 timestamp = int(row[3]) - first_timestamp
 
                 if timestamp > time_limit:
                     break
 
-                polarity = row[0] in ["1", "True"]
+                polarity = row[0] == polarity_true
                 x_pos = int(row[1])
                 y_pos = 128 - int(row[2])
 
@@ -245,7 +248,7 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
 def parseConfig(location: str = "plotting/config.json", data_folder=None) -> EventChunkConfig:
     config_json = json.loads(open(location).read())
     config = EventChunkConfig()
-    for i, key in enumerate(config_json.keys()):
+    for key in config_json:
         setattr(config, key, config_json[key])  # Assign all properties in json to config object
 
     # HACK
