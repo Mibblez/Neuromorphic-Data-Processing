@@ -2,6 +2,7 @@
 from plotting_utils import get_plotting_data
 from plotting_utils.get_plotting_data import DataStorage
 import pytest
+import re
 
 
 def test_spatial_csv_bool_no_color():
@@ -41,7 +42,9 @@ def test_spatial_csv_bool_color():
 
 
 def test_incorrect_format():
-    with pytest.raises(ValueError, match="CSV may not be the correct format.\nHeader should be On/Off,X,Y,Timestamp"):
+    with pytest.raises(
+        ValueError, match=re.escape("Found header: ['On/Off', 'X', 'Y']\nExpected: ['On/Off', 'X', 'Y', 'Timestamp']")
+    ):
         get_plotting_data.SpatialCsvData.from_csv("tests/test_data/OnOff-X-Y.csv", DataStorage.COLOR)
 
 

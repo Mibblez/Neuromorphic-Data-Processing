@@ -160,10 +160,11 @@ class SpatialCsvData:
         with open(csv_file, "r") as csvfile:
             reader = csv.reader(csvfile, delimiter=",")
             header = next(reader, None)  # Grab header
+            expected_header = ["On/Off", "X", "Y", "Timestamp"]
 
             # Make sure CSV is the correct format
-            if header != ["On/Off", "X", "Y", "Timestamp"]:
-                raise ValueError("CSV may not be the correct format.\n" "Header should be On/Off,X,Y,Timestamp")
+            if header != expected_header:
+                raise ValueError(f"Found header: {header}\nExpected: {expected_header}")
 
             # Skip N rows as specified by skip_rows
             [next(reader, None) for _ in range(skip_rows)]
