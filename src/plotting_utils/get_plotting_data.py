@@ -122,6 +122,32 @@ class SpatialCsvData:
 
     @staticmethod
     def from_csv(csv_file: str, data_storage: DataStorage, time_limit: int = sys.maxsize, skip_rows: int = 0):
+        """Creates a SpatialCsvData object and appends data to it from a CSV file
+
+        Parameters
+        ----------
+        csv_file : str
+            CSV file containing data to be read into the created object
+        data_storage : DataStorage
+            How data should be stored in the created object
+        time_limit : int, optional
+            Legnth of data to be included in the created object (seconds), by default sys.maxsize
+        skip_rows : int, optional
+            Length of data to be skipped from the start of the CSV file, by default 0.
+            Use to avoid data corruption that tends to occur at the beginning of a recording.
+
+        Returns
+        -------
+        SpatialCsvData
+            SpatialCsvData containing data from csv_file
+
+        Raises
+        ------
+        ValueError
+            Raised when the CSV file is of an incorrect format, as defined by the header
+        ValueError
+            Raised when the CSV file has a header but contains no data
+        """
         first_timestamp = 0
         if time_limit != sys.maxsize:
             time_limit = int(time_limit * 1000000)  # Convert to microseconds

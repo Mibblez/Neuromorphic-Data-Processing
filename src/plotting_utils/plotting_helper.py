@@ -31,13 +31,17 @@ class FloatRangeArg(object):
 def check_aedat_csv_format(csv_header: List[str], required_data: List[str]) -> bool:
     """Checks that a provided CSV header containes the required data
 
-    Args:
-        csv_header (List[str]): Header read from a CSV
-        required_data (List[str]): Entries that must be present in the provided header
+    Parameters
+    ----------
+    csv_header : List[str]
+        Header read from a CSV
+    required_data : List[str]
+        Entries that must be present in the provided header
 
-    Returns:
-        bool: Returns true if required_data is a subset of csv_header
-              Returns false otherwise
+    Returns
+    -------
+    bool
+        True if required_data is a subset of csv_header. False otherwise
     """
     return set(required_data).issubset(set([x.strip() for x in csv_header]))
 
