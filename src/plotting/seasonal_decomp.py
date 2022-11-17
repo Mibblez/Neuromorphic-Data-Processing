@@ -1,4 +1,4 @@
-from pandas import read_csv
+from pandas import read_csv, DataFrame
 from matplotlib import pyplot as plt
 import matplotlib
 import statsmodels.api as sm
@@ -73,6 +73,16 @@ def get_args():
         sys.exit("Error: Arg event_type is required")
 
 
+def seasonal_decomp(data: DataFrame, columns: str, seasonal_period: int, plot_title=None, skip_rows=0):
+    events_to_plot = data[columns]
+
+    if plot_title is not None:
+        # Decomposition.plot() is weird. The name of the dataframe is used as the plot title
+        events_to_plot.name = plot_title + " " + columns
+
+    return sm.tsa.seasonal_decompose(events_to_plot[skip_rows:], period=seasonal_period)
+
+
 if __name__ == "__main__":
     get_args()
 
@@ -80,15 +90,10 @@ if __name__ == "__main__":
 
     df = read_csv(file_to_plot, nrows=num_rows + skip_rows + 1)
 
-    events_to_plot = df[event_type]
-
     # Auto generate plot title from csv_filename
     plot_title = os.path.splitext(os.path.basename(os.path.normpath(file_to_plot)))[0]
 
-    # Decomposition.plot() is weird. The name of the dataframe is used as the plot title
-    events_to_plot.name = plot_title
-
-    decomposition = sm.tsa.seasonal_decompose(events_to_plot[skip_rows:], period=period)
+    decomposition = seasonal_decomp(df, event_type, plot_title, skip_rows)
 
     # TODO: The above code is also going to be used to clean data so it needs to be made into its own func
     #           * Cleaning data will consist of reading in the ON and OFF columns, performing seasonal decomp
