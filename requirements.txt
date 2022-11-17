@@ -10,3 +10,4 @@ scipy==1.9.3
 tensorflow==2.10.1
 tqdm==4.64.1
 PyQt5==5.15.7
+statsmodels==0.13.5
