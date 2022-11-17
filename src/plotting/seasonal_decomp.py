@@ -1,5 +1,6 @@
 from pandas import read_csv, DataFrame
 from matplotlib import pyplot as plt
+from typing import List
 import matplotlib
 import statsmodels.api as sm
 import argparse
@@ -73,14 +74,22 @@ def get_args():
         sys.exit("Error: Arg event_type is required")
 
 
-def seasonal_decomp(data: DataFrame, columns: str, seasonal_period: int, plot_title=None, skip_rows=0):
-    events_to_plot = data[columns]
+def seasonal_decomp(
+    csv_path: str, columns: List[str], num_rows: int, seasonal_period: int = 100, plot_title=None, skip_rows=0
+) -> List[DataFrame]:
+    df = read_csv(csv_path, nrows=num_rows + skip_rows + 1)
+    decomposition_results = []
 
-    if plot_title is not None:
-        # Decomposition.plot() is weird. The name of the dataframe is used as the plot title
-        events_to_plot.name = plot_title + " " + columns
+    for column in columns:
+        events_to_plot = df[column]
 
-    return sm.tsa.seasonal_decompose(events_to_plot[skip_rows:], period=seasonal_period)
+        if plot_title is not None:
+            # The name of the dataframe will be used as the plot title
+            events_to_plot.name = f"{plot_title} {column}"
+
+        decomposition_results.append(sm.tsa.seasonal_decompose(events_to_plot[skip_rows:], period=seasonal_period))
+
+    return decomposition_results
 
 
 if __name__ == "__main__":
@@ -88,30 +97,15 @@ if __name__ == "__main__":
 
     matplotlib.use("Qt5Agg")
 
-    df = read_csv(file_to_plot, nrows=num_rows + skip_rows + 1)
-
     # Auto generate plot title from csv_filename
     plot_title = os.path.splitext(os.path.basename(os.path.normpath(file_to_plot)))[0]
 
-    decomposition = seasonal_decomp(df, event_type, plot_title, skip_rows)
-
-    # TODO: The above code is also going to be used to clean data so it needs to be made into its own func
-    #           * Cleaning data will consist of reading in the ON and OFF columns, performing seasonal decomp
-    #             and then writing the seasonal data (decomposition.seasonal) to a new csv
-    #           * Seasonal decomp will need to be performed for ON and OFF columns seperately
-    #           * The new "Combined Count" column will be Seasonal ON + Seasonal OFF
-    #           * This function will be put into plotting_utils once everything is done
-
-    # Prototype for seasonal decomp function
-    # def seasonal_decomp(csv_file: str, columns: List[str], row_skip: int, period: int) -> DecomposeResult:
-
-    # All standard stuff below here. Format plot and save it
+    decomposition = seasonal_decomp(file_to_plot, [event_type], num_rows, period, plot_title, skip_rows)[0]
     decomposition.plot()
 
     fig = matplotlib.pyplot.gcf()
     fig.set_size_inches(16, 10)
 
     plt.tight_layout(pad=1.10)
-
-    plt.savefig(f"{plot_title}.png")
+    plt.savefig(f"{plot_title}-{event_type.replace(' ', '-')}.png")
     plt.clf()
