@@ -2,36 +2,93 @@ from pandas import read_csv
 from matplotlib import pyplot as plt
 import matplotlib
 import statsmodels.api as sm
+import argparse
+import sys
+import os
 
-# TODO: Command line args go here
-# Args needed: file_to_plot, event_type -> (on, off, combined), num_rows
-#              skip_rows, period, save_dir
+file_to_plot = ""
+event_type = ""
+num_rows = -1
+skip_rows = 0
+period = 100
+save_directory = ""
+
+
+def get_args():
+    global file_to_plot, event_type, num_rows, skip_rows, period, save_directory
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("aedat_csv_file", help="CSV containing AEDAT data to be plotted", type=str)
+    parser.add_argument(
+        "--event_type", "-e", help="The type of events to plot [on, off, combined]", action="store", type=str
+    )
+    parser.add_argument("--num_rows", "-n", help="The number of rows of data to include in the plot", type=int)
+    parser.add_argument("--skip_rows", "-s", help="Skip n number of rows from the beginning of the csv file ", type=int)
+    parser.add_argument("--period", "-p", help="The period for the seasonal decomposition", type=int, default=100)
+    parser.add_argument("--save_directory", "-d", help="Save file to directory", type=str)
+
+    args = parser.parse_args()
+
+    if args.save_directory is not None:
+        if not os.path.exists(args.save_directory):
+            sys.exit(f'Error: Specified path "{args.save_directory}" does not exist')
+        else:
+            save_directory = args.save_directory
+
+    file_to_plot = args.aedat_csv_file
+
+    if args.num_rows is not None:
+        if args.num_rows > 0:
+            num_rows = args.num_rows
+        else:
+            parser.print_help()
+            sys.exit("Error: Arg num_rows must be greater than 0")
+    else:
+        parser.print_help()
+        sys.exit("Error: Arg num_rows is required")
+
+    if args.skip_rows is not None:
+        if args.skip_rows > 0:
+            skip_rows = args.skip_rows
+        else:
+            parser.print_help()
+            sys.exit("Error: Arg skip_rows must be greater than 0")
+
+    if args.period is not None:
+        if args.period > 0:
+            period = args.period
+        else:
+            parser.print_help()
+            sys.exit("Error: Arg period must be greater than 0")
+
+    if args.event_type is not None:
+        event_type = args.event_type.lower()
+        if event_type not in ("on", "off", "combined"):
+            parser.print_help()
+            sys.exit("Error: Invalid event type. Use one of the following: [on, off, combined]")
+        event_type = event_type.capitalize() + " Count"
+    else:
+        parser.print_help()
+        sys.exit("Error: Arg event_type is required")
 
 
 if __name__ == "__main__":
-    # get_args()
-    csv_file = "test.csv"   # TODO: get csv_file from command line arg
+    get_args()
 
     matplotlib.use("Qt5Agg")
 
-    # TODO: only read what we need. Use the "usecols" kwarg in use_cols to select columns
-    df = read_csv(csv_file, nrows=901)  # TODO: arg for how many rows to read
+    df = read_csv(file_to_plot, nrows=num_rows + skip_rows + 1)
 
-    # Arg for which column to plot, same as what is passed to use_cols
-    on_count = df["On Count"]
-    off_count = df["Off Count"]
-    combined_count = df[" Combined Count"]
-    # ------------------▲▲ The space here is stupid, I know
+    events_to_plot = df[event_type]
 
     # Auto generate plot title from csv_filename
-    plot_title = "Seasonal_Decomposition-500us-sine-40deg-1Threshold"
+    plot_title = os.path.splitext(os.path.basename(os.path.normpath(file_to_plot)))[0]
 
     # Decomposition.plot() is weird. The name of the dataframe is used as the plot title
-    on_count.name = plot_title
+    events_to_plot.name = plot_title
 
-    # Arg for how many rows to skip--------------------▼▼▼
-    decomposition = sm.tsa.seasonal_decompose(on_count[300:], period=100)
-    # Arg for period-------------------------------------------------▲▲▲
+    decomposition = sm.tsa.seasonal_decompose(events_to_plot[skip_rows:], period=period)
 
     # TODO: The above code is also going to be used to clean data so it needs to be made into its own func
     #           * Cleaning data will consist of reading in the ON and OFF columns, performing seasonal decomp
