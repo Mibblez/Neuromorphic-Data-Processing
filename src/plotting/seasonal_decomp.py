@@ -1,6 +1,7 @@
 from pandas import read_csv, DataFrame
 from matplotlib import pyplot as plt
 from typing import List
+from plotting_utils.plotting_helper import check_aedat_csv_format
 import matplotlib
 import statsmodels.api as sm
 import argparse
@@ -75,12 +76,17 @@ def get_args():
 
 
 def seasonal_decomp(
-    csv_path: str, columns: List[str], num_rows: int, seasonal_period: int = 100, plot_title=None, skip_rows=0
+    csv_path: str, columns_to_plot: List[str], num_rows: int, seasonal_period: int = 100, plot_title=None, skip_rows=0
 ) -> List[DataFrame]:
     df = read_csv(csv_path, nrows=num_rows + skip_rows + 1)
-    decomposition_results = []
 
-    for column in columns:
+    column_titles_found = list(df)
+
+    if not check_aedat_csv_format(column_titles_found, columns_to_plot):
+        raise ValueError(f"Found header: {column_titles_found}\nExpected header to include: {columns_to_plot}")
+
+    decomposition_results = []
+    for column in columns_to_plot:
         events_to_plot = df[column]
 
         if plot_title is not None:
