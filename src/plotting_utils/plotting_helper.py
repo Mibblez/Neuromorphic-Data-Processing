@@ -9,7 +9,7 @@ import re
 import plotting_utils.get_plotting_data as get_plotting_data
 
 
-def float_arg_positive(arg: str) -> float:
+def float_arg_positive_nonzero(arg: str) -> float:
     arg_float = float(arg)
 
     if arg_float <= 0:

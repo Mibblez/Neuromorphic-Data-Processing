@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 import plotting_utils.get_plotting_data as get_plotting_data
 from plotting_utils.get_plotting_data import DataStorage
-from plotting_utils.plotting_helper import float_arg_positive, path_arg, file_arg
+from plotting_utils.plotting_helper import float_arg_positive_nonzero, path_arg, file_arg
 
 
 def get_args() -> argparse.Namespace:
@@ -32,7 +32,11 @@ def get_args() -> argparse.Namespace:
         default="default",
     )
     parser.add_argument(
-        "--time_limit", "-t", help="Time limit for the Z-axis (seconds)", type=float_arg_positive, default=sys.maxsize
+        "--time_limit",
+        "-t",
+        help="Time limit for the Z-axis (seconds)",
+        type=float_arg_positive_nonzero,
+        default=sys.maxsize,
     )
     parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg, default=".")
 
