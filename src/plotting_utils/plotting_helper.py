@@ -3,9 +3,33 @@ from scipy import stats
 from scipy.stats import norm
 import matplotlib
 from typing import List
+import os
 import re
 
 import plotting_utils.get_plotting_data as get_plotting_data
+
+
+def float_arg_positive(arg: str) -> float:
+    arg_float = float(arg)
+
+    if arg_float <= 0:
+        raise ValueError(f"Arg {arg} must be greater than 0")
+
+    return arg_float
+
+
+def path_arg(arg: str) -> str:
+    if not os.path.exists(arg):
+        raise ValueError(f"Specified directory '{arg}' does not exist")
+
+    return arg
+
+
+def file_arg(arg: str) -> str:
+    if not os.path.isfile(arg):
+        raise ValueError(f"Specified file '{arg}' does not exist")
+
+    return arg
 
 
 class FloatRangeArg(object):

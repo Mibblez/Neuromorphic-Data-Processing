@@ -15,54 +15,34 @@ import matplotlib.pyplot as plt
 
 import plotting_utils.get_plotting_data as get_plotting_data
 from plotting_utils.get_plotting_data import DataStorage
-
-file_to_plot = ""
-view = ""
-time_limit = -1
-save_directory = ""
+from plotting_utils.plotting_helper import float_arg_positive, path_arg, file_arg
 
 
-def get_args():
-    global file_to_plot, view, time_limit, save_directory
-
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("aedat_csv_file", help="CSV containing AEDAT data to be plotted", type=str)
+    parser.add_argument("aedat_csv_file", help="CSV containing AEDAT data to be plotted", type=file_arg)
     parser.add_argument(
-        "--view_angle", "-v", help="sets plot viewing angle [default, top, side, all]", action="store", type=str
+        "--view",
+        "-v",
+        help="sets plot viewing angle [default, top, side, all]",
+        action="store",
+        type=str,
+        choices=["default", "top", "side", "all"],
+        default="default",
     )
     parser.add_argument(
-        "--time_limit", "-t", help="Time limit for the Z-axis (seconds)", type=float, default=sys.maxsize
+        "--time_limit", "-t", help="Time limit for the Z-axis (seconds)", type=float_arg_positive, default=sys.maxsize
     )
-    parser.add_argument("--save_directory", "-d", help="Save file to directory", type=str)
+    parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg, default=".")
 
-    args = parser.parse_args()
-
-    if args.save_directory is not None:
-        if not os.path.exists(args.save_directory):
-            sys.exit(f'Error: Specified path "{args.save_directory}" does not exist')
-        else:
-            save_directory = args.save_directory
-
-    file_to_plot = args.aedat_csv_file
-
-    if args.view_angle is not None:
-        view = args.view_angle.lower()
-        if view not in ("default", "top", "side", "all"):
-            sys.exit("Invalid view. Use one of the following: [default, top, side, all]")
-    else:
-        print("usage: 3dplot.py [-h] [--view_angle VIEW_ANGLE] aedat_csv_file")
-        print("3dplot.py: error: the following arguments are required: view_angle")
-        sys.exit("Use one of the following view angles: [default, top, side, all]")
-
-    time_limit = args.time_limit
+    return parser.parse_args()
 
 
-if __name__ == "__main__":
-    get_args()
+def main(args: argparse.Namespace):
     matplotlib.use("Qt5Agg")
 
-    events = get_plotting_data.SpatialCsvData.from_csv(file_to_plot, DataStorage.COLOR, time_limit)
+    events = get_plotting_data.SpatialCsvData.from_csv(args.aedat_csv_file, DataStorage.COLOR, args.time_limit)
 
     fig = plt.figure()
     fig.set_size_inches(12, 10)
@@ -71,10 +51,10 @@ if __name__ == "__main__":
     ax.set_ylabel("Y Position")
     ax.set_zlabel("Time (Seconds)")
 
-    file_name = os.path.basename(os.path.normpath(file_to_plot))  # Get file at end of path
+    file_name = os.path.basename(os.path.normpath(args.aedat_csv_file))  # Get file at end of path
     file_name = os.path.splitext(file_name)[0]  # Strip off file extension
 
-    if view in ["default", "all"]:
+    if args.view in ["default", "all"]:
         ax.scatter(
             events.x_positions,
             events.y_positions,
@@ -85,9 +65,11 @@ if __name__ == "__main__":
             depthshade=False,
         )
 
-        fig.savefig(os.path.join(save_directory, f"3D_Plot-{file_name}-default.png"), bbox_inches="tight", pad_inches=0)
+        fig.savefig(
+            os.path.join(args.save_directory, f"3D_Plot-{file_name}-default.png"), bbox_inches="tight", pad_inches=0
+        )
 
-    if view in ["side", "all"]:
+    if args.view in ["side", "all"]:
         ax.scatter(
             events.x_positions,
             events.y_positions,
@@ -99,9 +81,11 @@ if __name__ == "__main__":
         )
         ax.view_init(azim=0, elev=8)
 
-        fig.savefig(os.path.join(save_directory, f"3D_Plot-{file_name}-side.png"), bbox_inches="tight", pad_inches=0)
+        fig.savefig(
+            os.path.join(args.save_directory, f"3D_Plot-{file_name}-side.png"), bbox_inches="tight", pad_inches=0
+        )
 
-    if view in ["top", "all"]:
+    if args.view in ["top", "all"]:
         ax.scatter(
             events.x_positions,
             events.y_positions,
@@ -114,6 +98,13 @@ if __name__ == "__main__":
         ax.set_zticklabels([])
         ax.view_init(azim=-90, elev=87)
 
-        fig.savefig(os.path.join(save_directory, f"3D_Plot-{file_name}-top.png"), bbox_inches="tight", pad_inches=0)
+        fig.savefig(
+            os.path.join(args.save_directory, f"3D_Plot-{file_name}-top.png"), bbox_inches="tight", pad_inches=0
+        )
 
     plt.clf()
+
+
+if __name__ == "__main__":
+    args = get_args()
+    main(args)
