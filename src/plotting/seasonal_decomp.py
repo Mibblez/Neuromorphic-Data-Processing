@@ -2,77 +2,48 @@ from pandas import read_csv, DataFrame
 from matplotlib import pyplot as plt
 from typing import List
 from plotting_utils.plotting_helper import check_aedat_csv_format
+from plotting_utils.plotting_helper import file_arg, path_arg, int_arg_positive_nonzero
 import matplotlib
 import statsmodels.api as sm
 import argparse
-import sys
 import os
 
-file_to_plot = ""
-event_type = ""
-num_rows = -1
-skip_rows = 0
-period = 100
-save_directory = ""
-
-
-def get_args():
-    global file_to_plot, event_type, num_rows, skip_rows, period, save_directory
-
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("aedat_csv_file", help="CSV containing AEDAT data to be plotted", type=str)
+    parser.add_argument("aedat_csv_file", help="CSV containing AEDAT data to be plotted", type=file_arg)
     parser.add_argument(
-        "--event_type", "-e", help="The type of events to plot [on, off, combined]", action="store", type=str
+        "--event_type",
+        "-e",
+        help="The type of events to plot",
+        action="store",
+        type=str,
+        choices=["on", "off", "combined"],
+        required=True,
     )
-    parser.add_argument("--num_rows", "-n", help="The number of rows of data to include in the plot", type=int)
-    parser.add_argument("--skip_rows", "-s", help="Skip n number of rows from the beginning of the csv file ", type=int)
-    parser.add_argument("--period", "-p", help="The period for the seasonal decomposition", type=int, default=100)
-    parser.add_argument("--save_directory", "-d", help="Save file to directory", type=str)
+    parser.add_argument(
+        "--num_rows",
+        "-n",
+        help="The number of rows of data to include in the plot",
+        type=int_arg_positive_nonzero,
+        required=True,
+    )
+    parser.add_argument(
+        "--skip_rows",
+        "-s",
+        help="Skip n number of rows from the beginning of the csv file ",
+        type=int_arg_positive_nonzero,
+        default=0,
+    )
+    parser.add_argument(
+        "--period", "-p", help="The period for the seasonal decomposition", type=int_arg_positive_nonzero, default=100
+    )
+    parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg)
 
     args = parser.parse_args()
+    args.event_type = args.event_type.capitalize() + " Count"
 
-    if args.save_directory is not None:
-        if not os.path.exists(args.save_directory):
-            sys.exit(f'Error: Specified path "{args.save_directory}" does not exist')
-        else:
-            save_directory = args.save_directory
-
-    file_to_plot = args.aedat_csv_file
-
-    if args.num_rows is not None:
-        if args.num_rows > 0:
-            num_rows = args.num_rows
-        else:
-            parser.print_help()
-            sys.exit("Error: Arg num_rows must be greater than 0")
-    else:
-        parser.print_help()
-        sys.exit("Error: Arg num_rows is required")
-
-    if args.skip_rows is not None:
-        if args.skip_rows > 0:
-            skip_rows = args.skip_rows
-        else:
-            parser.print_help()
-            sys.exit("Error: Arg skip_rows must be greater than 0")
-
-    if args.period is not None:
-        if args.period > 0:
-            period = args.period
-        else:
-            parser.print_help()
-            sys.exit("Error: Arg period must be greater than 0")
-
-    if args.event_type is not None:
-        event_type = args.event_type.lower()
-        if event_type not in ("on", "off", "combined"):
-            parser.print_help()
-            sys.exit("Error: Invalid event type. Use one of the following: [on, off, combined]")
-        event_type = event_type.capitalize() + " Count"
-    else:
-        parser.print_help()
-        sys.exit("Error: Arg event_type is required")
+    return args
 
 
 def seasonal_decomp(
@@ -98,20 +69,26 @@ def seasonal_decomp(
     return decomposition_results
 
 
-if __name__ == "__main__":
-    get_args()
+def main(args: argparse.Namespace):
 
     matplotlib.use("Qt5Agg")
 
     # Auto generate plot title from csv_filename
-    plot_title = os.path.splitext(os.path.basename(os.path.normpath(file_to_plot)))[0]
+    plot_title = os.path.splitext(os.path.basename(os.path.normpath(args.aedat_csv_file)))[0]
 
-    decomposition = seasonal_decomp(file_to_plot, [event_type], num_rows, period, plot_title, skip_rows)[0]
+    decomposition = seasonal_decomp(
+        args.aedat_csv_file, [args.event_type], args.num_rows, args.period, plot_title, args.skip_rows
+    )[0]
     decomposition.plot()
 
     fig = matplotlib.pyplot.gcf()
     fig.set_size_inches(16, 10)
 
     plt.tight_layout(pad=1.10)
-    plt.savefig(f"{plot_title}-{event_type.replace(' ', '-')}.png")
+    plt.savefig(f"{plot_title}-{args.event_type.replace(' ', '-')}.png")
     plt.clf()
+
+
+if __name__ == "__main__":
+    args = get_args()
+    main(args)

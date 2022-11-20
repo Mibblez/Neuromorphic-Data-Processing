@@ -18,6 +18,15 @@ def float_arg_positive_nonzero(arg: str) -> float:
     return arg_float
 
 
+def int_arg_positive_nonzero(arg: str) -> int:
+    arg_int = int(arg)
+
+    if arg_int <= 0:
+        raise ValueError(f"Arg {arg} must be greater than 0")
+
+    return arg_int
+
+
 def path_arg(arg: str) -> str:
     if not os.path.exists(arg):
         raise ValueError(f"Specified directory '{arg}' does not exist")
