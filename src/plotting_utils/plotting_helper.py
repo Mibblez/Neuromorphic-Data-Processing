@@ -26,6 +26,7 @@ def int_arg_positive_nonzero(arg: str) -> int:
 
     return arg_int
 
+
 def int_arg_not_negative(arg: str) -> int:
     arg_int = int(arg)
 
