@@ -26,6 +26,14 @@ def int_arg_positive_nonzero(arg: str) -> int:
 
     return arg_int
 
+def int_arg_not_negative(arg: str) -> int:
+    arg_int = int(arg)
+
+    if arg_int < 0:
+        raise ValueError(f"Arg {arg} cannot be negative")
+
+    return arg_int
+
 
 def path_arg(arg: str) -> str:
     if not os.path.exists(arg):
