@@ -1,6 +1,5 @@
 import argparse
 import os
-import sys
 
 from sklearn.cluster import SpectralClustering
 import numpy as np
@@ -10,79 +9,64 @@ from plotting_utils.get_plotting_data import DataStorage
 import matplotlib
 import matplotlib.pyplot as plt
 
-file_to_plot = ""
-num_clusters = 6
-max_time = -1
-save_directory = ""
-skip_rows = 0
+from plotting_utils.plotting_helper import int_arg_not_negative, path_arg, file_arg, float_arg_positive_nonzero
 
 
-def get_args():
-    global file_to_plot, num_clusters, max_time, save_directory, skip_rows
-
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("aedat_csv_file", help="CSV containing AEDAT data to be plotted", type=str)
+    parser.add_argument("aedat_csv_file", help="CSV containing AEDAT data to be plotted", type=file_arg)
     parser.add_argument(
-        "--num_clusters", "-c", help="Sets number of clusters, defaulted to 6", action="store", type=int
+        "--num_clusters",
+        "-c",
+        help="Sets number of clusters, defaulted to 6. Minimum value is 2",
+        default=6,
+        type=int,
     )
-    parser.add_argument("--skip_rows", "-s", help="Skips N rows of the input CSV", action="store", type=int)
-    parser.add_argument("--max_time", "-t", help="Max time in microseconds", type=float)
-    parser.add_argument("--save_directory", "-d", help="Save file to directory", type=str)
+    parser.add_argument("--skip_rows", "-s", help="Skips N rows of the input CSV", default=0, type=int_arg_not_negative)
+    parser.add_argument(
+        "--max_time", "-t", help="Max time in microseconds", default=None, type=float_arg_positive_nonzero
+    )
+    parser.add_argument("--save_directory", "-d", help="Save file to directory", default=".", type=path_arg)
 
     args = parser.parse_args()
 
-    if args.save_directory is not None:
-        if not os.path.exists(args.save_directory):
-            sys.exit(f'Error: Specified path "{args.save_directory}" does not exist')
-        else:
-            save_directory = args.save_directory
+    if args.num_clusters < 2:
+        parser.error("The minimum value for --num_clusters is 2")
 
-    if args.skip_rows is not None:
-        if args.skip_rows <= 0:
-            parser.print_help()
-            sys.exit("Error: --skip_rows must be passed a value greater than 0")
-        else:
-            skip_rows = args.skip_rows
+    if args.max_time:
+        # Convert time to seconds
+        args.max_time = args.max_time * (10**-6)
 
-    if args.num_clusters is not None:
-        if args.num_clusters <= 1:
-            parser.print_help()
-            sys.exit("Error: Invalid clustering argument. Please provide a number greater than or equal to 2")
-        else:
-            num_clusters = args.num_clusters
-
-    if args.max_time is not None:
-        if args.max_time <= 0:
-            parser.print_help()
-            sys.exit("Error: Invalid max time. Please provide a positive number")
-        else:
-            max_time = args.max_time * (10**-6)
-    else:
-        parser.print_help()
-        sys.exit("Error: Max time argument is required")
-
-    file_to_plot = args.aedat_csv_file
+    return args
 
 
-if __name__ == "__main__":
+def main(args: argparse.Namespace):
     get_args()
     matplotlib.use("Qt5Agg")
 
-    data = get_plotting_data.SpatialCsvData.from_csv(file_to_plot, DataStorage.NONE, max_time, skip_rows)
+    data = get_plotting_data.SpatialCsvData.from_csv(
+        args.aedat_csv_file, DataStorage.NONE, args.max_time, args.skip_rows
+    )
 
     # Transform X and Y positions into the correct format for this plot -> [[X,Y], [X,Y], ...]
     plot_points = np.asarray(list(zip(data.x_positions, data.y_positions)))
 
     model = SpectralClustering(
-        n_clusters=num_clusters, assign_labels="cluster_qr", affinity="rbf", eigen_solver="lobpcg"
+        n_clusters=args.num_clusters, assign_labels="cluster_qr", affinity="rbf", eigen_solver="lobpcg"
     )
 
     labels = model.fit_predict(plot_points)
+    plt.scatter(plot_points[:, 0], plot_points[:, 1], c=labels, s=10, cmap="viridis")
 
-    fig = plt.scatter(plot_points[:, 0], plot_points[:, 1], c=labels, s=10, cmap="viridis")
-
-    file_name = os.path.basename(os.path.normpath(file_to_plot))  # Get file at end of path
+    file_name = os.path.basename(os.path.normpath(args.aedat_csv_file))  # Get file at end of path
     file_name = os.path.splitext(file_name)[0]  # Strip off file extension
 
-    plt.savefig(os.path.join(save_directory, f"SpectralClustering-{file_name}.png"), bbox_inches="tight", pad_inches=0)
+    plt.savefig(
+        os.path.join(args.save_directory, f"SpectralClustering-{file_name}.png"), bbox_inches="tight", pad_inches=0
+    )
+
+
+if __name__ == "__main__":
+    args = get_args()
+    main(args)
