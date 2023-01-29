@@ -7,7 +7,6 @@ CSV Format: on,off,both
 """
 
 import os
-import sys
 import argparse
 from typing import Optional
 import matplotlib
@@ -17,60 +16,26 @@ from matplotlib.ticker import ScalarFormatter
 import plotting_utils.get_plotting_data as get_plotting_data
 from plotting_utils.get_plotting_data import CsvData
 from plotting_utils import filename_regex
-
-file_to_plot = ""
-x_lim: Optional[int] = None
-reconstruction_window = 0
-save_directory = ""
+from plotting_utils.plotting_helper import int_arg_positive_nonzero, float_arg_positive_nonzero, path_arg, file_arg
 
 
-def get_args():
-    global file_to_plot, x_lim, reconstruction_window, save_directory
-
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("aedat_csv_file", help="CSV containing AEDAT data to be plotted", type=str)
+    parser.add_argument("aedat_csv_file", help="CSV containing AEDAT data to be plotted", type=file_arg)
     parser.add_argument(
         "reconstruction_window",
-        help="Reconstruction window used to generate file: int or path to config file",
-        type=str,
+        help="Reconstruction window used to generate the csv file",
+        type=int_arg_positive_nonzero,
     )
-    parser.add_argument("--plot_xlim", "-x", help="Limit on the X-axis (seconds)", type=float)
-    parser.add_argument("--save_directory", "-d", help="Save file to directory", type=str)
-    args = parser.parse_args()
+    parser.add_argument("--plot_xlim", "-x", help="Limit on the X-axis (seconds)", type=float_arg_positive_nonzero)
+    parser.add_argument("--save_directory", "-d", help="Save file to directory", default=".", type=path_arg)
 
-    if args.save_directory is not None:
-        if not os.path.exists(args.save_directory):
-            sys.exit(f'Error: Specified path "{args.save_directory}" does not exist')
-        else:
-            save_directory = args.save_directory
-
-    file_to_plot = args.aedat_csv_file
-
-    if not os.path.exists(file_to_plot):
-        sys.exit(f"File does not exist: {file_to_plot}")
-    elif os.path.isdir(file_to_plot):
-        sys.exit(f"'{file_to_plot}' is a directory. It should be a csv file")
-
-    x_lim = args.plot_xlim
-
-    if x_lim is not None and x_lim <= 0:
-        sys.exit("The argument --plot_xlim/-x must be greater than 0")
-
-    if args.reconstruction_window.isdigit() and args.reconstruction_window != "0":
-        reconstruction_window = int(args.reconstruction_window)
-
-    else:
-        if args.reconstruction_window.lstrip("-").isdigit():
-            sys.exit("The argument reconstruction window must be greater than 0")
-
-        if os.path.exists(args.reconstruction_window) and args.reconstruction_window.endswith(".json"):
-            config = get_plotting_data.parseConfig(args.reconstruction_window)
-            reconstruction_window = config.reconstructionWindow
-        else:
-            sys.exit(f"The path {args.reconstruction_window} does not point to a json file")
+    return parser.parse_args()
 
 
-def plot_event_count(event_counts: list, t: list, line_color: str, max_plot_entries_x: Optional[int], plot_title: str):
+def plot_event_count(
+    event_counts: list, t: list, line_color: str, max_plot_entries_x: Optional[int], plot_title: str, save_dir: str
+):
     plt.clf()
 
     plt.title(plot_title)
@@ -99,53 +64,61 @@ def plot_event_count(event_counts: list, t: list, line_color: str, max_plot_entr
     # Plot lines with circles on the points
     plt.plot(t, event_counts, "-o", markersize=4, c=line_color)
 
-    if x_lim is not None:
+    if max_plot_entries_x is not None:
         ax.set_xlim([0, max_plot_entries_x])
 
     plt.gcf().set_size_inches((20, 5))
 
-    plt.savefig(os.path.join(save_directory, f'{plot_title.replace(" ", "_")}.png'))
+    plt.savefig(os.path.join(save_dir, f'{plot_title.replace(" ", "_")}.png'))
 
 
-if __name__ == "__main__":
-    get_args()
+def main(args: argparse.Namespace):
     matplotlib.use("Qt5Agg")
 
-    file_name = os.path.basename(file_to_plot)
+    file_name = os.path.basename(args.aedat_csv_file)
 
     hz = filename_regex.parse_frequency(file_name, "Hz ")
     voltage = filename_regex.parse_voltage(file_name, "V ")
     waveform_type = filename_regex.parse_waveform(file_name, " ")
     degrees = filename_regex.parse_degrees(file_name, " Degrees Polarized")
 
+    plot_title_starter = f"{waveform_type}{voltage}{hz}{degrees}"
+
     if hz == "" and degrees == "":
         print("WARNING: Could not infer polarizer angle or frequency from file name")
 
-    max_csv_entries = (x_lim * 1000000) // reconstruction_window if x_lim is not None else -1
+    max_csv_entries = (args.plot_xlim * 1000000) // args.reconstruction_window if args.plot_xlim is not None else -1
 
-    plot_data: CsvData = get_plotting_data.read_aedat_csv(file_to_plot, reconstruction_window, max_csv_entries)
+    plot_data: CsvData = get_plotting_data.read_aedat_csv(
+        args.aedat_csv_file, args.reconstruction_window, max_csv_entries
+    )
 
     plot_event_count(
         plot_data.y_off,
         plot_data.time_windows,
         "r",
-        x_lim,
-        f"{waveform_type}{voltage}{hz}{degrees}"
-        f" OFF Events Fingerprint ({reconstruction_window}μs Reconstruction Window)",
+        args.plot_xlim,
+        f"{plot_title_starter} OFF Events Fingerprint ({args.reconstruction_window}μs Reconstruction Window)",
+        args.save_directory,
     )
     plot_event_count(
         plot_data.y_on,
         plot_data.time_windows,
         "g",
-        x_lim,
-        f"{waveform_type}{voltage}{hz}{degrees}"
-        f"ON Events Fingerprint ({reconstruction_window}μs Reconstruction Window)",
+        args.plot_xlim,
+        f"{plot_title_starter} ON Events Fingerprint ({args.reconstruction_window}μs Reconstruction Window)",
+        args.save_directory,
     )
     plot_event_count(
         plot_data.y_all,
         plot_data.time_windows,
         "b",
-        x_lim,
-        f"{waveform_type}{voltage}{hz}{degrees}"
-        f"All Events Fingerprint ({reconstruction_window}μs Reconstruction Window)",
+        args.plot_xlim,
+        f"{plot_title_starter} All Events Fingerprint ({args.reconstruction_window}μs Reconstruction Window)",
+        args.save_directory,
     )
+
+
+if __name__ == "__main__":
+    args = get_args()
+    main(args)
