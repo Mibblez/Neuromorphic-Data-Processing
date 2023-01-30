@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import stats
 from scipy.stats import norm
-import matplotlib
+from matplotlib.lines import Line2D
 from typing import List
 import os
 import re
@@ -111,7 +111,7 @@ def paddBins(hist_bins: np.ndarray, pad_bins: int):
 
 def plot_hist(
     data: List, axes, plot_major: int, plot_minor: int, plot_color: str, log_values: bool
-) -> matplotlib.lines.Line2D:
+) -> Line2D:
     """
     Plots only the hist.
     """
@@ -136,7 +136,7 @@ def plot_hist(
 
 
 def centerAllGuas(
-    lines: List[matplotlib.lines.Line2D],
+    lines: List[Line2D],
     axes_index: int,
     labels: List[str],
     title: str,
@@ -220,7 +220,7 @@ def centerAllGuas(
 
 
 def showAllGuas(
-    lines: List[matplotlib.lines.Line2D],
+    lines: List[Line2D],
     labels: List[str],
     axes_index: int,
     title: str,
