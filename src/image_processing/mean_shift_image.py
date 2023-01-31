@@ -6,7 +6,7 @@ from PIL import Image
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from skimage.color.colorlabel import label2rgb
 
-from plotting_utils.plotting_helper import path_arg, file_arg
+from plotting_utils.plotting_helper import path_arg, file_arg_image
 
 
 def get_args() -> argparse.Namespace:
@@ -14,14 +14,11 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "image_file",
         help="Directory containing images to be processed or a path to an image to be processed",
-        type=file_arg,
+        type=file_arg_image,
     )
     parser.add_argument("--subtract_image", "-s", help="Subtract mean shifted image from the original image", type=bool)
     parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg, default=".")
     args = parser.parse_args()
-
-    if not os.path.splitext(args.image_file)[1] in (".png", ".jpeg", ".jpg"):
-        parser.error(f"ERROR: '{args.image_file}' is not an image.")
 
     # TODO: Implement subtract_arg.
     # When set, subtract white pixels from original image and display the resulting image

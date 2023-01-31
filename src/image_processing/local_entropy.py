@@ -6,7 +6,7 @@ import os
 import argparse
 from PIL import Image
 
-from plotting_utils.plotting_helper import path_arg, file_arg
+from plotting_utils.plotting_helper import path_arg, file_arg_image
 
 
 def get_args() -> argparse.Namespace:
@@ -14,7 +14,7 @@ def get_args() -> argparse.Namespace:
         description="Entropy Calculation", formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
 
-    parser.add_argument("image_file", type=file_arg, help="Image file to be processed")
+    parser.add_argument("image_file", type=file_arg_image, help="Image file to be processed")
     parser.add_argument(
         "--save_directory",
         "-d",
@@ -28,9 +28,6 @@ def get_args() -> argparse.Namespace:
     )
     parser.add_argument("--save_entropy_data", action="store_true", help="Save entropy data for each image in a CSV")
     args = parser.parse_args()
-
-    if not os.path.splitext(args.image_file)[1] in (".png", ".jpeg", ".jpg"):
-        parser.error(f"ERROR: '{args.image_file}' is not an image.")
 
     if not args.save_plot and not (args.save_entropy_data or args.save_img):
         parser.error("ERROR: --save_entropy_data or --save_img must be set if excluding plot.")

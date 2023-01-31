@@ -50,6 +50,16 @@ def file_arg(arg: str) -> str:
     return arg
 
 
+def file_arg_image(arg: str) -> str:
+    if not os.path.isfile(arg):
+        raise ValueError(f"Specified file '{arg}' does not exist")
+
+    if not os.path.splitext(arg)[1] in (".png", ".jpeg", ".jpg"):
+        raise ValueError(f"Error: '{arg}' is not an image.")
+
+    return arg
+
+
 class FloatRangeArg(object):
     def __init__(self, min, max):
         self.min = min
@@ -109,9 +119,7 @@ def paddBins(hist_bins: np.ndarray, pad_bins: int):
     return hist_bins
 
 
-def plot_hist(
-    data: List, axes, plot_major: int, plot_minor: int, plot_color: str, log_values: bool
-) -> Line2D:
+def plot_hist(data: List, axes, plot_major: int, plot_minor: int, plot_color: str, log_values: bool) -> Line2D:
     """
     Plots only the hist.
     """

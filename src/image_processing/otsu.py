@@ -5,16 +5,16 @@ import cv2
 import numpy as np
 import os
 import argparse
-from plotting_utils.plotting_helper import int_arg_positive_nonzero, path_arg, file_arg, int_arg_not_negative
+from plotting_utils.plotting_helper import int_arg_positive_nonzero, path_arg, file_arg_image, int_arg_not_negative
 
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("image_file", help="Image to be processed", type=file_arg)
+    parser.add_argument("image_file", help="Image to be processed", type=file_arg_image)
     parser.add_argument(
         "--blur_amount",
         "-b",
-        help="The amount the image will be gaussian blurred. (Must be an odd number)",
+        help="The amount the image will be gaussian blurred (Must be an odd number)",
         type=int_arg_not_negative,
         required=True,
     )
@@ -28,9 +28,6 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg, default=".")
 
     args = parser.parse_args()
-
-    if not os.path.splitext(args.image_file)[1] in (".png", ".jpeg", ".jpg"):
-        parser.error(f"ERROR: '{args.image_file}' is not an image.")
 
     if (args.blur_amount % 2) == 0:
         parser.error("Error: arg '--blur_amount' must be odd.")
