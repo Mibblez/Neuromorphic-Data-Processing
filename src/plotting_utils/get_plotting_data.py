@@ -77,18 +77,12 @@ class EventChunkConfig:
 
 # TODO: rename to CsvChunkData
 class CsvData:
-    file_name: str
-    time_windows: List[float]
-    y_on: List[int]
-    y_off: List[int]
-    y_all: List[int]
-
     def __init__(self, file_name: str, time_windows: List[float], y_on: List[int], y_off: List[int], y_all: List[int]):
-        self.file_name = file_name
-        self.time_windows = time_windows
-        self.y_on = y_on
-        self.y_off = y_off
-        self.y_all = y_all
+        self.file_name: str = file_name
+        self.time_windows: List[float] = time_windows
+        self.y_on:  List = y_on
+        self.y_off: List = y_off
+        self.y_all: List = y_all
 
 
 class DataStorage(Enum):
