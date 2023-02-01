@@ -82,13 +82,8 @@ def main(args: argparse.Namespace):
         os.makedirs(args.results_directory)
 
     off_guas = []
-    off_labels = []
-
     on_guas = []
-    on_labels = []
-
     both_guas = []
-    both_labels = []
 
     # Get csv files inside of the data folder
     csv_paths = (
@@ -137,10 +132,6 @@ def main(args: argparse.Namespace):
         current_line.remove()
         both_guas.append(current_line)
         lines.both = current_line
-
-        off_labels.append(csv_filename + " Off Events")
-        on_labels.append(csv_filename + " On Events")
-        both_labels.append(csv_filename + " All Events")
 
         # Format & add data to scatter sub-plots
         axes[0][0].scatter(d.time_windows, d.y_off, c="red", picker=True, s=1)
