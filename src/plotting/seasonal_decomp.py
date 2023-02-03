@@ -23,6 +23,14 @@ def get_args() -> argparse.Namespace:
         required=True,
     )
     parser.add_argument(
+        "--model",
+        "-m",
+        choices=["add", "mult"],
+        help="The seasonal decomposition model (additive or multiplicative)",
+        type=str,
+        required=True,
+    )
+    parser.add_argument(
         "--num_rows",
         "-n",
         help="The number of rows of data to include in the plot",
@@ -43,14 +51,21 @@ def get_args() -> argparse.Namespace:
 
     args = parser.parse_args()
     args.event_type = args.event_type.capitalize() + " Count"
+    args.model = "additive" if args.model == "add" else "multiplicative"
 
     return args
 
 
 def seasonal_decomp(
-    csv_path: str, columns_to_plot: List[str], num_rows: int, seasonal_period: int = 100, plot_title=None, skip_rows=0
+    csv_path: str,
+    model: str,
+    columns_to_plot: List[str],
+    rows_to_plot: int,
+    seasonal_period: int = 100,
+    plot_title=None,
+    rows_to_skip=0,
 ) -> List[DataFrame]:
-    df = read_csv(csv_path, nrows=num_rows + skip_rows + 1)
+    df = read_csv(csv_path, nrows=rows_to_plot + rows_to_skip + 1)
 
     column_titles_found = list(df)
 
@@ -59,26 +74,31 @@ def seasonal_decomp(
 
     decomposition_results = []
     for column in columns_to_plot:
+        if model == "multiplicative":
+            # The multiplicative model cannot have 0 values in the dataframe. Change occurances of 0 to a small float
+            df.loc[df[column] == 0, column] = 0.01
+
         events_to_plot = df[column]
 
         if plot_title is not None:
             # The name of the dataframe will be used as the plot title
             events_to_plot.name = f"{plot_title} {column}"
 
-        decomposition_results.append(sm.tsa.seasonal_decompose(events_to_plot[skip_rows:], period=seasonal_period))
+        decomposition_results.append(
+            sm.tsa.seasonal_decompose(events_to_plot[rows_to_skip:], period=seasonal_period, model=model)
+        )
 
     return decomposition_results
 
 
 def main(args: argparse.Namespace):
-
     matplotlib.use("Qt5Agg")
 
     # Auto generate plot title from csv_filename
     plot_title = os.path.splitext(os.path.basename(os.path.normpath(args.aedat_csv_file)))[0]
 
     decomposition = seasonal_decomp(
-        args.aedat_csv_file, [args.event_type], args.num_rows, args.period, plot_title, args.skip_rows
+        args.aedat_csv_file, args.model, [args.event_type], args.num_rows, args.period, plot_title, args.skip_rows
     )[0]
     decomposition.plot()
 
@@ -86,7 +106,7 @@ def main(args: argparse.Namespace):
     fig.set_size_inches(16, 10)
 
     plt.tight_layout(pad=1.10)
-    plt.savefig(f"{plot_title}-{args.event_type.replace(' ', '-')}.png")
+    plt.savefig(f"{plot_title}-{args.event_type.replace(' ', '-')}-{args.model}.png")
     plt.clf()
 
 
