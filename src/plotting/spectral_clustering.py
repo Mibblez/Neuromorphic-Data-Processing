@@ -42,7 +42,6 @@ def get_args() -> argparse.Namespace:
 
 
 def main(args: argparse.Namespace):
-    get_args()
     matplotlib.use("Qt5Agg")
 
     data = get_plotting_data.SpatialCsvData.from_csv(
