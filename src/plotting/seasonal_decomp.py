@@ -47,7 +47,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument(
         "--period", "-p", help="The period for the seasonal decomposition", type=int_arg_positive_nonzero, default=100
     )
-    parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg)
+    parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg, default=".")
 
     args = parser.parse_args()
     args.event_type = args.event_type.capitalize() + " Count"
@@ -106,7 +106,7 @@ def main(args: argparse.Namespace):
     fig.set_size_inches(16, 10)
 
     plt.tight_layout(pad=1.10)
-    plt.savefig(f"{plot_title}-{args.event_type.replace(' ', '-')}-{args.model}.png")
+    plt.savefig(os.path.join(args.save_directory, f"{plot_title}-{args.event_type.replace(' ', '-')}-{args.model}.png"))
     plt.clf()
 
 
