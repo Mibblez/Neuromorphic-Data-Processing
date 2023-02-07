@@ -106,7 +106,12 @@ def main(args: argparse.Namespace):
     fig.set_size_inches(16, 10)
 
     plt.tight_layout(pad=1.10)
-    plt.savefig(os.path.join(args.save_directory, f"{plot_title}-{args.event_type.replace(' ', '-')}-{args.model}.png"))
+    plt.savefig(
+        os.path.join(
+            args.save_directory,
+            f"{plot_title}-{args.event_type.replace(' ', '-')}-{args.model}-{args.period}Period.png",
+        )
+    )
     plt.clf()
 
 
