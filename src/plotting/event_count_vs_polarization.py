@@ -7,46 +7,38 @@ from natsort import natsorted
 import pandas as pd
 import tqdm
 
-csv_folder = ""
-debug_info = False
+from plotting_utils.plotting_helper import path_arg
 
 
-def get_args():
-    global csv_folder, debug_info
-
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("csv_folder", help="Folder with CSV files to plot", type=str)
-    parser.add_argument("--debug_info", "-d", help="Display debug info insead of a progress bar", action="store_true")
-    args = parser.parse_args()
 
-    csv_folder = args.csv_folder
+    parser.add_argument("csv_folder", help="Folder with CSV files to plot", type=path_arg)
+    parser.add_argument("--debug_info", "-d", help="Display debug info insead of a progress bar", action="store")
+    parser.add_argument("--save_directory", "-s", help="Save file to directory", type=path_arg, default=".")
 
-    if not os.path.exists(csv_folder) or not os.path.isdir(csv_folder):
-        quit(f"The folder {csv_folder} does not exist")
-
-    debug_info = args.debug_info
+    return parser.parse_args()
 
 
-if __name__ == "__main__":
-    get_args()
+def main(args: argparse.Namespace):
 
     # Resize plot
     plt.rcParams["figure.figsize"] = [11, 5.5]
 
-    if debug_info:
-        pbar = natsorted(os.listdir(csv_folder))
+    if args.debug_info:
+        pbar = natsorted(os.listdir(args.csv_folder))
     else:
-        pbar = tqdm.tqdm(natsorted(os.listdir(csv_folder)))
+        pbar = tqdm.tqdm(natsorted(os.listdir(args.csv_folder)))
 
     # Iterate over sub-directories inside csv_folder
     for current_folder in [str(x) for x in pbar]:
-        if not os.path.isdir(os.path.join(csv_folder, current_folder)):
+        if not os.path.isdir(os.path.join(args.csv_folder, current_folder)):
             continue
 
         hz = filename_regex.parse_frequency(current_folder, "Hz")
 
         if hz == "":
-            if debug_info:
+            if args.debug_info:
                 print(f"Could not parse frequency for folder '{current_folder}', skipping...")
             continue
 
@@ -58,17 +50,17 @@ if __name__ == "__main__":
         plot_y = []
 
         # Iterate over csv files in the current sub-directory
-        files_in_current_folder = os.listdir(os.path.join(csv_folder, current_folder))
+        files_in_current_folder = os.listdir(os.path.join(args.csv_folder, current_folder))
         for csv_filename in files_in_current_folder:
             if not csv_filename.endswith(".csv"):
                 continue
 
-            full_csv_path = os.path.join(csv_folder, current_folder, csv_filename)
+            full_csv_path = os.path.join(args.csv_folder, current_folder, csv_filename)
 
             degrees = filename_regex.parse_degrees(csv_filename)
 
             if degrees == "":
-                if debug_info:
+                if args.debug_info:
                     print(f"Could not parse polarization angle for file '{full_csv_path}', skipping...")
                 continue
 
@@ -101,4 +93,12 @@ if __name__ == "__main__":
     ax.set_ylim(bottom=0)
 
     plt.tight_layout()
-    plt.show()
+
+    csv_folder_name = os.path.basename(os.path.dirname(args.csvfolder))
+
+    plt.savefig(os.path.join(args.save_directory, f"{csv_folder_name}-EventVsPolarization.png"))
+
+
+if __name__ == "__main__":
+    args = get_args()
+    main(args)
