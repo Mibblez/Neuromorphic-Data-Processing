@@ -61,7 +61,8 @@ def get_args() -> argparse.Namespace:
 
     if not (args.pixel_x or args.pixel_y or args.area_size) and not args.global_area:
         sys.exit(
-            f"{sys.argv[0]}: error: Arguments from one of the following groups are required: 'Local area arguments', 'Global area arguments'"
+            f"{sys.argv[0]}: error: Arguments from one of the following groups are required:"
+            "'Local area arguments', 'Global area arguments'"
         )
 
     if args.pixel_x or args.pixel_y or args.area_size:
