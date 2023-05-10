@@ -8,7 +8,6 @@ from enum import Enum
 
 
 class EventChunkConfig:
-
     graphType: str
     """hist, wavelets, kmeans, smooth buts lets be honest. its just hist """
 

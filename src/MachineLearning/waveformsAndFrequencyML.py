@@ -7,7 +7,6 @@ import saveWaveformsAndFreqResult
 
 
 def trainAndSave(model, frame_count, num_epochs, learning_rate):
-
     # (
     #     waveformTrainOutput,
     #     frequencyTrainOutput,

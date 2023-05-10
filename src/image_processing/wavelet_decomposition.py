@@ -18,11 +18,7 @@ def get_args() -> argparse.Namespace:
 
     parser.add_argument("image_path", help="path to image to perform wavelet decomposition on", type=file_arg_image)
     parser.add_argument(
-        "--type",
-        "-t",
-        help="sets the type of wavelet decomposition to perform",
-        action="store",
-        type=str
+        "--type", "-t", help="sets the type of wavelet decomposition to perform", action="store", type=str
     )
     parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg, default=".")
     args = parser.parse_args()

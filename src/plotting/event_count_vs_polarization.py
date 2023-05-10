@@ -21,7 +21,6 @@ def get_args() -> argparse.Namespace:
 
 
 def main(args: argparse.Namespace):
-
     # Resize plot
     plt.rcParams["figure.figsize"] = [11, 5.5]
 
