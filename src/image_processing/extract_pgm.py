@@ -10,14 +10,15 @@ from plotting_utils.plotting_helper import file_arg, path_arg, int_arg_positive_
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "aedat_csv_file", help="CSV containing AEDAT data to be plotted (On,Off,Both,PGM_String)", type=file_arg
+        "aedat_csv_file", help="CSV containing AEDAT data to be plotted. Must contain a PGM_String column",
+        type=file_arg
     )
     parser.add_argument(
         "--max_images",
         "-i",
         help="Max number of pgm images to extract",
         type=int_arg_positive_nonzero,
-        default="default"
+        default=sys.maxint
     )
     parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg, default=".")
 
@@ -50,6 +51,7 @@ def main(args: argparse.Namespace):
             raise ValueError(f"Error: File '{csv_file}' has a header but contains no data")
 
         image_count = 0
+        csv_stem = pathlib.Path(csv_file).stem
         for row in reader:
             if image_count >= max_images:
                 break
@@ -57,7 +59,6 @@ def main(args: argparse.Namespace):
             pgm_string = row[pgm_index]
             pgm_string = pgm_string.replace('-', '\n')
 
-            csv_stem = pathlib.Path(csv_file).stem
             filename = f"{csv_stem}_{image_count}"
             output_path = os.path.join(args.save_directory, filename)
 
