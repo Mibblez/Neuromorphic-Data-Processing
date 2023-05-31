@@ -59,7 +59,7 @@ def main(args: argparse.Namespace):
             pgm_string = row[pgm_index]
             pgm_string = pgm_string.replace('-', '\n')
 
-            filename = f"{csv_stem}_{image_count}"
+            filename = f"{csv_stem}_{image_count}.pgm"
             output_path = os.path.join(args.save_directory, filename)
 
             with open(output_path, 'w') as pgm_file:
