@@ -1,5 +1,4 @@
 import csv
-from itertools import islice
 import sys
 import matplotlib
 import matplotlib.pyplot as plt
@@ -7,7 +6,13 @@ from plotting_utils import filename_regex
 import argparse
 import os
 import math
-from plotting_utils.plotting_helper import check_aedat_csv_format, path_arg, file_arg, int_arg_not_negative, int_arg_positive_nonzero
+from plotting_utils.plotting_helper import (
+    check_aedat_csv_format,
+    path_arg,
+    file_arg,
+    int_arg_not_negative,
+    int_arg_positive_nonzero,
+)
 
 
 def get_args() -> argparse.Namespace:
@@ -50,11 +55,11 @@ def main(args: argparse.Namespace):
         header = next(csv_reader, None)  # Grab the header
         if header is None:
             raise ValueError(f"Error: File '{csv_file}' seems to be empty")
-        
+
         # Strip whitespace from header if there is any
         header = [x.strip(" ") for x in header]
 
-        if not check_aedat_csv_format(header, ["On/Off","X", "Y", "Timestamp"]):
+        if not check_aedat_csv_format(header, ["On/Off", "X", "Y", "Timestamp"]):
             sys.exit(
                 f"File {csv_file} is not of the correct format.\n"
                 "A csv containing Polarity, X, Y, and Timestamp columns is required."
@@ -64,7 +69,7 @@ def main(args: argparse.Namespace):
         y_index = header.index("Y")
         timestamp_index = header.index("Timestamp")
 
-        for row in csv_reader:  
+        for row in csv_reader:
             check_x = abs(x_index - args.pixel_x)
             check_y = abs(y_index - args.pixel_y)
 
