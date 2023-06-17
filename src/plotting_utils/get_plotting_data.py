@@ -165,6 +165,11 @@ class SpatialCsvData:
             if header != expected_header:
                 raise ValueError(f"Found header: {header}\nExpected: {expected_header}")
 
+            polarity_index = header.index("On/Off")
+            x_index = header.index("X")
+            y_index = header.index("Y")
+            timestamp_index = header.index("Timestamp")
+
             # Skip N rows as specified by skip_rows
             [next(reader, None) for _ in range(skip_rows)]
 
@@ -173,20 +178,20 @@ class SpatialCsvData:
             if first_row is None:
                 raise ValueError(f"CSV file '{csv_file}' seems to be empty")
 
-            first_timestamp = int(first_row[3])
+            first_timestamp = int(first_row[timestamp_index])
 
             # Determine if polarity is stored as True/False or 1/-1
-            polarity_true = "True" if first_row[0] in ("True", "False") else "1"
+            polarity_true = "True" if first_row[polarity_index] in ("True", "False") else "1"
 
             for row in itertools.chain([first_row], reader):
-                timestamp = int(row[3]) - first_timestamp
+                timestamp = int(row[timestamp_index]) - first_timestamp
 
                 if timestamp > time_limit:
                     break
 
-                polarity = row[0] == polarity_true
-                x_pos = int(row[1])
-                y_pos = 128 - int(row[2])
+                polarity = row[polarity_index] == polarity_true
+                x_pos = int(row[x_index])
+                y_pos = 128 - int(row[y_index])
 
                 spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
 
@@ -226,18 +231,22 @@ def read_aedat_csv(csv_path: str, timeWindow: int, maxSize: int = -1) -> CsvData
                     "Header entries should indicate that the columns contain event counts"
                 )
 
+        on_index = header.index("On")
+        off_index = header.index("Off")
+        both_index = header.index("Both")
+
         for i, row in enumerate(reader):
             x.append((i - 1) * timeWindow * 0.000001)
             # TODO: If timewindow is large this will not work
             # also machineLearning Get data might need this fix for outliers
-            if int(row[2]) > 8000:  # If camera bugs out and registers too many events, use like data instead
+            if int(row[both_index]) > 8000:  # If camera bugs out and registers too many events, use like data instead
                 y_on.append(sum(y_on) // len(y_on))
                 y_off.append(sum(y_off) // len(y_off))
                 y_all.append(sum(y_all) // len(y_all))
             else:
-                y_on.append(int(row[0]))
-                y_off.append(int(row[1]))
-                y_all.append(int(row[2]))
+                y_on.append(int(row[on_index]))
+                y_off.append(int(row[off_index]))
+                y_all.append(int(row[both_index]))
             if i == maxSize:
                 break
 
