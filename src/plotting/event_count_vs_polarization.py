@@ -42,7 +42,7 @@ def main(args: argparse.Namespace):
             continue
 
         # Update progress bar if it is being used
-        if type(pbar) == tqdm.std.tqdm:
+        if isinstance(pbar, tqdm.std.tqdm):
             pbar.set_description(f"Processing {hz}")
 
         plot_x = []
