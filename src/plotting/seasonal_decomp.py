@@ -1,10 +1,17 @@
 from pandas import read_csv, DataFrame
 from matplotlib import pyplot as plt
 from typing import List
+import numpy as np
 from plotting_utils.plotting_helper import check_aedat_csv_format
-from plotting_utils.plotting_helper import file_arg, path_arg, int_arg_positive_nonzero
+from plotting_utils.plotting_helper import (
+    file_arg,
+    path_arg,
+    specify_file_to_create_if_not_exists_arg,
+    int_arg_positive_nonzero,
+)
 import matplotlib
 import statsmodels.api as sm
+import statsmodels
 import argparse
 import os
 
@@ -49,7 +56,14 @@ def get_args() -> argparse.Namespace:
     )
     parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg, default=".")
 
+    parser.add_argument("--save_stats", "-a", help="Save stats to csv", type=specify_file_to_create_if_not_exists_arg)
+
     args = parser.parse_args()
+
+    # Ensure that if save_stats is set, the file to create is a csv
+    if args.save_stats and os.path.splitext(args.save_stats)[1] != ".csv":
+        parser.error("--save_stats requires a file with a '.csv' extension")
+
     args.event_type = args.event_type.capitalize() + " Count"
     args.model = "additive" if args.model == "add" else "multiplicative"
 
@@ -97,9 +111,20 @@ def main(args: argparse.Namespace):
     # Auto generate plot title from csv_filename
     plot_title = os.path.splitext(os.path.basename(os.path.normpath(args.aedat_csv_file)))[0]
 
-    decomposition = seasonal_decomp(
+    decomposition: statsmodels.tsa.seasonal.DecomposeResult = seasonal_decomp(
         args.aedat_csv_file, args.model, [args.event_type], args.num_rows, args.period, plot_title, args.skip_rows
     )[0]
+
+    if args.save_stats:
+        if not os.path.exists(args.save_stats):
+            with open(args.save_stats, "a+") as f:
+                f.write("Filename,Variance of Resid,Standard Deviation of Resid\n")
+
+        with open(args.save_stats, "a+") as f:
+            f.write(
+                f"{os.path.basename(args.aedat_csv_file)},{np.var(decomposition.resid)},{np.std(decomposition.resid)}\n"
+            )
+
     decomposition.plot()
 
     fig = matplotlib.pyplot.gcf()

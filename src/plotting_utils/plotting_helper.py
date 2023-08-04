@@ -43,6 +43,13 @@ def path_arg(arg: str) -> str:
     return arg
 
 
+def specify_file_to_create_if_not_exists_arg(arg: str) -> str:
+    if not os.path.exists(os.path.dirname(arg)):
+        raise ValueError(f"Specified directory '{os.path.dirname(arg)}' does not exist")
+
+    return arg
+
+
 def file_arg(arg: str) -> str:
     if not os.path.isfile(arg):
         raise ValueError(f"Specified file '{arg}' does not exist")
