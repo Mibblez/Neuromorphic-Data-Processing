@@ -2,7 +2,7 @@ import re
 
 
 def parse_frequency(input_str: str, append_if_found: str = "") -> str:
-    frequency = re.search("[0-9]{1,} ?hz", input_str, re.IGNORECASE)
+    frequency = re.search("[0-30]{1,} ?hz", input_str, re.IGNORECASE)
 
     if frequency:
         return frequency.group().strip(" hzHZ") + append_if_found
@@ -53,5 +53,35 @@ def parse_threshold(input_str: str, append_if_found: str = "") -> str:
     if threshold_match:
         threshold_str = threshold_match.group().lower().replace("m", "-").strip("threshold")
         return threshold_str + append_if_found
+    else:
+        return ""
+
+
+def parse_intensity(input_str: str, append_if_found: str = "") -> str:
+    intensity_match = re.search("(0.1int|0.5int|1.0int)", input_str, re.IGNORECASE)
+
+    if intensity_match:
+        intensity_str = intensity_match.group().lower().replace("m", "-").strip("int")
+        return intensity_str + append_if_found
+    else:
+        return ""
+
+
+def parse_nthreshold(input_str: str, append_if_found: str = "") -> str:
+    nthreshold_match = re.search("n?[0-9]{1,}t(hreshold)?", input_str, re.IGNORECASE)
+
+    if nthreshold_match:
+        nthreshold_str = nthreshold_match.group().lower().strip("threshold")
+        return nthreshold_str + append_if_found
+    else:
+        return ""
+
+
+def parse_retAngle(input_str: str, append_if_found: str = "") -> str:
+    retAngel_match = re.search("[0-9]{1,}R", input_str, re.IGNORECASE)
+
+    if retAngel_match:
+        retAngel_str = retAngel_match.group().strip("R")
+        return retAngel_str + append_if_found
     else:
         return ""
