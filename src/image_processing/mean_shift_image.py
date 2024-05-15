@@ -33,7 +33,9 @@ def main(args: argparse.Namespace):
     original_shape = original_image.shape
     flat_image = np.reshape(original_image, [-1, 3])
 
-    bandwidth = estimate_bandwidth(flat_image, quantile=0.1, n_samples=100, n_jobs=4) if args.infinite_bandwidth else None
+    bandwidth = (
+        estimate_bandwidth(flat_image, quantile=0.1, n_samples=100, n_jobs=4) if args.infinite_bandwidth else None
+    )
 
     mean_shift = MeanShift(bandwidth=bandwidth, bin_seeding=True)
 

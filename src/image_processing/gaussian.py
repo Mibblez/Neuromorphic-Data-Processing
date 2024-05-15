@@ -1,6 +1,6 @@
 """ GAUSSIAN IMAGE DVS128 IMAGES """
 
-import sys
+
 import cv2
 import numpy as np
 import os
