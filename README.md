@@ -1,7 +1,7 @@
 # Neuromorphic Data Processing
 ![Tests](https://github.com/MartinNowak96/Neuromorphic-Data-Processing/actions/workflows/tests.yml/badge.svg)
 <a href="https://forthebadge.com/">
-<img src="https://forthebadge.com/images/badges/works-on-my-machine.svg" width="125">
+<img src="https://forthebadge.com/images/badges/works-on-my-machine.svg" width="150">
 </a>
 
 Python scripts for plotting and performing machine learning on neuromorphic data.
