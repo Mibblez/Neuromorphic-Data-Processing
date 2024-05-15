@@ -1,7 +1,7 @@
-flake8==6.1.0
-tox==4.11.3
-pytest==7.4.2
-pytest-cov==4.1.0
-mypy==1.5.1
-black==23.9.0
+flake8==7.0.0
+tox==4.15.0
+pytest==8.2.0
+pytest-cov==5.0.0
+mypy==1.10.0
+black==24.4.2
 pur==7.3.1
