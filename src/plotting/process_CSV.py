@@ -100,11 +100,11 @@ def process_csv_files(directory: str, output_file: str, target: str, subdivision
                     statistics[f"Average Subdivision {j+1}"] = average
                     statistics[f"Total Subdivision {j+1}"] = total
 
-                statistics[f"Target"] = target
-                statistics[f"Hz"] = hz
-                statistics[f"Intensity"] = intensity
-                statistics[f"Threshold"] = thresh
-                statistics[f"Retarder Angle"] = retAngle
+                statistics["Target"] = target
+                statistics["Hz"] = hz
+                statistics["Intensity"] = intensity
+                statistics["Threshold"] = thresh
+                statistics["Retarder Angle"] = retAngle
                 writer.writerow(statistics)
 
 

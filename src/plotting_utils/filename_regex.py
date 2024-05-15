@@ -2,12 +2,16 @@ import re
 
 
 def parse_frequency(input_str: str, append_if_found: str = "") -> str:
-    frequency = re.search("[0-30]{1,} ?hz", input_str, re.IGNORECASE)
+    frequency = re.search("[0-9]+\s?hz", input_str, re.IGNORECASE)
 
     if frequency:
         return frequency.group().strip(" hzHZ") + append_if_found
     else:
         return ""
+
+
+print("SOME BULLSHIT")
+print(parse_frequency("29HZ-2sl-20deg-m1Threshold-BackLight-2s.csv"))
 
 
 def parse_voltage(input_str: str, append_if_found: str = "") -> str:
