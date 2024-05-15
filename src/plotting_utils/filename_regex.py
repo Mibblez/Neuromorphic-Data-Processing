@@ -10,10 +10,6 @@ def parse_frequency(input_str: str, append_if_found: str = "") -> str:
         return ""
 
 
-print("SOME BULLSHIT")
-print(parse_frequency("29HZ-2sl-20deg-m1Threshold-BackLight-2s.csv"))
-
-
 def parse_voltage(input_str: str, append_if_found: str = "") -> str:
     voltage_match = re.search("[0-9]{1,} ?m?v", input_str, re.IGNORECASE)
 
