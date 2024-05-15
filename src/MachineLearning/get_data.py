@@ -70,6 +70,66 @@ def getMachineLearningData(num_frames: int, base_folder: str):
     return np.array(all_input_data), np.array(all_output_data)
 
 
+def getMachineLearningDataTexture(num_frames: int, base_folder: str):
+    all_input_data = []  # numberOfFrames x 3
+    all_output_data = []  # frequency
+
+    folders = os.listdir(f"data/{base_folder}")
+    folders = natsorted(folders, alg=ns.IGNORECASE)
+
+    for folder_name in folders:
+        only_files = [
+            f
+            for f in listdir(f"data/{base_folder}/{folder_name}")
+            if isfile(join(f"data/{base_folder}/{folder_name}", f))
+        ]
+
+        for data_file in only_files:
+            with open(f"data/{base_folder}/{folder_name}/{data_file}", "r") as csvfile:
+                reader = csv.reader(csvfile, delimiter=",")
+
+                # Texture files
+                if "120G" in folder_name:
+                    file_class = 0
+                elif "150G" in folder_name:
+                    file_class = 1
+                elif "180G" in folder_name:
+                    file_class = 2
+                elif "240G" in folder_name:
+                    file_class = 3
+                elif "320G" in folder_name:
+                    file_class = 4
+                elif "400G" in folder_name:
+                    file_class = 5
+                elif "600G" in folder_name:
+                    file_class = 6
+                elif "800G" in folder_name:
+                    file_class = 7
+                elif "1000G" in folder_name:
+                    file_class = 8
+                elif "1500G" in folder_name:
+                    file_class = 9
+                elif "2500G" in folder_name:
+                    file_class = 10
+                elif "3000G" in folder_name:
+                    file_class = 11
+                # This must be a frequency file. Use the frequency as the class
+                else:
+                    print("WARNING: Unrecognized folder")
+                    continue
+                print(f"{data_file} in {folder_name} is class {file_class}")
+                input_group = []
+                for i, row in enumerate(reader):
+                    if i != 0:
+                        input_group.append((int(row[0]), int(row[1]), int(row[2])))
+
+                        if i % num_frames == 0:
+                            all_input_data.append(np.array(input_group))
+                            all_output_data.append(file_class)
+                            input_group = []
+    return np.array(all_input_data), np.array(all_output_data)
+
+
 class WaveAndFreqData:
     waveform_id_dict = {"burst": 0, "sine": 1, "square": 2, "triangle": 3, "dc": 4, "noise": 5}
     frequency_id_dict = {"500mv": 0, "400mv": 1, "300mv": 2, "200mv": 3}

@@ -18,6 +18,7 @@ def get_args() -> argparse.Namespace:
     )
     parser.add_argument("--subtract_image", "-s", help="Subtract mean shifted image from the original image", type=bool)
     parser.add_argument("--save_directory", "-d", help="Save file to directory", type=path_arg, default=".")
+    parser.add_argument("--infinite_bandwidth", "-i", help="Infinite bandwidth", action="store_true")
     args = parser.parse_args()
 
     # TODO: Implement subtract_arg.
@@ -32,7 +33,10 @@ def main(args: argparse.Namespace):
     original_shape = original_image.shape
     flat_image = np.reshape(original_image, [-1, 3])
 
-    bandwidth = estimate_bandwidth(flat_image, quantile=0.1, n_samples=100)
+    bandwidth = (
+        estimate_bandwidth(flat_image, quantile=0.1, n_samples=100, n_jobs=4) if args.infinite_bandwidth else None
+    )
+
     mean_shift = MeanShift(bandwidth=bandwidth, bin_seeding=True)
 
     mean_shift.fit(flat_image)
