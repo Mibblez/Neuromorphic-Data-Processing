@@ -1,13 +1,13 @@
 # import pytest
 from plotting_utils import get_plotting_data
-from plotting_utils.get_plotting_data import DataStorage
+from plotting_utils.get_plotting_data import DataStorage, CamType
 import pytest
 import re
 
 
 def test_spatial_csv_bool_no_color():
     spatial_csv_data = get_plotting_data.SpatialCsvData.from_csv(
-        "tests/test_data/OnOff-X-Y-Timestamp.csv", DataStorage.BOOL
+        "tests/test_data/OnOff-X-Y-Timestamp.csv", DataStorage.BOOL, CamType.DVS128
     )
 
     assert spatial_csv_data.polarities == [True, False, False, True, True, True, True, True, False, False]
@@ -19,7 +19,7 @@ def test_spatial_csv_bool_no_color():
 
 def test_spatial_csv_no_bool_color():
     spatial_csv_data = get_plotting_data.SpatialCsvData.from_csv(
-        "tests/test_data/OnOff-X-Y-Timestamp.csv", DataStorage.COLOR
+        "tests/test_data/OnOff-X-Y-Timestamp.csv", DataStorage.COLOR, CamType.DVS128
     )
 
     assert spatial_csv_data.polarities == []
@@ -31,7 +31,7 @@ def test_spatial_csv_no_bool_color():
 
 def test_spatial_csv_bool_color():
     spatial_csv_data = get_plotting_data.SpatialCsvData.from_csv(
-        "tests/test_data/OnOff-X-Y-Timestamp.csv", DataStorage.BOOL_AND_COLOR
+        "tests/test_data/OnOff-X-Y-Timestamp.csv", DataStorage.BOOL_AND_COLOR, CamType.DVS128
     )
 
     assert spatial_csv_data.polarities == [True, False, False, True, True, True, True, True, False, False]
@@ -43,7 +43,7 @@ def test_spatial_csv_bool_color():
 
 def test_spatial_csv_truefalse_csv():
     spatial_csv_data = get_plotting_data.SpatialCsvData.from_csv(
-        "tests/test_data/OnOff-X-Y-Timestamp-TrueFalse.csv", DataStorage.BOOL_AND_COLOR
+        "tests/test_data/OnOff-X-Y-Timestamp-TrueFalse.csv", DataStorage.BOOL_AND_COLOR, CamType.DVS128
     )
 
     assert spatial_csv_data.polarities == [True, False, False, True, True, True, True, True, False, False]
@@ -57,9 +57,11 @@ def test_incorrect_format():
     with pytest.raises(
         ValueError, match=re.escape("Found header: ['On/Off', 'X', 'Y']\nExpected: ['On/Off', 'X', 'Y', 'Timestamp']")
     ):
-        get_plotting_data.SpatialCsvData.from_csv("tests/test_data/OnOff-X-Y.csv", DataStorage.COLOR)
+        get_plotting_data.SpatialCsvData.from_csv("tests/test_data/OnOff-X-Y.csv", DataStorage.COLOR, CamType.DVS128)
 
 
 def test_empty_csv():
     with pytest.raises(ValueError, match="CSV file 'tests/test_data/OnOff-X-Y-Timestamp-NODATA.csv' seems to be empty"):
-        get_plotting_data.SpatialCsvData.from_csv("tests/test_data/OnOff-X-Y-Timestamp-NODATA.csv", DataStorage.COLOR)
+        get_plotting_data.SpatialCsvData.from_csv(
+            "tests/test_data/OnOff-X-Y-Timestamp-NODATA.csv", DataStorage.COLOR, CamType.DVS128
+        )
