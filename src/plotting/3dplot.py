@@ -14,7 +14,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import plotting_utils.get_plotting_data as get_plotting_data
-from plotting_utils.get_plotting_data import DataStorage
+from plotting_utils.get_plotting_data import DataStorage, CamType
 from plotting_utils.plotting_helper import float_arg_positive_nonzero, path_arg, file_arg
 
 
@@ -46,7 +46,17 @@ def get_args() -> argparse.Namespace:
 def main(args: argparse.Namespace):
     matplotlib.use("Qt5Agg")
 
-    events = get_plotting_data.SpatialCsvData.from_csv(args.aedat_csv_file, DataStorage.COLOR, args.time_limit)
+    # TODO: make a command line arg to manually set cameraType
+    # arg will be required if cam type isn't in filename
+    cameraType = None
+    if "DVS240" in args.aedat_csv_file.upper():
+        cameraType = CamType.DVS240C
+    elif "DVS128" in args.aedat_csv_file.upper():
+        cameraType = CamType.DVS128
+
+    events = get_plotting_data.SpatialCsvData.from_csv(
+        args.aedat_csv_file, DataStorage.COLOR, cameraType, args.time_limit
+    )
 
     fig = plt.figure()
     fig.set_size_inches(12, 10)

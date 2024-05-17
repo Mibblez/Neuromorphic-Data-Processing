@@ -97,6 +97,24 @@ class DataStorage(Enum):
     NONE = 4
 
 
+class CamResolution:
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+
+
+class CamType(Enum):
+    DVS128 = 1
+    DVS240C = 2
+
+    def get_resolution(self) -> CamResolution:
+        match self:
+            case CamType.DVS128:
+                return CamResolution(128, 128)
+            case CamType.DVS240C:
+                return CamResolution(240, 180)
+
+
 class SpatialCsvData:
     def __init__(self, polarity_as_bool: bool, polarity_as_color: bool):
         self.polarities: List[bool] = []
@@ -120,7 +138,13 @@ class SpatialCsvData:
         self.polarities_color.append("g" if polarity == 1 else "r")
 
     @staticmethod
-    def from_csv(csv_file: str, data_storage: DataStorage, time_limit: int = sys.maxsize, skip_rows: int = 0):
+    def from_csv(
+        csv_file: str,
+        data_storage: DataStorage,
+        camera_type: CamType,
+        time_limit: int = sys.maxsize,
+        skip_rows: int = 0,
+    ):
         """Creates a SpatialCsvData object and appends data to it from a CSV file
 
         Parameters
@@ -129,6 +153,8 @@ class SpatialCsvData:
             CSV file containing data to be read into the created object
         data_storage : DataStorage
             How data should be stored in the created object
+        camera_type:
+            The type of the camera used. Ex: DVS128 or DVS240C
         time_limit : int, optional
             Legnth of data to be included in the created object (seconds), by default sys.maxsize
         skip_rows : int, optional
@@ -147,6 +173,8 @@ class SpatialCsvData:
         ValueError
             Raised when the CSV file has a header but contains no data
         """
+        camera_max_y = camera_type.get_resolution().y
+
         first_timestamp = 0
         if time_limit != sys.maxsize:
             time_limit = int(time_limit * 1000000)  # Convert to microseconds
@@ -156,34 +184,25 @@ class SpatialCsvData:
 
         spatial_csv_data = SpatialCsvData(polarity_as_bool, polarity_as_color)
 
-        first_row = pd.read_csv(csv_file, delimiter=",", skiprows=skip_rows, nrows=1)
+        first_row = pd.read_csv(csv_file, delimiter=",", skiprows=range(1, skip_rows), nrows=1)
+        # TODO: make sure the rows we need exist in the header, raise ValueError if an expected row doesn't exist
+        # TODO: make sure the csv contains data, raise ValueError if it doesn't
 
-        polarity_true = first_row["On/Off"].values[0]
-
-        if polarity_true in ("True", "False"):
-            polarity_true = "True"
-        else:
-            polarity_true = "1"
-
+        polarity_true = "True" if first_row["On/Off"].values[0] in ("True", "False") else "1"
         first_timestamp = first_row["Timestamp"].values[0]
 
-        chunksize = 10**5
-        for chunk in pd.read_csv(csv_file, chunksize=chunksize, delimiter=",", skiprows=skip_rows):
-            #
-            for _, row in chunk.iterrows():
-                timestamp = row["Timestamp"] - first_timestamp
+        for _, row in pd.read_csv(csv_file, delimiter=",", skiprows=range(1, skip_rows)).iterrows():
+            timestamp = row["Timestamp"] - first_timestamp
 
-                if timestamp > time_limit:
-                    return spatial_csv_data
+            if timestamp > time_limit:
+                break
 
-                polarity = row["On/Off"]
+            polarity = str(row["On/Off"]) == polarity_true
 
-                x_pos = row["X"]
+            x_pos = row["X"]
+            y_pos = camera_max_y - row["Y"]
 
-                # TODO: Different Values for 128 & 240C
-                y_pos = 180 - row["Y"]
-
-                spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
+            spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
 
         return spatial_csv_data
 
