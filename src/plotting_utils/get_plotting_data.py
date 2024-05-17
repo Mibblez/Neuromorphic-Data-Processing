@@ -1,4 +1,4 @@
-import csv
+import pandas as pd 
 import os
 import json
 import itertools
@@ -156,44 +156,38 @@ class SpatialCsvData:
 
         spatial_csv_data = SpatialCsvData(polarity_as_bool, polarity_as_color)
 
-        with open(csv_file, "r") as csvfile:
-            reader = csv.reader(csvfile, delimiter=",")
-            header = next(reader, None)  # Grab header
-            expected_header = ["On/Off", "X", "Y", "Timestamp"]
+        first_row = pd.read_csv(csv_file, delimiter=",", skiprows=skip_rows, nrows=1)
+       
+        polarity_true = first_row["On/Off"].values[0]
 
-            # Make sure CSV is the correct format
-            if header != expected_header:
-                raise ValueError(f"Found header: {header}\nExpected: {expected_header}")
+        if polarity_true in ("True", "False"):
+            polarity_true = "True"
+        else:
+            polarity_true = "1"
 
-            polarity_index = header.index("On/Off")
-            x_index = header.index("X")
-            y_index = header.index("Y")
-            timestamp_index = header.index("Timestamp")
+        
 
-            # Skip N rows as specified by skip_rows
-            [next(reader, None) for _ in range(skip_rows)]
+        first_timestamp = first_row["Timestamp"].values[0]
+        
 
-            first_row = next(reader, None)
+        chunksize = 10 ** 5
+        for chunk in pd.read_csv(csv_file, chunksize=chunksize, delimiter=",", skiprows=skip_rows):
+                       
+            #
+            for _, row in chunk.iterrows():                                       
+                    timestamp = row["Timestamp"] - first_timestamp
+                    
+                    if timestamp > time_limit:
+                        return spatial_csv_data
+                                        
+                    polarity = row["On/Off"]
+                    
+                    x_pos = row["X"]
 
-            if first_row is None:
-                raise ValueError(f"CSV file '{csv_file}' seems to be empty")
-
-            first_timestamp = int(first_row[timestamp_index])
-
-            # Determine if polarity is stored as True/False or 1/-1
-            polarity_true = "True" if first_row[polarity_index] in ("True", "False") else "1"
-
-            for row in itertools.chain([first_row], reader):
-                timestamp = int(row[timestamp_index]) - first_timestamp
-
-                if timestamp > time_limit:
-                    break
-
-                polarity = row[polarity_index] == polarity_true
-                x_pos = int(row[x_index])
-                y_pos = 128 - int(row[y_index])
-
-                spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
+                    #TODO: Different Values for 128 & 240C
+                    y_pos = 180 - row["Y"]
+                    
+                    spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
 
         return spatial_csv_data
 
@@ -201,7 +195,7 @@ class SpatialCsvData:
         self.x_positions.append(x)
         self.y_positions.append(y)
         self.timestamps.append(timestamp)
-
+    
         for polarity_func in self.__polarity_storage_callbacks:
             polarity_func(polarity)
 
