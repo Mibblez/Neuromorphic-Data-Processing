@@ -1,4 +1,4 @@
-import pandas as pd 
+import pandas as pd
 import os
 import json
 import itertools
@@ -157,7 +157,7 @@ class SpatialCsvData:
         spatial_csv_data = SpatialCsvData(polarity_as_bool, polarity_as_color)
 
         first_row = pd.read_csv(csv_file, delimiter=",", skiprows=skip_rows, nrows=1)
-       
+
         polarity_true = first_row["On/Off"].values[0]
 
         if polarity_true in ("True", "False"):
@@ -165,29 +165,25 @@ class SpatialCsvData:
         else:
             polarity_true = "1"
 
-        
-
         first_timestamp = first_row["Timestamp"].values[0]
-        
 
-        chunksize = 10 ** 5
+        chunksize = 10**5
         for chunk in pd.read_csv(csv_file, chunksize=chunksize, delimiter=",", skiprows=skip_rows):
-                       
             #
-            for _, row in chunk.iterrows():                                       
-                    timestamp = row["Timestamp"] - first_timestamp
-                    
-                    if timestamp > time_limit:
-                        return spatial_csv_data
-                                        
-                    polarity = row["On/Off"]
-                    
-                    x_pos = row["X"]
+            for _, row in chunk.iterrows():
+                timestamp = row["Timestamp"] - first_timestamp
 
-                    #TODO: Different Values for 128 & 240C
-                    y_pos = 180 - row["Y"]
-                    
-                    spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
+                if timestamp > time_limit:
+                    return spatial_csv_data
+
+                polarity = row["On/Off"]
+
+                x_pos = row["X"]
+
+                # TODO: Different Values for 128 & 240C
+                y_pos = 180 - row["Y"]
+
+                spatial_csv_data.append_row(polarity, x_pos, y_pos, timestamp)
 
         return spatial_csv_data
 
@@ -195,7 +191,7 @@ class SpatialCsvData:
         self.x_positions.append(x)
         self.y_positions.append(y)
         self.timestamps.append(timestamp)
-    
+
         for polarity_func in self.__polarity_storage_callbacks:
             polarity_func(polarity)
 
