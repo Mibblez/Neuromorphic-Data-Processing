@@ -9,14 +9,14 @@ import time
 from tensorflow.keras.callbacks import TensorBoard
 import os
 
-MODEL_NAME = f"Texture-{int(time.time())}"
+MODEL_NAME = f"Background-{int(time.time())}"
 tensorboard = TensorBoard(log_dir=f"logs\\{MODEL_NAME}")
 
 frameCount = 1000
 timeFrame = "500"
-num_epochs = 2
+num_epochs = 250
 
-inputData, outputData = get_data.getMachineLearningDataTexture(frameCount, "textures")
+inputData, outputData = get_data.getMachineLearningDataBackground(frameCount, "backgrounds")
 print(f"Input Shape: {inputData.shape}")
 
 trainInput, testInput, trainOutput, testOutput = sk.train_test_split(
@@ -45,7 +45,7 @@ model = keras.Sequential(
             bias_constraint=None,
             dropout=0.0,
             recurrent_dropout=0.0,
-            implementation=2,
+            # implementation=2,
             return_sequences=False,
             return_state=False,
             go_backwards=False,
@@ -58,7 +58,7 @@ model = keras.Sequential(
         keras.layers.GaussianDropout(0.01),
         keras.layers.Dense(450, activation=tf.nn.relu),
         keras.layers.Dense(200, activation=tf.nn.relu),
-        keras.layers.Dense(12, activation=tf.nn.softmax),  # Number must be equal to number of classes+1
+        keras.layers.Dense(5, activation=tf.nn.softmax),  # Number must be equal to number of classes+1
     ]
 )
 
@@ -84,21 +84,21 @@ loss = history.history["loss"]
 val_loss = history.history["val_loss"]
 
 machine_learning_folder = "MachineLearning"
-result_data_texture = "resultDataTexture"
+result_data_background = "resultDataBackground"
 
 if not os.path.exists(machine_learning_folder):
     os.mkdir(machine_learning_folder)
 
-if not os.path.exists(os.path.join(machine_learning_folder, result_data_texture)):
-    os.mkdir(os.path.join(machine_learning_folder, result_data_texture))
+if not os.path.exists(os.path.join(machine_learning_folder, result_data_background)):
+    os.mkdir(os.path.join(machine_learning_folder, result_data_background))
 
 epochs = range(1, len(acc) + 1)
 
-np.save(os.path.join(machine_learning_folder, result_data_texture, "epochs.npy"), epochs)
-np.save(os.path.join(machine_learning_folder, result_data_texture, timeFrame + "loss.npy"), loss)
-np.save(os.path.join(machine_learning_folder, result_data_texture, timeFrame + "val_loss.npy"), val_loss)
-np.save(os.path.join(machine_learning_folder, result_data_texture, timeFrame + "acc.npy"), acc)
-np.save(os.path.join(machine_learning_folder, result_data_texture, timeFrame + "val_acc.npy"), val_acc)
+np.save(os.path.join(machine_learning_folder, result_data_background, "epochs.npy"), epochs)
+np.save(os.path.join(machine_learning_folder, result_data_background, timeFrame + "loss.npy"), loss)
+np.save(os.path.join(machine_learning_folder, result_data_background, timeFrame + "val_loss.npy"), val_loss)
+np.save(os.path.join(machine_learning_folder, result_data_background, timeFrame + "acc.npy"), acc)
+np.save(os.path.join(machine_learning_folder, result_data_background, timeFrame + "val_acc.npy"), val_acc)
 
 plt.plot(epochs, loss, "r", label="Training Loss")
 plt.plot(epochs, val_loss, "b", label="Validation Loss")
@@ -106,7 +106,7 @@ plt.title("Training and Validation Loss")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.legend()
-plt.savefig(os.path.join(machine_learning_folder, result_data_texture, "Training_and_Validation_Loss.png"))
+plt.savefig(os.path.join(machine_learning_folder, result_data_background, "Training_and_Validation_Loss.png"))
 
 plt.plot(epochs, acc, "r", label="Training Accuracy")
 plt.plot(epochs, val_acc, "b", label="Validation Accuracy")
@@ -114,4 +114,4 @@ plt.title("Training and Validation Accuracy")
 plt.xlabel("Epochs")
 plt.ylabel("Accuracy")
 plt.legend()
-plt.savefig(os.path.join(machine_learning_folder, result_data_texture, "Training_and_Validation_Accuracy.png"))
+plt.savefig(os.path.join(machine_learning_folder, result_data_background, "Training_and_Validation_Accuracy.png"))

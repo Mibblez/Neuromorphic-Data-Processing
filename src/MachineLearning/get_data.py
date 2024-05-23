@@ -129,6 +129,49 @@ def getMachineLearningDataTexture(num_frames: int, base_folder: str):
                             input_group = []
     return np.array(all_input_data), np.array(all_output_data)
 
+def getMachineLearningDataBackground(num_frames: int, base_folder: str):
+    all_input_data = []  # numberOfFrames x 3
+    all_output_data = []  # frequency
+
+    folders = os.listdir(f"data/{base_folder}")
+    folders = natsorted(folders, alg=ns.IGNORECASE)
+
+    for folder_name in folders:
+        only_files = [
+            f
+            for f in listdir(f"data/{base_folder}/{folder_name}")
+            if isfile(join(f"data/{base_folder}/{folder_name}", f))
+        ]
+
+        for data_file in only_files:
+            with open(f"data/{base_folder}/{folder_name}/{data_file}", "r") as csvfile:
+                reader = csv.reader(csvfile, delimiter=",")
+
+                # Texture files
+                if "Black_Paper" in folder_name:
+                    file_class = 0
+                elif "White_Paper" in folder_name:
+                    file_class = 1
+                elif "Cream_Paper" in folder_name:
+                    file_class = 2
+                elif "Gray_Paper" in folder_name:
+                    file_class = 3
+                # This must be a background file. Use the background as the class
+                else:
+                    print("WARNING: Unrecognized folder")
+                    continue
+                print(f"{data_file} in {folder_name} is class {file_class}")
+                input_group = []
+                for i, row in enumerate(reader):
+                    if i != 0:
+                        input_group.append((int(row[0]), int(row[1]), int(row[2])))
+
+                        if i % num_frames == 0:
+                            all_input_data.append(np.array(input_group))
+                            all_output_data.append(file_class)
+                            input_group = []
+    return np.array(all_input_data), np.array(all_output_data)
+
 
 class WaveAndFreqData:
     waveform_id_dict = {"burst": 0, "sine": 1, "square": 2, "triangle": 3, "dc": 4, "noise": 5}
