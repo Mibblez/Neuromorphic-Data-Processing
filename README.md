@@ -15,6 +15,13 @@ It is recommended to create a fresh virtual environment for this project.
 python -m venv ./venv
 ```
 
+```
+# To activate virtual environment on Windows:
+.\venv\scripts\activate 
+
+# To activate virtual envi
+```
+
 Once the virtual environment is active, install the packages inside of requirements.txt and the plotting_utils local module.  
 
 ```
