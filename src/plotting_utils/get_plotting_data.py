@@ -173,7 +173,6 @@ class SpatialCsvData:
         ValueError
             Raised when the CSV file has a header but contains no data
         """
-        camera_max_y = camera_type.get_resolution().y
 
         first_timestamp = 0
         if time_limit != sys.maxsize:
@@ -184,9 +183,20 @@ class SpatialCsvData:
 
         spatial_csv_data = SpatialCsvData(polarity_as_bool, polarity_as_color)
 
-        first_row = pd.read_csv(csv_file, delimiter=",", skiprows=range(1, skip_rows), nrows=1)
-        # TODO: make sure the rows we need exist in the header, raise ValueError if an expected row doesn't exist
-        # TODO: make sure the csv contains data, raise ValueError if it doesn't
+        try:
+            first_row = pd.read_csv(csv_file, delimiter=",", skiprows=range(1, skip_rows), nrows=1)
+        except pd.errors.EmptyDataError:
+            raise ValueError(f"CSV file '{csv_file}' appears to be empty")
+
+        if (
+            "On/Off" not in first_row.columns
+            or "X" not in first_row.columns
+            or "Y" not in first_row.columns
+            or "Timestamp" not in first_row.columns
+        ):
+            raise ValueError(f"CSV file '{csv_file}' must contain these headers: [On/Off,X,Y,Timestamp]")
+
+        camera_max_y = camera_type.get_resolution().y
 
         polarity_true = "True" if first_row["On/Off"].values[0] in ("True", "False") else "1.0"
         first_timestamp = first_row["Timestamp"].values[0]
