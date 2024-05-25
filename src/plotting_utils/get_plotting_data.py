@@ -188,7 +188,7 @@ class SpatialCsvData:
         # TODO: make sure the rows we need exist in the header, raise ValueError if an expected row doesn't exist
         # TODO: make sure the csv contains data, raise ValueError if it doesn't
 
-        polarity_true = "True" if first_row["On/Off"].values[0] in ("True", "False") else "1"
+        polarity_true = "True" if first_row["On/Off"].values[0] in ("True", "False") else "1.0"
         first_timestamp = first_row["Timestamp"].values[0]
 
         for _, row in pd.read_csv(csv_file, delimiter=",", skiprows=range(1, skip_rows)).iterrows():
